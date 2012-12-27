@@ -1,0 +1,216 @@
+\documentclass[ebook,11pt,twoside,onecolumn,draft,openright]{memoir}
+% ebook (6x9) is not a standard paper size, but that was the request
+% closest real paper size is (m)smallroyalvopaper
+\usepackage[english]{babel}
+\usepackage[pdftex,svgnames]{xcolor}
+%\usepackage[pdftex,colorlinks=true,citecolor=black,linkcolor=black,urlcolor=black,draft=false]{hyperref}
+\usepackage{lettrine}
+\usepackage{needspace}
+\usepackage{ledmac}
+\usepackage{ifthen}
+\usepackage[T1]{fontenc}
+\usepackage{mathpazo}
+\usepackage{cjhebrew}
+\usepackage{verse}
+\usepackage{calc}
+\usepackage{perpage}
+\usepackage{alphalph}
+\usepackage{textcomp}
+\usepackage{nicefrac}
+\usepackage{etoolbox}
+\let\hangpara\undefined
+\let\hangparas\undefined
+\let\endhangparas\undefined
+\usepackage{hanging}
+\usepackage{indentfirst} % requested by Charles
+\scrollmode
+
+\renewcommand*\sfdefault{uop} % Optima for sans font
+
+% page style
+\makepagestyle{headvref}
+\makepagestyle{bookstart}
+\makeevenhead{headvref}{}{\thepage}{}
+\makeoddhead{headvref}{}{\thepage}{}
+\pagestyle{headvref}
+
+% page layout
+\settrims{0pt}{0pt} % stock paper is equal to page size
+% calculated using formula in memoir package
+% adding another 10pt due to regular verse numbers
+\settypeblocksize{*}{332pt+10pt}{*}
+\setlrmargins{0.75in}{*}{*}
+\setulmarginsandblock{0.5in}{0.5in}{*}
+\setheaderspaces{*}{*}{0.2}
+\checkandfixthelayout
+
+% paragraph spacing
+\setlength{\vgap}{1em}
+\setlength{\vindent}{3\vgap}
+\setlength{\stanzaskip}{0\baselineskip}
+\setbeforesubsubsecskip{-1ex plus -.8ex minus -.2ex}
+\setaftersubsubsecskip{0.7ex plus .2ex}
+\setlength{\emergencystretch}{3em}
+\setlength{\parindent}{0.8\parindent}
+
+% footnote style
+\paragraphfootnotes
+\renewcommand*{\thefootnote}{\textbf{\textrm{\alphalph{\value{footnote}}}}}
+%\setlength{\footmarkwidth}{1em}
+%\footmarkstyle{#1\hfill}
+\setlength{\footmarkwidth}{0em}
+%\footmarkstyle{{\scriptsize#1}\hspace{0.4em}}%\textsuperscript{#1}}
+\footmarkstyle{\textsuperscript{#1}}
+\renewcommand{\foottextfont}{\renewcommand{\v}{\footv}\fontfamily{ptm}\footnotesize}
+\MakePerPage{footnote}
+
+% This increases the incentive to break footnote lines prior to the footnote starting
+\makeatletter
+\let\old@parafootfmt\@parafootfmt
+\def\@parafootfmt#1{\old@parafootfmt{#1}\relax\penalty -1000}
+\makeatother
+
+% formatting
+\newcommand{\bookheader}[1]{\thispagestyle{bookstart}}
+\newcommand{\labelbook}[1]{}
+\newcommand{\bookpretitle}[1]{\vspace{2\baselineskip}\Needspace{0.5\textheight}{\centering \large \textsc{#1} \\}}
+\newcommand{\booktitle}[1]{{\centering \Huge \textsc{\textbf{#1}} \par}}
+\newlength{\hangvwidth}
+\newcommand{\verseone}{}
+\renewcommand{\v}[1]{\ifthenelse{\equal{#1}{1}}{\verseone}{\textsuperscript{#1}}}
+\makeatletter
+\let\old@v\v
+\newcommand{\vpoem}[1]{\settowidth{\hangvwidth}{\old@v{#1}}\setlength{\hangvwidth}{0.75\hangvwidth}\ifhmode\kern\hangvwidth\vadjust{}\else\leavevmode\fi\kern-\hangvwidth\old@v{#1}\nobreak\hskip\z@skip}
+\makeatother
+\newcommand{\footv}[1]{\textsuperscript{#1}}
+\newcommand{\fnote}[1]{\footnote{#1}}
+\newcommand{\fbib}[1]{\textit{#1}}
+\newcommand{\fbackref}[1]{{\scriptsize{#1}}}
+%\newcommand{\poempassage}[1]{\subsubsection{\hspace{-4em}\textsf{#1}}~\\\vspace{-1.2\baselineskip}}
+\newcommand{\passage}[1]{\par\Needspace{3\baselineskip}\vspace{0.2\baselineskip}\noindent\textbf{{\textsf{#1}}~\\}\vspace{-1.0\baselineskip}}
+\newcommand{\poempassage}[1]{\par\Needspace{3\baselineskip}\vspace{0.2\baselineskip}\noindent\hspace{-4em}\textbf{\textsf{#1}~\\}\vspace{0.0\baselineskip}}
+\newcommand{\chapt}[1]{\lettrine{#1}{}}
+\newcommand{\labelchapt}[1]{}
+\newcommand{\poeml}{}
+\newcommand{\poemll}{\vin}
+\newcommand{\poemlll}{\vin\vin}
+\newcommand{\divine}[1]{\textsc{#1}}
+\newcommand{\passageinfo}[1]{\vspace{-0.3\baselineskip}\subsubsection*{\hspace{0em}\textmd{\textsf{\textit{#1}}}}}
+\newcommand{\itemb}[1]{%
+    \renewcommand{\footnote}{\bulletfootnote}%
+    \item[#1] \bulletfoottext{}%
+    \renewcommand{\footnote}{\oldfootnote}%
+}
+\newcommand{\heb}[1]{\textcjheb{#1}}
+\newcommand{\footfract}[2]{\nicefrac{#1}{#2}}
+\renewcommand{\textonehalf}{\nicefrac{1}{2}}
+\newcommand{\booksection}[1]{{\vspace{\baselineskip}\centering \large \textsc{\textbf{#1}}\par\vspace{\baselineskip}}}
+\newcommand{\labelpsalm}[1]{\labelchapt{#1}{\centering \textbf{Psalm~#1} \par}}
+\newcommand{\psalminfo}[1]{{\small \textmd{\textsf{\textit{#1}}}\par\relax}}
+\newcommand{\interlude}[1]{\hfill\textit{#1}\par\relax}
+\newcommand{\red}[1]{{\textcolor{FireBrick}{#1}}}
+
+\makeatletter
+\newenvironment{poetry}{%
+    \renewcommand{\passage}{\poempassage}%
+    \renewcommand{\v}{\vpoem}%
+    \vspace{-0.7\topsep}%
+    \addtolength{\vleftmargin}{0.5em}%
+% interfered with quotes
+%    \activatepunct%
+    \begin{verse}%
+}{%
+    \end{verse}%
+    \vspace{-0.7\topsep}%
+    \penalty-100\relax% small bonus for page breaking here
+}
+\makeatother
+
+\newenvironment{bulletlist}{%
+    \gdef\bulletfoottext{}%
+    \let\oldfootnote\footnote%
+    \providecommand{\bulletfootnote}[1]%
+        {\footnotemark \gdef\bulletfoottext{\footnotetext{##1}\gdef\bulletfoottext{}}}%
+    \begin{enumerate}%
+}{%
+    \end{enumerate}%
+}
+
+\hyphenation{Naph-tuhites}
+\hyphenation{quar-reled}
+\hyphenation{when-ever}
+\hyphenation{Eph-raim}
+
+\begin{document}
+
+\input{books/01_Genesis}
+\input{books/02_Exodus}
+\input{books/03_Leviticus}
+\input{books/04_Numbers}
+\input{books/05_Deuteronomy}
+\input{books/06_Joshua}
+\input{books/07_Judges}
+\input{books/08_Ruth}
+\input{books/09_1_Samuel}
+\input{books/10_2_Samuel}
+\input{books/11_1_Kings}
+\input{books/12_2_Kings}
+\input{books/13_1_Chronicles}
+\input{books/14_2_Chronicles}
+\input{books/15_Ezra}
+\input{books/16_Nehemiah}
+\input{books/17_Esther}
+\input{books/18_Job}
+\renewcommand{\verseone}{\textsuperscript{1}}
+\input{books/19_Psalms}
+\renewcommand{\verseone}{}
+\input{books/20_Proverbs}
+\input{books/21_Ecclesiastes}
+\input{books/22_Song_of_Songs}
+\input{books/23_Isaiah}
+\input{books/24_Jeremiah}
+\input{books/25_Lamentations}
+\input{books/26_Ezekiel}
+\input{books/27_Daniel}
+\input{books/28_Hosea}
+\input{books/29_Joel}
+\input{books/30_Amos}
+\input{books/31_Obadiah}
+\input{books/32_Jonah}
+\input{books/33_Micah}
+\input{books/34_Nahum}
+\input{books/35_Habakkuk}
+\input{books/36_Zephaniah}
+\input{books/37_Haggai}
+\input{books/38_Zechariah}
+\input{books/39_Malachi}
+\newpage
+\input{books/40_Matthew}
+\input{books/41_Mark}
+\input{books/42_Luke}
+\input{books/43_John}
+\input{books/44_Acts}
+\input{books/45_Romans}
+\input{books/46_1_Corinthians}
+\input{books/47_2_Corinthians}
+\input{books/48_Galatians}
+\input{books/49_Ephesians}
+\input{books/50_Philippians}
+\input{books/51_Colossians}
+\input{books/52_1_Thessalonians}
+\input{books/53_2_Thessalonians}
+\input{books/54_1_Timothy}
+\input{books/55_2_Timothy}
+\input{books/56_Titus}
+\input{books/57_Philemon}
+\input{books/58_Hebrews}
+\input{books/59_James}
+\input{books/60_1_Peter}
+\input{books/61_2_Peter}
+\input{books/62_1_John}
+\input{books/63_2_John}
+\input{books/64_3_John}
+\input{books/65_Jude}
+\input{books/66_Revelation}
+
+\end{document}

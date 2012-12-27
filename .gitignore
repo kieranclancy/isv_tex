@@ -1,0 +1,6 @@
+/isv.pdf
+*.aux
+*.log
+*.fls
+.*.swp
+*.fdb_latexmk

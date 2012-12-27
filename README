@@ -1,0 +1,16 @@
+-----------------------------------------------------------------------------
+             International Standard Version -- http://isv.org/
+     A project to typeset the ISV translation of the Bible using LaTeX.
+-----------------------------------------------------------------------------
+
+From the introduction:
+
+"The Holy Bible: International Standard Version embodies the best results of
+modern scholarship as to the meaning of Scripture, and it expresses this
+meaning in clear and natural English. Produced by the ISV Foundation, the ISV
+offers an exciting opportunity to read and study the Scriptures in a fresh,
+new way."
+
+Please see the LICENSE file for copyright and licensing details of the Bible
+text itself. The main LaTeX template file and other scripts may be available
+under other licenses as specified by their respective authors.
