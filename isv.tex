@@ -19,6 +19,8 @@
 \usepackage{nicefrac}
 \usepackage{etoolbox}
 \usepackage{wallpaper}
+\usepackage{tikz}
+\usepackage{ifoddpage}
 \let\hangpara\undefined
 \let\hangparas\undefined
 \let\endhangparas\undefined
@@ -38,11 +40,12 @@
 % page style
 \makepagestyle{headvref}
 \makepagestyle{bookstart}
-\makeevenhead{headvref}{\rightmark}{}{\thetestament}
-\makeoddhead{headvref}{\thetestament}{}{\leftmark}
-\makeevenfoot{headvref}{}{\thepage}{}\makeoddfoot{headvref}{}{\thepage}{}
-\makeoddhead{bookstart}{\def\thepageref{}}{}{}
-\makeevenhead{bookstart}{\def\thepageref{}}{}{}
+\makeevenhead{headvref}{\rightmark}{\booktab}{\thetestament}
+\makeoddhead{headvref}{\thetestament}{\booktab}{\leftmark}
+\makeevenfoot{headvref}{}{\thepage}{}
+\makeoddfoot{headvref}{}{\thepage}{}
+\makeoddhead{bookstart}{\def\thepageref{}}{\booktab}{}
+\makeevenhead{bookstart}{\def\thepageref{}}{\booktab}{}
 \pagestyle{headvref}
 
 % page layout
@@ -54,6 +57,67 @@
 \setulmarginsandblock{0.5in}{0.5in}{*}
 \setheaderspaces{*}{*}{0.2}
 \checkandfixthelayout
+
+% Extra page layout bits
+% block height / 5:
+% (9in-0.5in-0.5in)/5 = 8in/5=1.6in
+\def\booktabheight{1.6in}
+% 3/4 of the margin
+% 0.75in * 3/4 = 0.5625in
+\def\booktabwidth{0.5625in}
+\def\booktabfontsize{12pt}
+% size vertical margin
+\def\booktabyoffset{-0.5in}
+% offset to booktab on odd pages
+% (full width of sheet)
+\def\booktaboddxoffset{6in}
+
+% block-side tabs
+\newcounter{booktabposition}
+\newcommand{\resetbooktab}{\setcounter{booktabposition}{0}}
+\newcommand{\preresetbooktab}{\setcounter{booktabposition}{0}}
+\newcommand{\advancebooktab}{%
+  \addtocounter{booktabposition}{1}
+  \ifthenelse{\equal{\value{booktabposition}}{5}}{\setcounter{booktabposition}{0}}\else{}
+}
+\newcommand{\considerbooktab}{\ifthenelse{\equal{\thebook}{}}{}{\booktab}}
+\newcommand{\booktab}{%
+  \ifthenelse{\equal{\thebook}{}}{}{
+    \edef\y{\value{booktabposition}}
+    \strictpagechecktrue
+    \checkoddpage
+    \edef\xl{\ifoddpage{0}\else{\booktaboddxoffset - \booktabwidth}\fi}
+    \edef\xr{\ifoddpage{\booktabwidth}\else{\booktaboddxoffset}\fi}
+    \ifoddpage{%
+      \begin{tikzpicture}[remember picture,overlay]
+        \node[yshift=0in] at (current page.north west)
+        {\begin{tikzpicture}[remember picture, overlay]
+            \path [fill=Gray] (\xl,\booktabyoffset - \y * \booktabheight) rectangle
+            (\xr,\booktabyoffset - \y * \booktabheight - 1 * \booktabheight) {};
+            \node[anchor=east,xshift=0.5 * \booktabwidth + 0.5 *
+            \booktabfontsize,
+            yshift=\booktabyoffset - \y * \booktabheight - 0.5 * \booktabheight,rectangle]
+            {\rotatebox{90}{\color{white}\fontsize{\booktabfontsize}{\booktabfontsize}\selectfont\MakeUppercase{\thebook}}};
+          \end{tikzpicture}
+        };
+      \end{tikzpicture}
+    }\else{%
+      \begin{tikzpicture}[remember picture,overlay]
+        \node[yshift=0in] at (current page.north west)
+        {\begin{tikzpicture}[remember picture, overlay]
+            \path [fill=Gray] (\xl,\booktabyoffset - \y * \booktabheight) rectangle
+            (\xr,\booktabyoffset - \y * \booktabheight - 1 * \booktabheight) {};
+            \node[anchor=east,xshift=\booktaboddxoffset -0.5 * \booktabwidth + 0.5 *
+            \booktabfontsize,
+            yshift=\booktabyoffset - \y * \booktabheight - 0.5 * \booktabheight,rectangle]
+            {\rotatebox{270}{\color{white}\fontsize{\booktabfontsize}{\booktabfontsize}\selectfont\MakeUppercase{\thebook}}};
+          \end{tikzpicture}
+        };
+      \end{tikzpicture}
+    }\fi
+  }
+}
+
 
 % paragraph spacing
 \setlength{\vgap}{1em}
@@ -117,7 +181,12 @@
 \newcommand{\bookheader}[1]{\newpage\thispagestyle{bookstart}\def\thebook{#1}}
 \newcommand{\labelbook}[1]{\def\thechapter{}\def\theverse{}\def\theref{}}
 \newcommand{\bookpretitle}[1]{{\centering \large \textsc{#1} \par}\addvspace{-0.6em plus 0.2em}}
-\newcommand{\booktitle}[1]{{\centering \Huge \textsc{\textbf{#1}}\par}\addvspace{0.4em plus 0.1em}}
+\newcommand{\booktitle}[1]{{\centering \Huge
+    \textsc{\textbf{#1}}\par}\addvspace{0.4em plus 0.1em}%
+  \addcontentsline{toc}{section}{#1}%
+  \advancebooktab%
+  \def\thebook{#1}\def\thechapter{}\def\theverse{}\def\theref{}%
+}
 \newlength{\hangvwidth}
 \newcommand{\verseone}{}
 \renewcommand{\v}[1]{\edef\prevref{\theref}%
@@ -125,7 +194,6 @@
    \edef\theref{\thebook{ }\thechapter\theverse}%
    \markboth{\theref}{\theref}%
    \ifthenelse{\equal{#1}{1}}{\verseone}{\textsuperscript{#1}}}
-
 \makeatletter
 \let\old@v\v
 \newcommand{\vpoem}[1]{\settowidth{\hangvwidth}{\old@v{#1}}\setlength{\hangvwidth}{0.75\hangvwidth}\ifhmode\kern\hangvwidth\vadjust{}\else\leavevmode\fi\kern-\hangvwidth\old@v{#1}\nobreak\hskip\z@skip}
@@ -205,6 +273,7 @@
 \tableofcontents*
 \newpage
 
+\preresetbooktab
 \def\thetestament{Old Testament}
 \addcontentsline{toc}{part}{Old Testament}
 \addcontentsline{toc}{chapter}{The Law}
