@@ -18,12 +18,20 @@
 \usepackage{textcomp}
 \usepackage{nicefrac}
 \usepackage{etoolbox}
+\usepackage{wallpaper}
 \let\hangpara\undefined
 \let\hangparas\undefined
 \let\endhangparas\undefined
 \usepackage{hanging}
 \usepackage{indentfirst} % requested by Charles
 \scrollmode
+
+% Allow enough space for the page numbers in the TOC.
+% tocrmarg should be about 1em greater than pnumwidth
+\makeatletter
+\renewcommand{\@pnumwidth}{3em}
+\renewcommand{\@tocrmarg}{4em}
+\makeatother
 
 \renewcommand*\sfdefault{uop} % Optima for sans font
 
@@ -110,7 +118,11 @@
 \newcommand{\bookheader}[1]{\newpage\thispagestyle{bookstart}}
 \newcommand{\labelbook}[1]{\def\thebook{#1}\def\thechapter{}\def\theverse{}\def\theref{}}
 \newcommand{\bookpretitle}[1]{{\centering \large \textsc{#1} \par}\addvspace{-0.6em plus 0.2em}}
-\newcommand{\booktitle}[1]{{\centering \Huge \textsc{\textbf{#1}}\par}\addvspace{0.4em plus 0.1em}}
+\newcommand{\booktitle}[1]{{\centering \Huge
+    \textsc{\textbf{#1}}\par}\addvspace{0.4em plus 0.1em}%
+  \addcontentsline{toc}{section}{#1}%
+  \def\thebook{#1}\def\thechapter{}\def\theverse{}\def\theref{}%
+}
 \newlength{\hangvwidth}
 \newcommand{\verseone}{}
 \renewcommand{\v}[1]{\edef\prevref{\theref}%
@@ -184,15 +196,19 @@
 
 \begin{document}
 
-\tableofcontents
+\setcounter{tocdepth}{3}
+\tableofcontents*
 \newpage
 
 \def\thetestament{Old Testament}
+\addcontentsline{toc}{part}{Old Testament}
+\addcontentsline{toc}{chapter}{The Law}
 \input{books/01_Genesis}
 \input{books/02_Exodus}
 \input{books/03_Leviticus}
 \input{books/04_Numbers}
 \input{books/05_Deuteronomy}
+\addcontentsline{toc}{chapter}{History Before the Exile}
 \input{books/06_Joshua}
 \input{books/07_Judges}
 \input{books/08_Ruth}
@@ -202,21 +218,25 @@
 \input{books/12_2_Kings}
 \input{books/13_1_Chronicles}
 \input{books/14_2_Chronicles}
+\addcontentsline{toc}{chapter}{History After the Exile}
 \input{books/15_Ezra}
 \input{books/16_Nehemiah}
 \input{books/17_Esther}
 \input{books/18_Job}
+\addcontentsline{toc}{chapter}{Poetry}
 \renewcommand{\verseone}{\textsuperscript{1}}
 \input{books/19_Psalms}
 \renewcommand{\verseone}{}
 \input{books/20_Proverbs}
 \input{books/21_Ecclesiastes}
 \input{books/22_Song_of_Songs}
+\addcontentsline{toc}{chapter}{Longer Prophetic Writings}
 \input{books/23_Isaiah}
 \input{books/24_Jeremiah}
 \input{books/25_Lamentations}
 \input{books/26_Ezekiel}
 \input{books/27_Daniel}
+\addcontentsline{toc}{chapter}{Shorter Prophetic Writings Before the Exile}
 \input{books/28_Hosea}
 \input{books/29_Joel}
 \input{books/30_Amos}
@@ -226,16 +246,21 @@
 \input{books/34_Nahum}
 \input{books/35_Habakkuk}
 \input{books/36_Zephaniah}
+\addcontentsline{toc}{chapter}{Shorter Prophetic Writings After the Exile}
 \input{books/37_Haggai}
 \input{books/38_Zechariah}
 \input{books/39_Malachi}
 \newpage
 \def\thetestament{New Testament}
+\addcontentsline{toc}{part}{New Testament}
+\addcontentsline{toc}{chapter}{The Manifestation of the Good News}
 \input{books/40_Matthew}
 \input{books/41_Mark}
 \input{books/42_Luke}
 \input{books/43_John}
+\addcontentsline{toc}{chapter}{The Proclaiming of the Good News}
 \input{books/44_Acts}
+\addcontentsline{toc}{chapter}{The Explanation of the Good News}
 \input{books/45_Romans}
 \input{books/46_1_Corinthians}
 \input{books/47_2_Corinthians}
@@ -249,6 +274,7 @@
 \input{books/55_2_Timothy}
 \input{books/56_Titus}
 \input{books/57_Philemon}
+\addcontentsline{toc}{chapter}{The Application of the Good News}
 \input{books/58_Hebrews}
 \input{books/59_James}
 \input{books/60_1_Peter}
@@ -257,6 +283,7 @@
 \input{books/63_2_John}
 \input{books/64_3_John}
 \input{books/65_Jude}
+\addcontentsline{toc}{chapter}{The Consummation of the Good News}
 \input{books/66_Revelation}
 
 \end{document}
