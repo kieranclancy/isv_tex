@@ -178,14 +178,12 @@
 \makeatother
 
 % formatting
-\newcommand{\bookheader}[1]{\newpage\thispagestyle{bookstart}\def\thebook{#1}}
-\newcommand{\labelbook}[1]{\def\thechapter{}\def\theverse{}\def\theref{}}
+\newcommand{\bookheader}[1]{\newpage\thispagestyle{bookstart}\advancebooktab\def\thebook{#1}}
+\newcommand{\labelbook}[1]{\def\theshortbook{#1}\def\thechapter{}\def\theverse{}\def\theref{}}
 \newcommand{\bookpretitle}[1]{{\centering \large \textsc{#1} \par}\addvspace{-0.6em plus 0.2em}}
-\newcommand{\booktitle}[1]{{\centering \Huge
-    \textsc{\textbf{#1}}\par}\addvspace{0.4em plus 0.1em}%
+\newcommand{\booktitle}[1]{%
+  {\centering \Huge \textsc{\textbf{#1}}\par}\addvspace{0.4em plus 0.1em}%
   \addcontentsline{toc}{section}{#1}%
-  \advancebooktab%
-  \def\thebook{#1}\def\thechapter{}\def\theverse{}\def\theref{}%
 }
 \newlength{\hangvwidth}
 \newcommand{\verseone}{}
