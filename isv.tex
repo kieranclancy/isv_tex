@@ -53,6 +53,12 @@
 \setlength{\emergencystretch}{3em}
 \setlength{\parindent}{0.8\parindent}
 
+% Avoid widows and orphans (see
+% http://en.wikibooks.org/wiki/LaTeX/Page_Layout#Widows_and_orphans
+% for more suggestions if this doesn't work well enough)
+\widowpenalty=300
+\clubpenalty=300
+
 % footnote style
 \paragraphfootnotes
 \renewcommand*{\thefootnote}{\textbf{\textrm{\alphalph{\value{footnote}}}}}
