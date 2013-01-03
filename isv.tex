@@ -71,10 +71,10 @@
 \makeatother
 
 % formatting
-\newcommand{\bookheader}[1]{\thispagestyle{bookstart}}
+\newcommand{\bookheader}[1]{\newpage\thispagestyle{bookstart}}
 \newcommand{\labelbook}[1]{}
-\newcommand{\bookpretitle}[1]{\vspace{2\baselineskip}\Needspace{0.5\textheight}{\centering \large \textsc{#1} \\}}
-\newcommand{\booktitle}[1]{{\centering \Huge \textsc{\textbf{#1}} \par}}
+\newcommand{\bookpretitle}[1]{{\centering \large \textsc{#1} \par}\addvspace{-0.6em plus 0.2em}}
+\newcommand{\booktitle}[1]{{\centering \Huge \textsc{\textbf{#1}}\par}\addvspace{0.4em plus 0.1em}}
 \newlength{\hangvwidth}
 \newcommand{\verseone}{}
 \renewcommand{\v}[1]{\ifthenelse{\equal{#1}{1}}{\verseone}{\textsuperscript{#1}}}
@@ -87,13 +87,13 @@
 \newcommand{\fbib}[1]{\textit{#1}}
 \newcommand{\fbackref}[1]{{\scriptsize{#1}}}
 %\newcommand{\poempassage}[1]{\subsubsection{\hspace{-4em}\textsf{#1}}~\\\vspace{-1.2\baselineskip}}
-\newcommand{\passage}[1]{\par\Needspace{3\baselineskip}\vspace{0.2\baselineskip}\noindent\textbf{{\textsf{#1}}~\\}\vspace{-1.0\baselineskip}}
-\newcommand{\poempassage}[1]{\par\Needspace{3\baselineskip}\vspace{0.2\baselineskip}\noindent\hspace{-4em}\textbf{\textsf{#1}~\\}\vspace{0.0\baselineskip}}
+\newcommand{\passage}[1]{\par\addvspace{0.1em plus 0.6em}\noindent\textbf{{\textsf{#1}}}\par\nopagebreak\addvspace{0.0em plus 0.2em minus 0.0em}}
+\newcommand{\poempassage}[1]{\par\addvspace{0.1em plus 0.6em}\noindent\hspace{-4em}\textbf{\textsf{#1}}\par\nopagebreak\addvspace{0.0em plus 0.2em minus 0.0em}}
 \newcommand{\chapt}[1]{\lettrine{#1}{}}
 \newcommand{\labelchapt}[1]{}
-\newcommand{\poeml}{}
-\newcommand{\poemll}{\vin}
-\newcommand{\poemlll}{\vin\vin}
+\newcommand{\poeml}{\penalty50\relax}
+\newcommand{\poemll}{\penalty150\vin}
+\newcommand{\poemlll}{\penalty150\vin\vin}
 \newcommand{\divine}[1]{\textsc{#1}}
 \newcommand{\passageinfo}[1]{\vspace{-0.3\baselineskip}\subsubsection*{\hspace{0em}\textmd{\textsf{\textit{#1}}}}}
 \newcommand{\itemb}[1]{%
