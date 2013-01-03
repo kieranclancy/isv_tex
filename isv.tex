@@ -146,7 +146,7 @@
 \newcommand{\footfract}[2]{\nicefrac{#1}{#2}}
 \renewcommand{\textonehalf}{\nicefrac{1}{2}}
 \newcommand{\booksection}[1]{{\vspace{\baselineskip}\centering \large \textsc{\textbf{#1}}\par\vspace{\baselineskip}}}
-\newcommand{\labelpsalm}[1]{\labelchapt{#1}{\centering \textbf{Psalm~#1} \par}}
+\newcommand{\labelpsalm}[1]{\def\thechapter{#1:}\labelchapt{#1}{\centering \textbf{Psalm~#1} \par}}
 \newcommand{\psalminfo}[1]{{\small \textmd{\textsf{\textit{#1}}}\par\relax}}
 \newcommand{\interlude}[1]{\hfill\textit{#1}\par\relax}
 \newcommand{\red}[1]{{\textcolor{FireBrick}{#1}}}
@@ -183,6 +183,9 @@
 \hyphenation{Eph-raim}
 
 \begin{document}
+
+\tableofcontents
+\newpage
 
 \def\thetestament{Old Testament}
 \input{books/01_Genesis}
