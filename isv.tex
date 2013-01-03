@@ -107,7 +107,6 @@
 %  \kern 2.6\p@}}}
 %\makeatother
 
-
 % This increases the incentive to break footnote lines prior to the footnote starting
 \makeatletter
 \let\old@parafootfmt\@parafootfmt
@@ -138,7 +137,17 @@
 %\newcommand{\poempassage}[1]{\subsubsection{\hspace{-4em}\textsf{#1}}~\\\vspace{-1.2\baselineskip}}
 \newcommand{\passage}[1]{\par\addvspace{0.1em plus 0.6em}\noindent\textbf{{\textsf{#1}}}\par\nopagebreak\addvspace{0.0em plus 0.2em minus 0.0em}}
 \newcommand{\poempassage}[1]{\par\addvspace{0.1em plus 0.6em}\noindent\hspace{-4em}\textbf{\textsf{#1}}\par\nopagebreak\addvspace{0.0em plus 0.2em minus 0.0em}}
-\newcommand{\chapt}[1]{\lettrine{#1}{}}
+\newcommand*{\ensuretwolinepar}{%
+    \let\origpar\par
+    \def\par{%
+        \origpar
+        \let\par\origpar
+        \ifnum\prevgraf<2 %
+            \addvspace{0.6\baselineskip}
+        \fi
+    }%
+}
+\newcommand{\chapt}[1]{\lettrine{#1}{}\ensuretwolinepar}
 \newcommand{\labelchapt}[1]{\def\thechapter{#1:}}
 \newcommand{\poeml}{\penalty50\relax}
 \newcommand{\poemll}{\penalty150\vin}

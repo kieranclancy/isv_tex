@@ -1,6 +1,7 @@
 /isv.pdf
 *.aux
 *.log
+*.toc
 *.fls
 .*.swp
 *.fdb_latexmk
