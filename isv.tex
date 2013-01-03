@@ -70,6 +70,33 @@
 \renewcommand{\foottextfont}{\renewcommand{\v}{\footv}\fontfamily{ptm}\footnotesize}
 \MakePerPage{footnote}
 
+% Here we force the footnote rule and text color to black to address a bug
+% where \paragraphfootnotes erroneously uses the colour of the last
+% paragraph if it spans the page break.  This results in some pages
+% having red footnotes.
+
+% Make the horizontal rule for foot notes black regardless of the
+% colour of the preceeding text.
+% As below it makes the following footnote text black as well. 
+\makeatletter
+\renewcommand{\footnoterule}{%
+  \color{black}%
+  \kern-3\p@
+  \hrule width .4\columnwidth
+  \kern 2.6\p@}}
+\makeatother
+% If the following is used instead, only the rule becomes black, and
+% the text remains mixed colour, but with the red/black bugs affecting
+% things, so it probably cannot be used at this time.
+%\makeatletter
+%\renewcommand{\footnoterule}{%
+%  {\color{black}%
+%  \kern-3\p@
+%  \hrule width .4\columnwidth
+%  \kern 2.6\p@}}}
+%\makeatother
+
+
 % This increases the incentive to break footnote lines prior to the footnote starting
 \makeatletter
 \let\old@parafootfmt\@parafootfmt
