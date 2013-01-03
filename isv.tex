@@ -30,8 +30,11 @@
 % page style
 \makepagestyle{headvref}
 \makepagestyle{bookstart}
-\makeevenhead{headvref}{}{\thepage}{}
-\makeoddhead{headvref}{}{\thepage}{}
+\makeevenhead{headvref}{\rightmark}{}{\thetestament}
+\makeoddhead{headvref}{\thetestament}{}{\leftmark}
+\makeevenfoot{headvref}{}{\thepage}{}\makeoddfoot{headvref}{}{\thepage}{}
+\makeoddhead{bookstart}{\def\thepageref{}}{}{}
+\makeevenhead{bookstart}{\def\thepageref{}}{}{}
 \pagestyle{headvref}
 
 % page layout
@@ -107,10 +110,18 @@
 \newcommand{\bookheader}[1]{\newpage\thispagestyle{bookstart}}
 \newcommand{\labelbook}[1]{}
 \newcommand{\bookpretitle}[1]{{\centering \large \textsc{#1} \par}\addvspace{-0.6em plus 0.2em}}
-\newcommand{\booktitle}[1]{{\centering \Huge \textsc{\textbf{#1}}\par}\addvspace{0.4em plus 0.1em}}
+\newcommand{\booktitle}[1]{{\centering \Huge
+    \textsc{\textbf{#1}}\par}\addvspace{0.4em plus 0.1em}%
+  \def\thebook{#1}\def\thechapter{}\def\theverse{}\dev\theref{}%
+}
 \newlength{\hangvwidth}
 \newcommand{\verseone}{}
-\renewcommand{\v}[1]{\ifthenelse{\equal{#1}{1}}{\verseone}{\textsuperscript{#1}}}
+\renewcommand{\v}[1]{\edef\prevref{\theref}%
+   \def\theverse{#1}%
+   \edef\theref{\thebook{ }\thechapter\theverse}%
+   \markboth{\theref}{\theref}%
+   \ifthenelse{\equal{#1}{1}}{\verseone}{\textsuperscript{#1}}}
+
 \makeatletter
 \let\old@v\v
 \newcommand{\vpoem}[1]{\settowidth{\hangvwidth}{\old@v{#1}}\setlength{\hangvwidth}{0.75\hangvwidth}\ifhmode\kern\hangvwidth\vadjust{}\else\leavevmode\fi\kern-\hangvwidth\old@v{#1}\nobreak\hskip\z@skip}
@@ -122,7 +133,7 @@
 %\newcommand{\poempassage}[1]{\subsubsection{\hspace{-4em}\textsf{#1}}~\\\vspace{-1.2\baselineskip}}
 \newcommand{\passage}[1]{\par\addvspace{0.1em plus 0.6em}\noindent\textbf{{\textsf{#1}}}\par\nopagebreak\addvspace{0.0em plus 0.2em minus 0.0em}}
 \newcommand{\poempassage}[1]{\par\addvspace{0.1em plus 0.6em}\noindent\hspace{-4em}\textbf{\textsf{#1}}\par\nopagebreak\addvspace{0.0em plus 0.2em minus 0.0em}}
-\newcommand{\chapt}[1]{\lettrine{#1}{}}
+\newcommand{\chapt}[1]{\lettrine{#1}{}\def\thechapter{#1:}}
 \newcommand{\labelchapt}[1]{}
 \newcommand{\poeml}{\penalty50\relax}
 \newcommand{\poemll}{\penalty150\vin}
@@ -176,6 +187,7 @@
 
 \begin{document}
 
+\def\thetestament{Old Testament}
 \input{books/01_Genesis}
 \input{books/02_Exodus}
 \input{books/03_Leviticus}
@@ -218,6 +230,7 @@
 \input{books/38_Zechariah}
 \input{books/39_Malachi}
 \newpage
+\def\thetestament{New Testament}
 \input{books/40_Matthew}
 \input{books/41_Mark}
 \input{books/42_Luke}
