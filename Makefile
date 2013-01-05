@@ -1,3 +1,11 @@
+OUTPUTS:= \
+	newtestament-ebook-red.pdf \
+	newtestament-ebook-black.pdf \
+	oldtestament-ebook-red.pdf \
+	oldtestament-ebook-black.pdf \
+	bible-ebook-red.pdf \
+	bible-ebook-black.pdf
+
 COMMON:= \
 	size-ebook.tex \
 	isv-common.tex \
@@ -7,9 +15,12 @@ COMMON:= \
 	blackletter.tex \
 	books/*.tex
 
-all: newtestament.pdf newtestament-black.pdf oldtestament.pdf bible.pdf
+all: $(OUTPUTS)
 
 %.pdf: %.tex
 	pdflatex $<
 	pdflatex $<
 	pdflatex $<
+
+clean:
+	rm *.pdf *.toc *.aux *.log *.fls
