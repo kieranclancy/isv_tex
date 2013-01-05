@@ -88,7 +88,10 @@
 %\footmarkstyle{#1\hfill}
 \setlength{\footmarkwidth}{0em}
 %\footmarkstyle{{\scriptsize#1}\hspace{0.4em}}%\textsuperscript{#1}}
-\footmarkstyle{\textsuperscript{#1}}
+% Push superscript references for footnotes down a bit, to keep line
+% height under control, thus avoiding irregular line spacing, and
+% improving the overall appearance.
+\footmarkstyle{\raisebox{-0.1\baselineskip}{\textsuperscript{#1}}}
 \renewcommand{\foottextfont}{\renewcommand{\v}{\footv}\fontfamily{ptm}\footnotesize}
 \MakePerPage{footnote}
 
