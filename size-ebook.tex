@@ -1,0 +1,29 @@
+\documentclass[ebook,11pt,twoside,onecolumn,draft,openright]{memoir}
+% ebook (6x9) is not a standard paper size, but that was the request
+% closest real paper size is (m)smallroyalvopaper
+
+\input{packages-common}
+
+% page layout
+\settrims{0pt}{0pt} % stock paper is equal to page size
+% calculated using formula in memoir package
+% adding another 10pt due to regular verse numbers
+\settypeblocksize{*}{332pt+10pt}{*}
+\setlrmargins{0.75in}{*}{*}
+\setulmarginsandblock{0.5in}{0.5in}{*}
+\setheaderspaces{*}{*}{0.2}
+\checkandfixthelayout
+
+% Extra page layout bits
+% block height / 5:
+% (9in-0.5in-0.5in)/5 = 8in/5=1.6in
+\def\booktabheight{1.6in}
+% 3/4 of the margin
+% 0.75in * 3/4 = 0.5625in
+\def\booktabwidth{0.5625in}
+\def\booktabfontsize{12pt}
+% size vertical margin
+\def\booktabyoffset{-0.5in}
+% offset to booktab on odd pages
+% (full width of sheet)
+\def\booktaboddxoffset{6in}
