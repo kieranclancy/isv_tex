@@ -18,9 +18,10 @@ COMMON:= \
 all: $(OUTPUTS)
 
 %.pdf: %.tex
-	pdflatex $<
-	pdflatex $<
-	pdflatex $<
+# Put all 3 runs on the same line, so that a bad exit code from the
+# first doesn't prevent the subsequent runs (which may fix some of the
+# errors that the first run complains about)
+	pdflatex $< ; pdflatex $< ; pdflatex $<
 
 clean:
 	rm *.pdf *.toc *.aux *.log *.fls
