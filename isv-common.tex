@@ -78,7 +78,12 @@
 % Avoid widows and orphans (see
 % http://en.wikibooks.org/wiki/LaTeX/Page_Layout#Widows_and_orphans
 % for more suggestions if this doesn't work well enough)
-\widowpenalty=300
+% See also
+% http://tex.stackexchange.com/questions/21983/how-to-avoid-page-breaks-inside-paragraphs
+% The formulation here makes widowing after a single line REALLY
+% expensive.  This ensures we don't have any dropcaps/lettrines that
+% go past the end of the page.
+\widowpenalties 2 10000 300
 \clubpenalty=300
 
 % footnote style
