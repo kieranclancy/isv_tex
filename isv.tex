@@ -21,6 +21,7 @@
 \usepackage{wallpaper}
 \usepackage{tikz}
 \usepackage{ifoddpage}
+\usepackage{marginfix}
 \let\hangpara\undefined
 \let\hangparas\undefined
 \let\endhangparas\undefined
@@ -191,6 +192,7 @@
    \def\theverse{#1}%
    \edef\theref{\thebook{ }\thechapter:\theverse}%
    \markboth{\theref}{\theref}%
+   \marginpar{\tiny\textbf{\thechapter:\theverse} \getcrossref{\theshortbook}{\thechapter}{\theverse}}%
    \ifthenelse{\equal{#1}{1}}{\verseone}{\textsuperscript{#1}}}
 \makeatletter
 \let\old@v\v
@@ -267,6 +269,7 @@
 
 % Cross-references
 \newcommand{\crossref}[4]{\csdef{xref#1x#2x#3}{#4}}
+\newcommand{\getcrossref}[3]{\csuse{xref#1x#2x#3}}
 \input{crossrefs}
 
 \begin{document}
