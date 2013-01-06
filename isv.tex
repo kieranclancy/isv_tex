@@ -78,7 +78,7 @@
 \newcommand{\preresetbooktab}{\setcounter{booktabposition}{0}}
 \newcommand{\advancebooktab}{%
   \addtocounter{booktabposition}{1}
-  \ifthenelse{\equal{\value{booktabposition}}{5}}{\setcounter{booktabposition}{0}}\else{}
+  \ifthenelse{\equal{\value{booktabposition}}{5}}{\setcounter{booktabposition}{0}}
 }
 \newcommand{\considerbooktab}{\ifthenelse{\equal{\thebook}{}}{}{\booktab}}
 \newcommand{\booktab}{%
