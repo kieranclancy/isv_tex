@@ -43,7 +43,7 @@
             \path [fill=Gray] (\xl,\booktabyoffset - \y * \booktabheight) rectangle
             (\xr,\booktabyoffset - \y * \booktabheight - 1 * \booktabheight) {};
             \node[anchor=east,xshift=\booktabevenxoffset -0.5 * \booktabwidth + 0.5 *
-            \booktabfontsize,
+            \booktabfontsize + \booktaboddxfudge,
             yshift=\booktabyoffset - \y * \booktabheight - 0.5 * \booktabheight,rectangle]
             {\rotatebox{270}{\color{white}\fontsize{\booktabfontsize}{\booktabfontsize}\selectfont\MakeUppercase{\thebook}}};
           \end{tikzpicture}
@@ -56,7 +56,7 @@
             \path [fill=Gray] (\xl,\booktabyoffset - \y * \booktabheight) rectangle
             (\xr,\booktabyoffset - \y * \booktabheight - 1 * \booktabheight) {};
             \node[anchor=east,xshift=0.5 * \booktabwidth + 0.5 *
-            \booktabfontsize,
+            \booktabfontsize  + \booktabevenxfudge,
             yshift=\booktabyoffset - \y * \booktabheight - 0.5 * \booktabheight,rectangle]
             {\rotatebox{90}{\color{white}\fontsize{\booktabfontsize}{\booktabfontsize}\selectfont\MakeUppercase{\thebook}}};
           \end{tikzpicture}
