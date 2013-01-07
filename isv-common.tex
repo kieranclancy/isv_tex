@@ -34,18 +34,18 @@
     \edef\y{\value{booktabposition}}
     \strictpagechecktrue
     \checkoddpage
-    \edef\xl{\ifoddpage{0}\else{\booktaboddxoffset - \booktabwidth}\fi}
-    \edef\xr{\ifoddpage{\booktabwidth}\else{\booktaboddxoffset}\fi}
+    \edef\xl{\ifoddpage{\booktabevenxoffset - \booktabwidth}\else{0}\fi}
+    \edef\xr{\ifoddpage{\booktabevenxoffset}\else{\booktabwidth}\fi}
     \ifoddpage{%
       \begin{tikzpicture}[remember picture,overlay]
         \node[yshift=0in] at (current page.north west)
         {\begin{tikzpicture}[remember picture, overlay]
             \path [fill=Gray] (\xl,\booktabyoffset - \y * \booktabheight) rectangle
             (\xr,\booktabyoffset - \y * \booktabheight - 1 * \booktabheight) {};
-            \node[anchor=east,xshift=0.5 * \booktabwidth + 0.5 *
+            \node[anchor=east,xshift=\booktabevenxoffset -0.5 * \booktabwidth + 0.5 *
             \booktabfontsize,
             yshift=\booktabyoffset - \y * \booktabheight - 0.5 * \booktabheight,rectangle]
-            {\rotatebox{90}{\color{white}\fontsize{\booktabfontsize}{\booktabfontsize}\selectfont\MakeUppercase{\thebook}}};
+            {\rotatebox{270}{\color{white}\fontsize{\booktabfontsize}{\booktabfontsize}\selectfont\MakeUppercase{\thebook}}};
           \end{tikzpicture}
         };
       \end{tikzpicture}
@@ -55,10 +55,10 @@
         {\begin{tikzpicture}[remember picture, overlay]
             \path [fill=Gray] (\xl,\booktabyoffset - \y * \booktabheight) rectangle
             (\xr,\booktabyoffset - \y * \booktabheight - 1 * \booktabheight) {};
-            \node[anchor=east,xshift=\booktaboddxoffset -0.5 * \booktabwidth + 0.5 *
+            \node[anchor=east,xshift=0.5 * \booktabwidth + 0.5 *
             \booktabfontsize,
             yshift=\booktabyoffset - \y * \booktabheight - 0.5 * \booktabheight,rectangle]
-            {\rotatebox{270}{\color{white}\fontsize{\booktabfontsize}{\booktabfontsize}\selectfont\MakeUppercase{\thebook}}};
+            {\rotatebox{90}{\color{white}\fontsize{\booktabfontsize}{\booktabfontsize}\selectfont\MakeUppercase{\thebook}}};
           \end{tikzpicture}
         };
       \end{tikzpicture}
