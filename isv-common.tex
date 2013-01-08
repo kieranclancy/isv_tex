@@ -26,7 +26,7 @@
 \newcommand{\preresetbooktab}{\setcounter{booktabposition}{0}}
 \newcommand{\advancebooktab}{%
   \addtocounter{booktabposition}{1}
-  \ifthenelse{\equal{\value{booktabposition}}{5}}{\setcounter{booktabposition}{0}}\else{}
+  \ifthenelse{\equal{\value{booktabposition}}{5}}{\setcounter{booktabposition}{0}}
 }
 \newcommand{\considerbooktab}{\ifthenelse{\equal{\thebook}{}}{}{\booktab}}
 \newcommand{\booktab}{%
@@ -144,8 +144,9 @@
 \newcommand{\verseone}{}
 \renewcommand{\v}[1]{\edef\prevref{\theref}%
    \def\theverse{#1}%
-   \edef\theref{\thebook{ }\thechapter\theverse}%
+   \edef\theref{\thebook{ }\thechapter:\theverse}%
    \markboth{\theref}{\theref}%
+   \marginpar{\tiny\textbf{\thechapter:\theverse} \getcrossref{\theshortbook}{\thechapter}{\theverse}}%
    \ifthenelse{\equal{#1}{1}}{\verseone}{\textsuperscript{#1}}}
 \makeatletter
 \let\old@v\v
@@ -169,7 +170,7 @@
     }%
 }
 \newcommand{\chapt}[1]{\lettrine[lraise=0.00,loversize=0.07]{#1}{}\ensuretwolinepar}
-\newcommand{\labelchapt}[1]{\def\thechapter{#1:}}
+\newcommand{\labelchapt}[1]{\def\thechapter{#1}}
 \newcommand{\poeml}{\penalty50\relax}
 \newcommand{\poemll}{\penalty150\vin}
 \newcommand{\poemlll}{\penalty150\vin\vin}
@@ -184,7 +185,7 @@
 \newcommand{\footfract}[2]{\nicefrac{#1}{#2}}
 \renewcommand{\textonehalf}{\nicefrac{1}{2}}
 \newcommand{\booksection}[1]{{\vspace{\baselineskip}\centering \large \textsc{\textbf{#1}}\par\vspace{\baselineskip}}}
-\newcommand{\labelpsalm}[1]{\def\thechapter{#1:}\labelchapt{#1}{\centering \textbf{Psalm~#1} \par}}
+\newcommand{\labelpsalm}[1]{\def\thechapter{#1}\labelchapt{#1}{\centering \textbf{Psalm~#1} \par}}
 \newcommand{\psalminfo}[1]{{\small \textmd{\textsf{\textit{#1}}}\par\relax}}
 \newcommand{\interlude}[1]{\hfill\textit{#1}\par\relax}
 
