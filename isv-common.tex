@@ -150,7 +150,7 @@
    \def\theverse{#1}%
    \edef\theref{\thebook{ }\thechapter:\theverse}%
    \markboth{\theref}{\theref}%
-   \marginpar{\tiny\textbf{\ifthenelse{\equal{\thechapter}{}}{}{\thechapter:}\theverse} \getcrossref{\theshortbook}{\thechapter}{\theverse}}%
+   \ifthenelse{\equal{\getcrossref{\theshortbook}{\thechapter}{\theverse}}{}}{}{\marginpar{\tiny\textbf{\ifthenelse{\equal{\thechapter}{}}{}{\thechapter:}\theverse} \getcrossref{\theshortbook}{\thechapter}{\theverse}}}%
    \ifthenelse{\equal{#1}{1}}{\verseone}{\textsuperscript{#1}}}
 \makeatletter
 \let\old@v\v
