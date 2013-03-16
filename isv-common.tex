@@ -148,7 +148,9 @@
   \oldmarginpar{\mpjustification #2}}
 \renewcommand{\v}[1]{\edef\prevref{\theref}%
    \def\theverse{#1}%
-   \edef\theref{\thebook{ }\thechapter:\theverse}%
+   \ifthenelse{\equal{\thechapter}{}}%
+   {\edef\theref{\thebook{ }\theverse}}{%
+   \edef\theref{\thebook{ }{\thechapter:}\theverse}}%
    \markboth{\theref}{\theref}%
    \ifthenelse{\equal{\getcrossref{\theshortbook}{\thechapter}{\theverse}}{}}{}{\marginpar{\tiny\textbf{\ifthenelse{\equal{\thechapter}{}}{}{\thechapter:}\theverse} \getcrossref{\theshortbook}{\thechapter}{\theverse}}}%
    \ifthenelse{\equal{#1}{1}}{\verseone}{\textsuperscript{#1}}}
