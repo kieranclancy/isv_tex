@@ -1,4 +1,5 @@
 OUTPUTS:= \
+	jude.pdf \
 	newtestament-ebook-red.pdf \
 	newtestament-ebook-black.pdf \
 	oldtestament-ebook-red.pdf \
@@ -17,7 +18,7 @@ COMMON:= \
 
 all: $(OUTPUTS)
 
-%.pdf: %.tex
+%.pdf: %.tex isv-common.tex
 # Put all 3 runs on the same line, so that a bad exit code from the
 # first doesn't prevent the subsequent runs (which may fix some of the
 # errors that the first run complains about)
