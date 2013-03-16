@@ -142,6 +142,10 @@
 }
 \newlength{\hangvwidth}
 \newcommand{\verseone}{}
+\marginparmargin{outer}
+\let\oldmarginpar\marginpar
+\renewcommand\marginpar[2][]{%
+  \oldmarginpar{\mpjustification #2}}
 \renewcommand{\v}[1]{\edef\prevref{\theref}%
    \def\theverse{#1}%
    \edef\theref{\thebook{ }\thechapter:\theverse}%
