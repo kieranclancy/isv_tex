@@ -18,11 +18,11 @@ COMMON:= \
 
 all: $(OUTPUTS)
 
-%.pdf: %.tex isv-common.tex size-ebook.tex packages-common.tex crossrefs.tex
-# Put all 3 runs on the same line, so that a bad exit code from the
+%.pdf: %.tex Makefile isv-common.tex size-ebook.tex packages-common.tex crossrefs.tex
+# Put all runs on the same line, so that a bad exit code from the
 # first doesn't prevent the subsequent runs (which may fix some of the
 # errors that the first run complains about)
-	pdflatex $< ; pdflatex $< ; pdflatex $<
+	pdflatex $< ; pdflatex $< ; pdflatex $<; pdflatex $<; pdflatex $<
 
 clean:
 	rm *.pdf *.toc *.aux *.log *.fls

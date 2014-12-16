@@ -22,6 +22,15 @@
 \makeoddfoot{bookstart}{}{\thepage}{}
 \pagestyle{headvref}
 
+% Stop footnotes overrunning the end of the page
+% 64 is default. 71 is apparently normally enough, but proved not to
+% be for us (Matthew chapter 4 was overrunning by two lines)
+%\renewcommand*{\footfudgefiddle}{80}
+
+% Uncomment this if marginal crossreferences occassionally end up in
+% the wrong margin
+\strictpagecheck
+
 % block-side tabs
 \newcounter{booktabposition}
 \newcommand{\resetbooktab}{\setcounter{booktabposition}{0}}
@@ -90,6 +99,7 @@
 
 % footnote style
 \paragraphfootnotes
+
 \renewcommand*{\thefootnote}{\textbf{\textrm{\alphalph{\value{footnote}}}}}
 %\setlength{\footmarkwidth}{1em}
 %\footmarkstyle{#1\hfill}
@@ -178,7 +188,10 @@
         \fi
     }%
 }
-\newcommand{\chapt}[1]{\lettrine[lraise=0.00,loversize=0.07]{#1}{}\ensuretwolinepar}
+\newcommand{\chapt}[1]{\needspace{2\baselineskip}% Make sure there
+                                % are two lines to fit the lettrine
+                                % (XXX doesn't seem to actually work)
+\lettrine[lraise=0.00,loversize=0.07]{#1}{}\ensuretwolinepar}
 \newcommand{\labelchapt}[1]{\def\thechapter{#1}}
 \newcommand{\poeml}{\penalty50\relax}
 \newcommand{\poemll}{\penalty150\vin}
