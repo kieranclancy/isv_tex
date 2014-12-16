@@ -256,6 +256,26 @@ int new_empty_page(int leftRight)
   return 0;
 }
 
+#define MAX_FONTS 64
+int font_count=0;
+char *font_filenames[MAX_FONTS];
+const char *font_names[MAX_FONTS];
+
+const char *resolve_font(char *font_filename)
+{
+  int i;
+  for(i=0;i<font_count;i++)
+    if (!strcmp(font_filename,font_filenames[i]))
+      return font_names[i];
+
+  if (i>=MAX_FONTS) {
+    fprintf(stderr,"Too many fonts.\n"); exit(-2);
+  }
+  font_filenames[font_count]=strdup(font_filename);
+  font_names[font_count++]=HPDF_LoadTTFontFromFile (pdf, font_filename, HPDF_TRUE);
+  return font_names[font_count-1];
+}
+
 int main(int argc,char **argv)
 {
   if (argc==2) 
@@ -277,14 +297,13 @@ int main(int argc,char **argv)
   fprintf(stderr,"About to load fonts\n");
   // Load all the fonts we will need
   fprintf(stderr,"  Loading header font from %s\n",header_fontfile);
-  const char *header_fontname=HPDF_LoadTTFontFromFile (pdf, (const char *)header_fontfile, HPDF_TRUE);
-  header_font=HPDF_GetFont(pdf,header_fontname,NULL);
+  header_font=HPDF_GetFont(pdf,resolve_font(header_fontfile),NULL);
   fprintf(stderr,"  Loading booktab font from %s\n",booktab_fontfile);
-  booktab_font=HPDF_GetFont(pdf,HPDF_LoadTTFontFromFile (pdf, (const char *)booktab_fontfile, HPDF_TRUE),NULL);
+  booktab_font=HPDF_GetFont(pdf,resolve_font(booktab_fontfile),NULL);
   fprintf(stderr,"  Loading black-letter font from %s\n",blackletter_fontfile);
-  blackletter_font=HPDF_GetFont(pdf,HPDF_LoadTTFontFromFile (pdf, (const char *)blackletter_fontfile, HPDF_TRUE),NULL);
+  blackletter_font=HPDF_GetFont(pdf,resolve_font(blackletter_fontfile),NULL);
   fprintf(stderr,"  Loading red-letter font from %s\n",redletter_fontfile);
-  redletter_font=HPDF_GetFont(pdf,HPDF_LoadTTFontFromFile (pdf, (const char *)redletter_fontfile, HPDF_TRUE),NULL);
+  redletter_font=HPDF_GetFont(pdf,resolve_font(redletter_fontfile),NULL);
   fprintf(stderr,"Loaded fonts\n");
   
   // Start with a left page
