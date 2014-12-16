@@ -40,7 +40,34 @@ void error_handler(HPDF_STATUS error_number, HPDF_STATUS detail_number,
 
 // Page size in points
 int page_width=72*5;
-int page_height=72*12;
+int page_height=72*7;
+// Colour of "red" text
+char *red_colour="#000000";
+int left_margin=72;
+int right_margin=72;
+int top_margin=72;
+int bottom_margin=72;
+int marginpar_width=50;
+int marginpar_margin=8;
+int booktab_fontsize=12;
+int booktab_width=27;
+int booktab_height=115;
+int booktab_upperlimit=36;
+int booktab_lowerlimit=72*5.5;
+char *booktab_fontfile="booktab.ttf";
+
+char *black_fontfile="blacktext.ttf";
+int black_fontsize=8;
+char *red_fontfile="redtext.ttf";
+int red_fontsize=8;
+char *versenum_fontfile="blacktext.ttf";
+int versenum_fontsize=4;
+char *chapternum_fontfile="redtext.ttf";
+int chapternum_fontsize=8;
+int chapternum_lines=2;
+char *footnotemark_fontfile="blacktext.ttf";
+int footnotemark_fontsize=4;
+
 
 /* Read the profile of the bible to build.
    The profile consists of a series of key=value pairs that set various 
@@ -117,8 +144,37 @@ int read_profile(char *file)
 	      read_profile(value);
 	      include_pop();
 	    }
+
+	    // Size of page
 	    else if (!strcasecmp(key,"page_width")) page_width=atoi(value);
 	    else if (!strcasecmp(key,"page_height")) page_height=atoi(value);
+
+	    // Margins of a left page (left_margin and right_margin get switched
+	    // automatically if output is for a book
+	    else if (!strcasecmp(key,"left_margin")) left_margin=atoi(value);
+	    else if (!strcasecmp(key,"right_margin")) right_margin=atoi(value);
+	    else if (!strcasecmp(key,"top_margin")) top_margin=atoi(value);
+	    else if (!strcasecmp(key,"bottom_margin")) bottom_margin=atoi(value);
+
+	    // Width of marginpar for holding cross-references
+	    else if (!strcasecmp(key,"marginpar_width")) marginpar_width=atoi(value);
+	    // Margin between marginpar and edge of page
+	    else if (!strcasecmp(key,"marginpar_margin")) marginpar_margin=atoi(value);
+
+	    // Size of solid colour book tabs
+	    else if (!strcasecmp(key,"booktab_fontsize"))
+	      booktab_fontsize=atoi(value);
+	    else if (!strcasecmp(key,"booktab_fontfile"))
+	      booktab_fontfile=strdup(value);
+	    else if (!strcasecmp(key,"booktab_width")) booktab_width=atoi(value);
+	    else if (!strcasecmp(key,"booktab_height")) booktab_height=atoi(value);
+	    // Set vertical limit of where booktabs can be placed
+	    else if (!strcasecmp(key,"booktab_upperlimit")) booktab_upperlimit=atoi(value);
+	    else if (!strcasecmp(key,"booktab_lowerlimit")) booktab_lowerlimit=atoi(value);
+
+	    // colour of red text
+	    else if (!strcasecmp(key,"red")) red_colour=strdup(value);
+
 	    else {
 	      include_show_stack();
 	      fprintf(stderr,"%s:%d:Syntax error (unknown key '%s')\n",
