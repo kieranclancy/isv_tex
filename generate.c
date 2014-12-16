@@ -28,6 +28,7 @@
 #include <strings.h>
 #include <string.h>
 #include <unistd.h>
+#include <math.h>
 #include "hpdf.h"
 
 void error_handler(HPDF_STATUS error_number, HPDF_STATUS detail_number,
@@ -267,6 +268,43 @@ int new_empty_page(int leftRight)
     HPDF_Page_Rectangle(page, x, page_height-booktab_y-booktab_height+1,
 			booktab_width, booktab_height);
     HPDF_Page_Fill(page);
+
+    // Now draw sideways text
+    float text_width, text_height;
+
+    HPDF_Page_SetFontAndSize (page, booktab_font, booktab_fontsize);
+    text_width = HPDF_Page_TextWidth(page,booktab_text);
+    text_height = HPDF_Font_GetCapHeight(booktab_font) * booktab_fontsize/1000;
+    printf("text_width=%f\n",text_width);
+    printf("text_height=%f\n",text_height);
+    
+    int y;
+    float angle_degrees=0;
+    if (leftRight==LR_LEFT) {
+      // Left page
+      angle_degrees=90;
+      x = text_height + (booktab_width-text_height)/2;
+      y = text_width + booktab_y + (booktab_height-text_width)/2;
+    } else {
+      // Right page
+      angle_degrees=-90;
+      x = page_width = (booktab_width-text_height)/2;
+      y = booktab_y + (booktab_height-text_width)/2;
+    }
+    y = page_height-y;
+    float radians = angle_degrees / 180 * 3.141592;
+    printf("radians=%f\n",radians);
+    HPDF_Page_BeginText (page);
+    HPDF_Page_SetTextRenderingMode (page, HPDF_FILL);
+    HPDF_Page_SetRGBFill (page, 0.50, 0.50, 0.50);
+    HPDF_Page_SetTextMatrix (page,
+			     cos(radians), sin(radians),
+			     -sin(radians), cos(radians),
+                x, y);
+    HPDF_Page_ShowText (page, booktab_text);
+    HPDF_Page_EndText (page);
+    printf("Drew '%s' at %d,%d\n",booktab_text,x,y);
+
   }
   
   return 0;
@@ -301,8 +339,6 @@ int main(int argc,char **argv)
       fprintf(stderr,"usage: generate <profile>\n");
       exit(-1);
     }
-
-  HPDF_REAL text_width;
 
   // Create empty PDF
   pdf = HPDF_New(error_handler,NULL);
