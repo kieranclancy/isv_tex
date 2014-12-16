@@ -288,7 +288,7 @@ int new_empty_page(int leftRight)
     } else {
       // Right page
       angle_degrees=-90;
-      x = page_width = (booktab_width-text_height)/2;
+      x = page_width - text_height - (booktab_width-text_height)/2;
       y = booktab_y + (booktab_height-text_width)/2;
     }
     y = page_height-y;
@@ -296,7 +296,7 @@ int new_empty_page(int leftRight)
     printf("radians=%f\n",radians);
     HPDF_Page_BeginText (page);
     HPDF_Page_SetTextRenderingMode (page, HPDF_FILL);
-    HPDF_Page_SetRGBFill (page, 0.50, 0.50, 0.50);
+    HPDF_Page_SetRGBFill (page, 1.00, 1.00, 1.00);
     HPDF_Page_SetTextMatrix (page,
 			     cos(radians), sin(radians),
 			     -sin(radians), cos(radians),
@@ -345,6 +345,7 @@ int main(int argc,char **argv)
   if (!pdf) {
     fprintf(stderr,"Call to HPDF_New() failed.\n"); exit(-1); 
   }
+  HPDF_SetPageLayout(pdf,HPDF_PAGE_LAYOUT_TWO_COLUMN_LEFT);
 
   fprintf(stderr,"About to load fonts\n");
   // Load all the fonts we will need
@@ -364,6 +365,10 @@ int main(int argc,char **argv)
   // Create a new page
   new_empty_page(leftRight);
 
+  // Draw a right-side test page also
+  leftRight=LR_RIGHT;
+  new_empty_page(leftRight);
+  
   // Write PDF to disk
   HPDF_SaveToFile(pdf,output_file);
   
