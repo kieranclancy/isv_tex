@@ -237,6 +237,8 @@ int leftRight=LR_LEFT;
 
 // Current booktab text
 char *booktab_text="BOOKTAB";
+// And position
+int booktab_y=0;
 
 // Create a new empty page
 // Empty of main content, that is, a booktab will be added
@@ -251,6 +253,19 @@ int new_empty_page(int leftRight)
 
   // XXX Draw booktab
   if (booktab_text) {
+    // Work out vertical position of book tab
+    if ((booktab_y<booktab_upperlimit)|| 
+	(booktab_y+booktab_height*2>booktab_lowerlimit))
+      booktab_y=booktab_upperlimit;
+    else
+      booktab_y=booktab_y+booktab_height;
+
+    // Draw booktab box
+    int x=0;
+    if (leftRight==LR_RIGHT) x = page_width-booktab_width+1;
+    HPDF_Page_SetRGBFill (page, 0.25, 0.25, 0.25);
+    HPDF_Page_Rectangle(page, x, booktab_y, booktab_width, booktab_height);
+    HPDF_Page_Fill(page);
   }
   
   return 0;
