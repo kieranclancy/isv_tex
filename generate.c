@@ -264,7 +264,8 @@ int new_empty_page(int leftRight)
     int x=0;
     if (leftRight==LR_RIGHT) x = page_width-booktab_width+1;
     HPDF_Page_SetRGBFill (page, 0.25, 0.25, 0.25);
-    HPDF_Page_Rectangle(page, x, booktab_y, booktab_width, booktab_height);
+    HPDF_Page_Rectangle(page, x, page_height-booktab_y-booktab_height+1,
+			booktab_width, booktab_height);
     HPDF_Page_Fill(page);
   }
   
