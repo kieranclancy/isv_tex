@@ -27,3 +27,8 @@ booktab_fontfile urw-palladio-l-roman.ttf
 # then it will instead be placed at the upper limit
 booktab_upperlimit 36
 booktab_lowerlimit 430
+
+# Set fonts and font sizes
+header_fontfile urw-palladio-l-roman.ttf
+redletter_fontfile urw-palladio-l-roman.ttf
+blackletter_fontfile urw-palladio-l-roman.ttf

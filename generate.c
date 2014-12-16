@@ -38,6 +38,10 @@ void error_handler(HPDF_STATUS error_number, HPDF_STATUS detail_number,
   exit(-1);
 }
 
+char *output_file="output.pdf";
+
+int leftRightAlternates=1;
+
 // Page size in points
 int page_width=72*5;
 int page_height=72*7;
@@ -49,17 +53,19 @@ int top_margin=72;
 int bottom_margin=72;
 int marginpar_width=50;
 int marginpar_margin=8;
-int booktab_fontsize=12;
 int booktab_width=27;
 int booktab_height=115;
 int booktab_upperlimit=36;
 int booktab_lowerlimit=72*5.5;
-char *booktab_fontfile="booktab.ttf";
 
-char *black_fontfile="blacktext.ttf";
-int black_fontsize=8;
-char *red_fontfile="redtext.ttf";
-int red_fontsize=8;
+char *header_fontfile="header.ttf";
+int header_fontsize=12;
+char *booktab_fontfile="booktab.ttf";
+int booktab_fontsize=12;
+char *blackletter_fontfile="blacktext.ttf";
+int blackletter_fontsize=8;
+char *redletter_fontfile="redtext.ttf";
+int redletter_fontsize=8;
 char *versenum_fontfile="blacktext.ttf";
 int versenum_fontsize=4;
 char *chapternum_fontfile="redtext.ttf";
@@ -145,6 +151,12 @@ int read_profile(char *file)
 	      include_pop();
 	    }
 
+	    else if (!strcasecmp(key,"output_file")) output_file=strdup(value);
+
+	    // Does the output have left and right faces?
+	    else if (!strcasecmp(key,"left_and_right"))
+	      leftRightAlternates=atoi(value);
+
 	    // Size of page
 	    else if (!strcasecmp(key,"page_width")) page_width=atoi(value);
 	    else if (!strcasecmp(key,"page_height")) page_height=atoi(value);
@@ -161,11 +173,25 @@ int read_profile(char *file)
 	    // Margin between marginpar and edge of page
 	    else if (!strcasecmp(key,"marginpar_margin")) marginpar_margin=atoi(value);
 
-	    // Size of solid colour book tabs
+	    // Font selection
 	    else if (!strcasecmp(key,"booktab_fontsize"))
 	      booktab_fontsize=atoi(value);
 	    else if (!strcasecmp(key,"booktab_fontfile"))
-	      booktab_fontfile=strdup(value);
+	      booktab_fontfile=strdup(value);	    
+	    else if (!strcasecmp(key,"header_fontsize"))
+	      header_fontsize=atoi(value);
+	    else if (!strcasecmp(key,"header_fontfile"))
+	      header_fontfile=strdup(value);	    
+	    else if (!strcasecmp(key,"redletter_fontsize"))
+	      redletter_fontsize=atoi(value);
+	    else if (!strcasecmp(key,"redletter_fontfile"))
+	      redletter_fontfile=strdup(value);	    
+	    else if (!strcasecmp(key,"blackletter_fontsize"))
+	      blackletter_fontsize=atoi(value);
+	    else if (!strcasecmp(key,"blackletter_fontfile"))
+	      blackletter_fontfile=strdup(value);	    
+
+	    // Size of solid colour book tabs
 	    else if (!strcasecmp(key,"booktab_width")) booktab_width=atoi(value);
 	    else if (!strcasecmp(key,"booktab_height")) booktab_height=atoi(value);
 	    // Set vertical limit of where booktabs can be placed
@@ -193,6 +219,43 @@ int read_profile(char *file)
   if (errors) exit(-1); else return 0;
 }
 
+HPDF_Doc pdf;
+
+HPDF_Page page;
+  
+HPDF_Font header_font;
+HPDF_Font booktab_font;
+HPDF_Font blackletter_font;
+HPDF_Font redletter_font;
+HPDF_Font blackletter_font;
+
+// Are we drawing a left or right face, or neither
+#define LR_LEFT -1
+#define LR_RIGHT 1
+#define LR_NEITHER 0
+int leftRight=LR_LEFT;
+
+// Current booktab text
+char *booktab_text="BOOKTAB";
+
+// Create a new empty page
+// Empty of main content, that is, a booktab will be added
+int new_empty_page(int leftRight)
+{
+  // Create the page
+  page = HPDF_AddPage(pdf);
+
+  // Set its dimensions
+  HPDF_Page_SetWidth(page,page_width);
+  HPDF_Page_SetHeight(page,page_height);
+
+  // XXX Draw booktab
+  if (booktab_text) {
+  }
+  
+  return 0;
+}
+
 int main(int argc,char **argv)
 {
   if (argc==2) 
@@ -203,7 +266,35 @@ int main(int argc,char **argv)
       exit(-1);
     }
 
-  // font_name = HPDF_LoadTTFontFromFile (pdf, "/usr/local/fonts/arial.ttf", HPDF_TRUE);
+  HPDF_REAL text_width;
 
+  // Create empty PDF
+  pdf = HPDF_New(error_handler,NULL);
+  if (!pdf) {
+    fprintf(stderr,"Call to HPDF_New() failed.\n"); exit(-1); 
+  }
+
+  fprintf(stderr,"About to load fonts\n");
+  // Load all the fonts we will need
+  fprintf(stderr,"  Loading header font from %s\n",header_fontfile);
+  const char *header_fontname=HPDF_LoadTTFontFromFile (pdf, (const char *)header_fontfile, HPDF_TRUE);
+  header_font=HPDF_GetFont(pdf,header_fontname,NULL);
+  fprintf(stderr,"  Loading booktab font from %s\n",booktab_fontfile);
+  booktab_font=HPDF_GetFont(pdf,HPDF_LoadTTFontFromFile (pdf, (const char *)booktab_fontfile, HPDF_TRUE),NULL);
+  fprintf(stderr,"  Loading black-letter font from %s\n",blackletter_fontfile);
+  blackletter_font=HPDF_GetFont(pdf,HPDF_LoadTTFontFromFile (pdf, (const char *)blackletter_fontfile, HPDF_TRUE),NULL);
+  fprintf(stderr,"  Loading red-letter font from %s\n",redletter_fontfile);
+  redletter_font=HPDF_GetFont(pdf,HPDF_LoadTTFontFromFile (pdf, (const char *)redletter_fontfile, HPDF_TRUE),NULL);
+  fprintf(stderr,"Loaded fonts\n");
+  
+  // Start with a left page
+  leftRight=LR_LEFT;
+
+  // Create a new page
+  new_empty_page(leftRight);
+
+  // Write PDF to disk
+  HPDF_SaveToFile(pdf,output_file);
+  
   return 0;
 }
