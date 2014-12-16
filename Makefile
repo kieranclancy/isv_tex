@@ -1,5 +1,6 @@
+TTFFILES=	urw-palladio-l-roman.ttf \
 
-all:	generate ebook-red-letter.profile
+all:	generate ebook-red-letter.profile $(TTFFILES)
 	./generate ebook-red-letter.profile
 
 generate:	generate.c
