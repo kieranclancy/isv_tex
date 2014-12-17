@@ -358,15 +358,10 @@ int main(int argc,char **argv)
   // Start with a left page
   leftRight=LR_LEFT;
 
-  // Create a new page
-  new_empty_page(leftRight);
-
-  // Draw a right-side test page also
-  leftRight=LR_RIGHT;
-  new_empty_page(leftRight);
-
   tokenise_file("books/01_Genesis.tex");
   fprintf(stderr,"Parsed Genesis.tex\n");
+
+
   
   // Write PDF to disk
   HPDF_SaveToFile(pdf,output_file);
