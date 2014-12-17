@@ -289,7 +289,8 @@ int read_profile(char *file)
 HPDF_Doc pdf;
 
 HPDF_Page page;
-  
+
+
 HPDF_Font bookpretitle_font;
 HPDF_Font booktitle_font;
 HPDF_Font header_font;
@@ -308,6 +309,9 @@ int leftRight=LR_LEFT;
 char *booktab_text=NULL;
 // And position
 int booktab_y=0;
+
+// Current vertical position on the page
+int page_y=0;
 
 // Short name of book used for finding cross-references
 char *short_book_name=NULL;
@@ -415,16 +419,43 @@ int line_free(struct line_pieces *l)
   return 0;
 }
 
+int line_emit(struct line_pieces *l)
+{
+  int baseline_y=page_y+l->ascent;
+  // convert y to libharu coordinate system
+  int y=page_height-baseline_y-l->ascent;
+
+  int i;
+
+  // Now draw the pieces
+  HPDF_Page_BeginText (page);
+  HPDF_Page_SetTextRenderingMode (page, HPDF_FILL);
+  int x=0;
+  for(i=0;i<l->piece_count;i++) {
+    HPDF_Page_SetFontAndSize(page,l->fonts[i],l->fontsizes[i]);
+    HPDF_Page_SetRGBFill(page,0.00,0.00,0.00);
+    HPDF_Page_TextOut(page,left_margin+x,y-l->piece_baseline[i],
+		      l->pieces[i]);
+    x=x+l->piece_widths[i];
+  }
+  HPDF_Page_EndText (page);
+
+  page_y=page_y+l->ascent+l->descent;
+  return 0;
+}
+
+
 int line_calculate_height(struct line_pieces *l)
 {
   int max=-1; int min=0;
   int i;
+  fprintf(stderr,"Calculating height of line %p\n",l);
   for(i=0;i<l->piece_count;i++)
     {
       // Get ascender height of font
-      int ascender_height=HPDF_Font_GetAscent(l->fonts[i]);
+      int ascender_height=HPDF_Font_GetAscent(l->fonts[i])*l->fontsizes[i]/1000;
       // Get descender depth of font
-      int descender_depth=HPDF_Font_GetDescent(l->fonts[i]);
+      int descender_depth=HPDF_Font_GetDescent(l->fonts[i])*l->fontsizes[i]/1000;
       if (ascender_height+l->piece_baseline[i]>max)
 	max=ascender_height+l->piece_baseline[i];
       if (l->piece_baseline[i]-descender_depth<min)
@@ -433,6 +464,7 @@ int line_calculate_height(struct line_pieces *l)
 
   l->line_height=max-min+1;
   l->ascent=max; l->descent=-min;
+  fprintf(stderr,"  line ascends %dpts and descends %d points.\n",max,-min);
   return 0;
 }
 
@@ -466,7 +498,9 @@ int paragraph_flush()
      to determine the maximum extents of that line.
   */  
   int i;
-for(i=0;i<paragraph_line_count;i++) line_calculate_height(paragraph_lines[i]);  
+  for(i=0;i<paragraph_line_count;i++) line_calculate_height(paragraph_lines[i]);
+
+  for(i=0;i<paragraph_line_count;i++) line_emit(paragraph_lines[i]);
   
   // Clear out old lines
   for(i=0;i<paragraph_line_count;i++) line_free(paragraph_lines[i]);
