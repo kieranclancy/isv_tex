@@ -146,7 +146,30 @@ struct parsed_text *parse_tree(char *filename)
       }
       break;
     case PS_SLASH:
-      // Check for latex escape characters
+      switch(file[i]) {
+	// Check for latex escape characters
+      case '@': case '&': 
+	parse_state = PS_NORMAL;
+	token_text[token_len++]=file[i];
+	break;
+      default:
+	// not an escape character, so assume it is a label
+	if (token_len!=0) {
+	  // slash terminates an existing token, so process that first.
+	  next_file_token(p,token_type,token_len,token_text);
+	  parse_state = PS_NORMAL;
+	  token_type=TT_TAG;
+	  token_len=0;
+	  token_text[token_len++]=file[i];
+	} else {
+	  // slash is at start of a token
+	  parse_state = PS_NORMAL;
+	  token_type=TT_TAG;
+	  token_len=0;
+	  token_text[token_len++]=file[i];
+	}
+	break;
+      }
       break;
     default:
       parse_state=PS_NORMAL;
