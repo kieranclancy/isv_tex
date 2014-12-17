@@ -355,9 +355,51 @@ int current_font_size=0;
 int current_font_smallcaps=0;
 int last_char_is_a_full_stop=0;
 
-int paragraph_flush()
+struct line_pieces {
+#define MAX_LINE_PIECES 256
+  // Horizontal space available to the line
+  int max_line_width;
+
+  // Vertical space consumed by the line.
+  int line_height;
+
+  int piece_count;
+  int line_width_so_far;
+  char *pieces[MAX_LINE_PIECES];
+  HPDF_Font fonts[MAX_LINE_PIECES];
+  int fontsizes[MAX_LINE_PIECES];
+  int piece_widths[MAX_LINE_PIECES];
+  // Used to mark spaces that can be stretched for justification
+  int piece_is_elastic[MAX_LINE_PIECES];
+  // Where the piece sits with respect to the nominal baseline
+  // (used for placing super- and sub-scripts).
+  int piece_baseline[MAX_LINE_PIECES];
+  
+ 
+  // We try adding a word first, and if it doesn't fit,
+  // then we re-wind to the last checkpoint, flush that
+  // line out, then purge out the flushed pieces, leaving
+  // only the non-emitted ones in the line.  This approach
+  // makes it fairly easy to add 
+  int checkpoint;
+};
+
+// The line currently being assembled
+struct line_pieces *current_line=NULL;
+
+int current_line_flush()
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  return 0;
+}
+
+int paragraph_flush()
+{  
+  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+
+  // First flush the current line
+  if (current_line) current_line_flush();
+  
   return 0;
 }
 
@@ -383,13 +425,43 @@ int paragraph_flush()
    depending on the context.
 
 */
-int paragraph_append_characters(char *text,int size)
+int paragraph_append_characters(char *text,int size,int baseline)
 {
   fprintf(stderr,"%s(\"%s\",%d): STUB\n",__FUNCTION__,text,size);
+
+  if (!current_line) {
+    current_line=calloc(sizeof(struct line_pieces),1); 
+  }
+
+  // Make sure the line has enough space
+  if (current_line->piece_count>=MAX_LINE_PIECES) {
+    fprintf(stderr,"Cannot add '%s' to line, as line is too long.\n",text);
+    exit(-1);
+  }
+
+  // Get width of piece
+  float text_width, text_height;
+  
+  HPDF_Page_SetFontAndSize (page, current_font, size);
+  text_width = HPDF_Page_TextWidth(page,text);
+  text_height = HPDF_Font_GetCapHeight(current_font) * size/1000;
+
+  current_line->pieces[current_line->piece_count]=strdup(text);
+  current_line->fonts[current_line->piece_count]=current_font;
+  current_line->fontsizes[current_line->piece_count]=size;
+  current_line->piece_widths[current_line->piece_count]=text_width;
+  if (strcmp(text," "))
+    current_line->piece_is_elastic[current_line->piece_count]=0;
+  else
+    current_line->piece_is_elastic[current_line->piece_count]=1;
+
+  // Piece sits on the base line, being neither super nor sub-script
+  current_line->piece_baseline[current_line->piece_count]=baseline;  
+
   return 0;
 }
 
-int paragraph_append_text(char *text)
+int paragraph_append_text(char *text,int baseline)
 {  
   fprintf(stderr,"%s(\"%s\"): STUB\n",__FUNCTION__,text);
 
@@ -417,26 +489,26 @@ int paragraph_append_text(char *text)
 		// case change
 		chars[count]=0;
 		if (islower)
-		  paragraph_append_characters(chars,current_font_smallcaps);
+		  paragraph_append_characters(chars,current_font_smallcaps,baseline);
 		else
-		  paragraph_append_characters(chars,current_font_size);
+		  paragraph_append_characters(chars,current_font_size,baseline);
 		i=j;
 		count=0;
 		break;
-	      } else chars[count++]=text[j];
+	      } else chars[count++]=toupper(text[j]);
 	  }
 	if (count) {
 	  chars[count]=0;
 	  if (islower)
-	    paragraph_append_characters(chars,current_font_smallcaps);
+	    paragraph_append_characters(chars,current_font_smallcaps,baseline);
 	  else
-	    paragraph_append_characters(chars,current_font_size);
+	    paragraph_append_characters(chars,current_font_size,baseline);
 	  break;
 	}
       }
   } else {
     // Regular text. Render as one piece.
-    paragraph_append_characters(text,current_font_size);
+    paragraph_append_characters(text,current_font_size,baseline);
   }
     
   return 0;
@@ -449,6 +521,7 @@ int paragraph_append_space()
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
   if (last_char_is_a_full_stop) fprintf(stderr,"  space follows a full-stop.\n");
+  paragraph_append_characters(" ",current_font_size,0);
   return 0;
 }
 
@@ -479,6 +552,9 @@ int paragraph_pop_style()
 int paragraph_clear_style_stack()
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  current_font = blackletter_font;
+  current_font_size = blackletter_fontsize;
+  current_font_smallcaps = 0;
   return 0;
 }
 
@@ -546,7 +622,9 @@ int render_tokens()
 	break;
       case TT_TEXT:
 	// Append to paragraph
-	paragraph_append_text(token_strings[i]);
+	// XXX - Adjust baseline for verse numbers, footnote references and
+	// large chapter numbers.
+	paragraph_append_text(token_strings[i],0);
 	break;
       case TT_ENDTAG:
 	paragraph_pop_style();
