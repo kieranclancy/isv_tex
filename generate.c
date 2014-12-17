@@ -63,6 +63,11 @@ struct line_pieces {
   // only the non-emitted ones in the line.  This approach
   // makes it fairly easy to add 
   int checkpoint;
+
+  // Vertical height data
+  int line_height;
+  int ascent;
+  int descent;
 };
 
 // The line currently being assembled
@@ -410,6 +415,28 @@ int line_free(struct line_pieces *l)
   return 0;
 }
 
+int line_calculate_height(struct line_pieces *l)
+{
+  int max=-1; int min=0;
+  int i;
+  for(i=0;i<l->piece_count;i++)
+    {
+      // Get ascender height of font
+      int ascender_height=HPDF_Font_GetAscent(l->fonts[i]);
+      // Get descender depth of font
+      int descender_depth=HPDF_Font_GetDescent(l->fonts[i]);
+      if (ascender_height+l->piece_baseline[i]>max)
+	max=ascender_height+l->piece_baseline[i];
+      if (l->piece_baseline[i]-descender_depth<min)
+	min=l->piece_baseline[i]-descender_depth;
+    }
+
+  l->line_height=max-min+1;
+  l->ascent=max; l->descent=-min;
+  return 0;
+}
+
+
 int paragraph_flush()
 {  
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
@@ -419,10 +446,29 @@ int paragraph_flush()
 
   // XXX mark last line terminal (so that it doesn't get justified).
 
-  // Write lines of paragraph to PDF, generating new pages as required
+  /* Write lines of paragraph to PDF, generating new pages as required.
+     Here the challenge is knowing that the line will fit.
+     We can fairly easily measure the height of the line itself to see that
+     it will fit.  The trick is making sure that there is room for the line 
+     plus any inseperable lines fit, too. Also, there has to be room for the
+     marginal cross-references, and also the footnotes at the bottom.
 
-  // Clear out old lines
+     The footnotes are merged in a single footnote paragraph, which makes
+     determining the space for them dependent on what has already been
+     rendered on this page.
+
+     The marginal notes should appear next to the corresponding verses,
+     unless some verses have too many, in which case we have to do some
+     vertical sliding to try to make them fit, if possible.
+
+     For now, we will ignore all of that, and just emit the lines if there is
+     physical space for the line.  This requires only pre-processing each line
+     to determine the maximum extents of that line.
+  */  
   int i;
+for(i=0;i<paragraph_line_count;i++) line_calculate_height(paragraph_lines[i]);  
+  
+  // Clear out old lines
   for(i=0;i<paragraph_line_count;i++) line_free(paragraph_lines[i]);
   paragraph_line_count=0;
   
