@@ -368,6 +368,9 @@ int main(int argc,char **argv)
   // Draw a right-side test page also
   leftRight=LR_RIGHT;
   new_empty_page(leftRight);
+
+  struct parsed_text *pt = parse_tree("books/01_Genesis.tex");
+  fprintf(stderr,"Parsed Genesis.tex\n");
   
   // Write PDF to disk
   HPDF_SaveToFile(pdf,output_file);

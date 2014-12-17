@@ -86,7 +86,7 @@ struct parsed_text *parse_tree(char *filename)
   char token_text[1024];
   int token_type=0;
   
-  for(i=0;fileLength;i++) {
+  for(i=0;i<fileLength;i++) {
     switch(parse_state) {
     case PS_NORMAL:
       switch(file[i]) {
