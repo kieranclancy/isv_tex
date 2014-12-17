@@ -46,12 +46,28 @@
    
 */
 
+#define MAX_TOKENS 1048576
+int token_count=0;
+int token_types[MAX_TOKENS];
+char *token_strings[MAX_TOKENS];
+
 int next_file_token(struct parsed_text *p,
 		    int token_type,int token_len,char *token_text)
 {
   token_text[token_len]=0;
   printf("Token: type=%d, len=%d,text=%s\n",token_type,token_len,
 	 token_text);
+
+  if (token_count>=MAX_TOKENS) {
+    fprintf(stderr,"Too many tokens in tex file/tex file too large.\n");
+    exit(-1);
+  }
+  
+  token_types[token_count]=token_type;
+  if (token_len) token_strings[token_count]=strdup(token_text);
+  else token_strings[token_count]=NULL;
+  token_count++;
+  
   return 0;
 }
 
