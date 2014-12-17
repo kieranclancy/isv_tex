@@ -61,6 +61,12 @@ int booktab_height=115;
 int booktab_upperlimit=36;
 int booktab_lowerlimit=72*5.5;
 
+char *bookpretitle_fontfile="bookpretitle.ttf";
+int bookpretitle_fontsize=12;
+int bookpretitle_smallcaps=10;
+char *booktitle_fontfile="booktitle.ttf";
+int booktitle_fontsize=25;
+int booktitle_smallcaps=20;
 char *header_fontfile="header.ttf";
 int header_fontsize=12;
 char *booktab_fontfile="booktab.ttf";
@@ -184,6 +190,18 @@ int read_profile(char *file)
 	      header_fontsize=atoi(value);
 	    else if (!strcasecmp(key,"header_fontfile"))
 	      header_fontfile=strdup(value);	    
+	    else if (!strcasecmp(key,"bookpretitle_fontfile"))
+	      bookpretitle_fontfile=strdup(value);	    
+	    else if (!strcasecmp(key,"bookpretitle_fontsize"))
+	      bookpretitle_fontsize=atoi(value);
+	    else if (!strcasecmp(key,"bookpretitle_smallcaps"))
+	      bookpretitle_smallcaps=atoi(value);
+	    else if (!strcasecmp(key,"booktitle_fontfile"))
+	      booktitle_fontfile=strdup(value);	    
+	    else if (!strcasecmp(key,"booktitle_fontsize"))
+	      booktitle_fontsize=atoi(value);
+	    else if (!strcasecmp(key,"booktitle_smallcaps"))
+	      booktitle_smallcaps=atoi(value);
 	    else if (!strcasecmp(key,"redletter_fontsize"))
 	      redletter_fontsize=atoi(value);
 	    else if (!strcasecmp(key,"redletter_fontfile"))
@@ -225,6 +243,8 @@ HPDF_Doc pdf;
 
 HPDF_Page page;
   
+HPDF_Font bookpretitle_font;
+HPDF_Font booktitle_font;
 HPDF_Font header_font;
 HPDF_Font booktab_font;
 HPDF_Font blackletter_font;
@@ -342,6 +362,19 @@ int paragraph_append_text(char *text)
   return 0;
 }
 
+#define AL_CENTRED 0
+#define AL_LEFT -1
+#define AL_RIGHT 1
+#define AL_JUSTIFIED -2
+int paragraph_push_style(int font_alignment,
+			 HPDF_Font font,
+			 int font_size,
+			 int font_smallcaps)
+{
+  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  return 0;
+}
+
 int paragraph_pop_style()
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
@@ -400,6 +433,13 @@ int render_tokens()
 	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
 	      exit(-1);
 	    }
+	  } else if (!strcasecmp(token_strings[i],"bookpretitle")) {
+	    // Book title header line
+	    paragraph_push_style(AL_CENTRED,
+				 bookpretitle_font,
+				 bookpretitle_fontsize,
+				 bookpretitle_smallcaps);
+	    
 	  } else {
 	    
 	    fprintf(stderr,"Warning: unknown tag \%s\n",token_strings[i]);
@@ -438,6 +478,10 @@ int main(int argc,char **argv)
 
   fprintf(stderr,"About to load fonts\n");
   // Load all the fonts we will need
+  fprintf(stderr,"  Loading bookpretitle font from %s\n",bookpretitle_fontfile);
+  bookpretitle_font=HPDF_GetFont(pdf,resolve_font(bookpretitle_fontfile),NULL);
+  fprintf(stderr,"  Loading booktitle font from %s\n",booktitle_fontfile);
+  booktitle_font=HPDF_GetFont(pdf,resolve_font(booktitle_fontfile),NULL);
   fprintf(stderr,"  Loading header font from %s\n",header_fontfile);
   header_font=HPDF_GetFont(pdf,resolve_font(header_fontfile),NULL);
   fprintf(stderr,"  Loading booktab font from %s\n",booktab_fontfile);
