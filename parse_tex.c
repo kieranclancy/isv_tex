@@ -129,7 +129,11 @@ int tokenise_file(char *filename)
 	  {
 	    while (file[i+1]=='\r'||file[i+1]=='\n') i++;
 	    next_file_token(p,TT_PARAGRAPH,0,token_text);
-	  }
+	  } else {
+	  // If not new paragraph, then it indicates some white space
+	  next_file_token(p,TT_SPACE,0,token_text);
+	}
+
 	break;
       case '{':
 	// start of tag token
