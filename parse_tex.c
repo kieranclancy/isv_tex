@@ -46,7 +46,6 @@
    
 */
 
-#define MAX_TOKENS 1048576
 int token_count=0;
 int token_types[MAX_TOKENS];
 char *token_strings[MAX_TOKENS];
@@ -71,7 +70,7 @@ int next_file_token(struct parsed_text *p,
   return 0;
 }
 
-struct parsed_text *parse_tree(char *filename)
+int tokenise_file(char *filename)
 {
   FILE *f=fopen(filename,"r");
   if (!f) {
@@ -195,5 +194,6 @@ struct parsed_text *parse_tree(char *filename)
   
   munmap(file,fileLength);
   fclose(f);
-  return p;
+
+  return 0;
 }

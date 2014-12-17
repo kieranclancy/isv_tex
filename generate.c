@@ -365,7 +365,7 @@ int main(int argc,char **argv)
   leftRight=LR_RIGHT;
   new_empty_page(leftRight);
 
-  struct parsed_text *pt = parse_tree("books/01_Genesis.tex");
+  tokenise_file("books/01_Genesis.tex");
   fprintf(stderr,"Parsed Genesis.tex\n");
   
   // Write PDF to disk
