@@ -55,8 +55,8 @@ int next_file_token(struct parsed_text *p,
 		    int token_type,int token_len,char *token_text)
 {
   token_text[token_len]=0;
-  printf("Token: type=%d, len=%d,text=%s\n",token_type,token_len,
-	 token_text);
+  if (0) printf("Token: type=%d, len=%d,text=%s\n",token_type,token_len,
+		token_text);
 
   if (token_count>=MAX_TOKENS) {
     fprintf(stderr,"Too many tokens in tex file/tex file too large.\n");

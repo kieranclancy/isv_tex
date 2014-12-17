@@ -275,8 +275,6 @@ int new_empty_page(int leftRight)
     HPDF_Page_SetFontAndSize (page, booktab_font, booktab_fontsize);
     text_width = HPDF_Page_TextWidth(page,booktab_text);
     text_height = HPDF_Font_GetCapHeight(booktab_font) * booktab_fontsize/1000;
-    printf("text_width=%f\n",text_width);
-    printf("text_height=%f\n",text_height);
     
     int y;
     float angle_degrees=0;
@@ -293,7 +291,6 @@ int new_empty_page(int leftRight)
     }
     y = page_height-y;
     float radians = angle_degrees / 180 * 3.141592;
-    printf("radians=%f\n",radians);
     HPDF_Page_BeginText (page);
     HPDF_Page_SetTextRenderingMode (page, HPDF_FILL);
     HPDF_Page_SetRGBFill (page, 1.00, 1.00, 1.00);
@@ -303,7 +300,6 @@ int new_empty_page(int leftRight)
                 x, y);
     HPDF_Page_ShowText (page, booktab_text);
     HPDF_Page_EndText (page);
-    printf("Drew '%s' at %d,%d\n",booktab_text,x,y);
 
   }
   
