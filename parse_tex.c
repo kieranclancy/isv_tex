@@ -85,8 +85,11 @@ struct parsed_text *parse_tree(char *filename)
   int token_len=0;
   char token_text[1024];
   int token_type=0;
+
+  int line_num=1;
   
   for(i=0;i<fileLength;i++) {
+    if (file[i]=='\n'||file[i]=='\r') line_num++;
     switch(parse_state) {
     case PS_NORMAL:
       switch(file[i]) {
@@ -132,6 +135,13 @@ struct parsed_text *parse_tree(char *filename)
 	next_file_token(p,TT_ENDTAG,0,token_text);
 	break;
       default:
+	if (token_len<1023) token_text[token_len++]=file[i];
+	else {
+	  include_show_stack();
+	  fprintf(stderr,"%s:%d:Token or line too long.\n",
+		  file,line_num);
+	  exit(-1);
+	}
 	break;
       }
       break;
