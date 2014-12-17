@@ -68,6 +68,11 @@ struct line_pieces {
 // The line currently being assembled
 struct line_pieces *current_line=NULL;
 
+// Current paragraph
+int paragraph_line_count=0;
+#define MAX_LINES_IN_PARAGRAPH 256
+struct line_pieces *paragraph_lines[MAX_LINES_IN_PARAGRAPH];
+
 int paragraph_append_line(struct line_pieces *line);
 
 void error_handler(HPDF_STATUS error_number, HPDF_STATUS detail_number,
@@ -435,6 +440,14 @@ int paragraph_flush()
 int paragraph_append_line(struct line_pieces *line)
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+
+  if (paragraph_line_count>=MAX_LINES_IN_PARAGRAPH) {
+    fprintf(stderr,"Too many lines in paragraph.\n");
+    exit(-1);
+  }
+
+  paragraph_lines[paragraph_line_count++]=current_line;
+  current_line=NULL;
   return 0;
 }
 
