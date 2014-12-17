@@ -33,6 +33,43 @@
 #include "hpdf.h"
 #include "generate.h"
 
+
+HPDF_Font current_font=NULL;
+int current_font_size=0;
+int current_font_smallcaps=0;
+int last_char_is_a_full_stop=0;
+
+struct line_pieces {
+#define MAX_LINE_PIECES 256
+  // Horizontal space available to the line
+  int max_line_width;
+
+  int piece_count;
+  int line_width_so_far;
+  char *pieces[MAX_LINE_PIECES];
+  HPDF_Font fonts[MAX_LINE_PIECES];
+  int fontsizes[MAX_LINE_PIECES];
+  int piece_widths[MAX_LINE_PIECES];
+  // Used to mark spaces that can be stretched for justification
+  int piece_is_elastic[MAX_LINE_PIECES];
+  // Where the piece sits with respect to the nominal baseline
+  // (used for placing super- and sub-scripts).
+  int piece_baseline[MAX_LINE_PIECES];
+  
+ 
+  // We try adding a word first, and if it doesn't fit,
+  // then we re-wind to the last checkpoint, flush that
+  // line out, then purge out the flushed pieces, leaving
+  // only the non-emitted ones in the line.  This approach
+  // makes it fairly easy to add 
+  int checkpoint;
+};
+
+// The line currently being assembled
+struct line_pieces *current_line=NULL;
+
+int paragraph_append_line(struct line_pieces *line);
+
 void error_handler(HPDF_STATUS error_number, HPDF_STATUS detail_number,
 		   void *data)
 {
@@ -350,46 +387,12 @@ const char *resolve_font(char *font_filename)
   return font_names[font_count-1];
 }
 
-HPDF_Font current_font=NULL;
-int current_font_size=0;
-int current_font_smallcaps=0;
-int last_char_is_a_full_stop=0;
-
-struct line_pieces {
-#define MAX_LINE_PIECES 256
-  // Horizontal space available to the line
-  int max_line_width;
-
-  // Vertical space consumed by the line.
-  int line_height;
-
-  int piece_count;
-  int line_width_so_far;
-  char *pieces[MAX_LINE_PIECES];
-  HPDF_Font fonts[MAX_LINE_PIECES];
-  int fontsizes[MAX_LINE_PIECES];
-  int piece_widths[MAX_LINE_PIECES];
-  // Used to mark spaces that can be stretched for justification
-  int piece_is_elastic[MAX_LINE_PIECES];
-  // Where the piece sits with respect to the nominal baseline
-  // (used for placing super- and sub-scripts).
-  int piece_baseline[MAX_LINE_PIECES];
-  
- 
-  // We try adding a word first, and if it doesn't fit,
-  // then we re-wind to the last checkpoint, flush that
-  // line out, then purge out the flushed pieces, leaving
-  // only the non-emitted ones in the line.  This approach
-  // makes it fairly easy to add 
-  int checkpoint;
-};
-
-// The line currently being assembled
-struct line_pieces *current_line=NULL;
-
 int current_line_flush()
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  if (current_line)
+    paragraph_append_line(current_line);
+  current_line=NULL;
   return 0;
 }
 
@@ -399,6 +402,10 @@ int paragraph_flush()
 
   // First flush the current line
   if (current_line) current_line_flush();
+
+  // XXX mark last line terminal (so that it doesn't get justified).
+
+  // Write lines of paragraph to PDF, generating new pages as required
   
   return 0;
 }
@@ -425,13 +432,31 @@ int paragraph_flush()
    depending on the context.
 
 */
+int paragraph_append_line(struct line_pieces *line)
+{
+  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  return 0;
+}
+
+// Setup a line 
+int paragraph_setup_next_line()
+{
+  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+
+  // Allocate structure
+  current_line=calloc(sizeof(struct line_pieces),1); 
+
+  // Set maximum line width
+  current_line->max_line_width=page_width-left_margin-right_margin;
+
+  return 0;
+}
+
 int paragraph_append_characters(char *text,int size,int baseline)
 {
   fprintf(stderr,"%s(\"%s\",%d): STUB\n",__FUNCTION__,text,size);
 
-  if (!current_line) {
-    current_line=calloc(sizeof(struct line_pieces),1); 
-  }
+  if (!current_line) paragraph_setup_next_line();
 
   // Make sure the line has enough space
   if (current_line->piece_count>=MAX_LINE_PIECES) {
@@ -454,10 +479,50 @@ int paragraph_append_characters(char *text,int size,int baseline)
     current_line->piece_is_elastic[current_line->piece_count]=0;
   else
     current_line->piece_is_elastic[current_line->piece_count]=1;
-
-  // Piece sits on the base line, being neither super nor sub-script
   current_line->piece_baseline[current_line->piece_count]=baseline;  
+  current_line->line_width_so_far+=text_width;
+  current_line->piece_count++;
 
+  if (current_line->line_width_so_far>current_line->max_line_width) {
+    fprintf(stderr,"Breaking line at %d points wide.\n",
+	    current_line->line_width_so_far);
+    // Line is too long.
+    if (current_line->checkpoint) {
+      // Rewind to checkpoint, add this line
+      // to the current paragraph.  Then allocate a new line with just
+      // the recently added stuff.
+      int saved_piece_count=current_line->piece_count;
+      int saved_checkpoint=current_line->checkpoint;
+      current_line->piece_count=current_line->checkpoint;
+      struct line_pieces *last_line=current_line;
+      paragraph_append_line(current_line);
+      paragraph_setup_next_line();
+      // Now populate new line with the left overs from the old line
+      int i;
+      for(i=saved_checkpoint;i<saved_piece_count;i++)
+	{
+	  current_line->pieces[current_line->piece_count]=last_line->pieces[i];
+	  current_line->fonts[current_line->piece_count]=last_line->fonts[i];
+	  current_line->fontsizes[current_line->piece_count]=last_line->fontsizes[i];
+	  current_line->piece_widths[current_line->piece_count]
+	    =last_line->piece_widths[i];
+	  current_line->piece_is_elastic[current_line->piece_count]
+	    =last_line->piece_is_elastic[i];
+	  current_line->piece_baseline[current_line->piece_count]
+	    =last_line->piece_baseline[i];
+	  current_line->line_width_so_far+=last_line->piece_widths[i];
+	  current_line->piece_count++;	  
+	}
+    } else {
+      // Line too long, but no checkpoint.  This is bad.
+      // Just add this line as is to the paragraph and report a warning.
+      fprintf(stderr,"Line too wide when appending '%s'\n",text);
+      paragraph_append_line(current_line);
+      current_line=NULL;
+      paragraph_setup_next_line();
+    }
+  }
+  
   return 0;
 }
 
@@ -469,6 +534,9 @@ int paragraph_append_text(char *text,int baseline)
   // apply double spacing between sentences (if desired).
   if (text[strlen(text)-1]=='.') last_char_is_a_full_stop=1;
   else last_char_is_a_full_stop=0;
+
+  // Checkpoint where we are up to, in case we need to split the line
+  if (current_line) current_line->checkpoint=current_line->piece_count;
   
   if (current_font_smallcaps) {
     // This font uses emulated small caps, so break the word down into
