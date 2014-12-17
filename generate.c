@@ -29,6 +29,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <math.h>
+#include <ctype.h>
 #include "hpdf.h"
 #include "generate.h"
 
@@ -237,9 +238,12 @@ HPDF_Font blackletter_font;
 int leftRight=LR_LEFT;
 
 // Current booktab text
-char *booktab_text="BOOKTAB";
+char *booktab_text=NULL;
 // And position
 int booktab_y=0;
+
+// Short name of book used for finding cross-references
+char *short_book_name=NULL;
 
 // Create a new empty page
 // Empty of main content, that is, a booktab will be added
@@ -326,6 +330,95 @@ const char *resolve_font(char *font_filename)
   return font_names[font_count-1];
 }
 
+int paragraph_flush()
+{
+  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  return 0;
+}
+
+int paragraph_append_text(char *text)
+{
+  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  return 0;
+}
+
+int paragraph_pop_style()
+{
+  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  return 0;
+}
+
+int paragraph_clear_style_stack()
+{
+  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  return 0;
+}
+
+int render_tokens()
+{
+  int i,j;
+
+  paragraph_clear_style_stack();
+  
+  for(i=0;i<token_count;i++)
+    {
+      switch(token_types[i]) {
+      case TT_TAG:
+	if (token_strings[i]) {
+	  if (!strcasecmp(token_strings[i],"bookheader")) {
+	    // Set booktab text to upper case version of this tag and
+	    // begin a new page
+	    paragraph_flush();
+	    paragraph_clear_style_stack();
+	    if (booktab_text) free(booktab_text); booktab_text=NULL;
+	    // If we are on a left page, add a blank right page so that
+	    // the book starts on a left page
+	    if (leftRight==LR_LEFT) new_empty_page(LR_RIGHT);
+	    leftRight=LR_LEFT;
+	    i++; if (token_types[i]!=TT_TEXT) {
+	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
+	      exit(-1);
+	    }
+	    booktab_text=strdup(token_strings[i]);
+	    i++; if (token_types[i]!=TT_ENDTAG) {
+	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
+	      exit(-1);
+	    }
+	    for(j=0;booktab_text[j];j++) booktab_text[j]=toupper(booktab_text[j]);
+	    // Start new empty page
+	    new_empty_page(leftRight);
+	  } else if (!strcasecmp(token_strings[i],"labelbook")) {
+	    // Remember short name of book for inserting entries from the
+	    // cross-reference database.
+	    if (short_book_name) free(short_book_name); short_book_name=NULL;
+	    i++; if (token_types[i]!=TT_TEXT) {
+	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
+	      exit(-1);
+	    }
+	    short_book_name=strdup(token_strings[i]);
+	    i++; if (token_types[i]!=TT_ENDTAG) {
+	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
+	      exit(-1);
+	    }
+	  } else {
+	    
+	    fprintf(stderr,"Warning: unknown tag \%s\n",token_strings[i]);
+	  }	  
+	}
+	break;
+      case TT_TEXT:
+	// Append to paragraph
+	paragraph_append_text(token_strings[i]);
+	break;
+      case TT_ENDTAG:
+	paragraph_pop_style();
+	break;
+      }
+    }
+  
+  return 0;
+}
+
 int main(int argc,char **argv)
 {
   if (argc==2) 
@@ -360,8 +453,8 @@ int main(int argc,char **argv)
 
   tokenise_file("books/01_Genesis.tex");
   fprintf(stderr,"Parsed Genesis.tex\n");
-
-
+  render_tokens();
+  fprintf(stderr,"Rendered Genesis.tex\n");
   
   // Write PDF to disk
   HPDF_SaveToFile(pdf,output_file);
