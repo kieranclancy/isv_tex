@@ -401,6 +401,15 @@ int current_line_flush()
   return 0;
 }
 
+int line_free(struct line_pieces *l)
+{
+  int i;
+  if (!l) return 0;
+  for(i=0;i<l->piece_count;i++) free(l->pieces[i]);
+  free(l);
+  return 0;
+}
+
 int paragraph_flush()
 {  
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
@@ -411,6 +420,11 @@ int paragraph_flush()
   // XXX mark last line terminal (so that it doesn't get justified).
 
   // Write lines of paragraph to PDF, generating new pages as required
+
+  // Clear out old lines
+  int i;
+  for(i=0;i<paragraph_line_count;i++) line_free(paragraph_lines[i]);
+  paragraph_line_count=0;
   
   return 0;
 }
@@ -648,6 +662,9 @@ int render_tokens()
   for(i=0;i<token_count;i++)
     {
       switch(token_types[i]) {
+      case TT_PARAGRAPH:
+	paragraph_flush();
+	break;
       case TT_SPACE:
 	paragraph_append_space();
 	break;
@@ -712,6 +729,11 @@ int render_tokens()
 	break;
       }
     }
+
+  // Flush out any queued content.
+  if (current_line&&current_line->piece_count) paragraph_append_line(current_line);
+  paragraph_flush();
+
   
   return 0;
 }
