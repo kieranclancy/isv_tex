@@ -30,6 +30,7 @@
 #include <unistd.h>
 #include <math.h>
 #include "hpdf.h"
+#include "generate.h"
 
 void error_handler(HPDF_STATUS error_number, HPDF_STATUS detail_number,
 		   void *data)
@@ -80,7 +81,6 @@ int footnotemark_fontsize=4;
    The profile consists of a series of key=value pairs that set various 
    parameters for the typesetting.
 */
-#define MAX_INCLUDE_DEPTH 32
 int include_depth=0;
 char *include_files[MAX_INCLUDE_DEPTH];
 int include_lines[MAX_INCLUDE_DEPTH];
