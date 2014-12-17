@@ -1,5 +1,8 @@
 TTFFILES=	urw-palladio-l-roman.ttf \
 
+%.ttf:
+	cat FONTS.md
+
 all:	generate ebook-red-letter.profile $(TTFFILES)
 	./generate ebook-red-letter.profile
 
