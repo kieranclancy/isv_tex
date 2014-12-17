@@ -353,6 +353,7 @@ const char *resolve_font(char *font_filename)
 HPDF_Font current_font=NULL;
 int current_font_size=0;
 int current_font_smallcaps=0;
+int last_char_is_a_full_stop=0;
 
 int paragraph_flush()
 {
@@ -392,6 +393,11 @@ int paragraph_append_text(char *text)
 {  
   fprintf(stderr,"%s(\"%s\"): STUB\n",__FUNCTION__,text);
 
+  // Keep track of whether the last character is a full stop so that we can
+  // apply double spacing between sentences (if desired).
+  if (text[strlen(text)-1]=='.') last_char_is_a_full_stop=1;
+  else last_char_is_a_full_stop=0;
+  
   if (current_font_smallcaps) {
     // This font uses emulated small caps, so break the word down into
     // as many pieces as necessary.
@@ -442,6 +448,7 @@ int paragraph_append_text(char *text)
 int paragraph_append_space()
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  if (last_char_is_a_full_stop) fprintf(stderr,"  space follows a full-stop.\n");
   return 0;
 }
 
@@ -484,6 +491,9 @@ int render_tokens()
   for(i=0;i<token_count;i++)
     {
       switch(token_types[i]) {
+      case TT_SPACE:
+	paragraph_append_space();
+	break;
       case TT_TAG:
 	if (token_strings[i]) {
 	  if (!strcasecmp(token_strings[i],"bookheader")) {
