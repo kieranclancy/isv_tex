@@ -31,6 +31,7 @@
 #include <string.h>
 #include <strings.h>
 #include <sys/mman.h>
+#include "hpdf.h"
 #include "generate.h"
 
 /* Basically we want to build a tree structure where we parse out the

@@ -33,10 +33,7 @@
 #include "hpdf.h"
 #include "generate.h"
 
-
-HPDF_Font current_font=NULL;
-int current_font_size=0;
-int current_font_smallcaps=0;
+struct type_face current_font = { NULL,0,0,0 };
 int last_char_is_a_full_stop=0;
 
 struct line_pieces {
@@ -574,12 +571,12 @@ int paragraph_append_characters(char *text,int size,int baseline)
   // Get width of piece
   float text_width, text_height;
   
-  HPDF_Page_SetFontAndSize (page, current_font, size);
+  HPDF_Page_SetFontAndSize (page, current_font.font, size);
   text_width = HPDF_Page_TextWidth(page,text);
-  text_height = HPDF_Font_GetCapHeight(current_font) * size/1000;
+  text_height = HPDF_Font_GetCapHeight(current_font.font) * size/1000;
 
   current_line->pieces[current_line->piece_count]=strdup(text);
-  current_line->fonts[current_line->piece_count]=current_font;
+  current_line->fonts[current_line->piece_count]=current_font.font;
   current_line->fontsizes[current_line->piece_count]=size;
   current_line->piece_widths[current_line->piece_count]=text_width;
   if (strcmp(text," "))
@@ -645,7 +642,7 @@ int paragraph_append_text(char *text,int baseline)
   // Checkpoint where we are up to, in case we need to split the line
   if (current_line) current_line->checkpoint=current_line->piece_count;
   
-  if (current_font_smallcaps) {
+  if (current_font.smallcaps) {
     // This font uses emulated small caps, so break the word down into
     // as many pieces as necessary.
     int i,j;
@@ -664,9 +661,11 @@ int paragraph_append_text(char *text,int baseline)
 		// case change
 		chars[count]=0;
 		if (islower)
-		  paragraph_append_characters(chars,current_font_smallcaps,baseline);
+		  paragraph_append_characters(chars,current_font.smallcaps,
+					      baseline+current_font.baseline_delta);
 		else
-		  paragraph_append_characters(chars,current_font_size,baseline);
+		  paragraph_append_characters(chars,current_font.font_size,
+					      baseline+current_font.baseline_delta);
 		i=j;
 		count=0;
 		break;
@@ -675,15 +674,18 @@ int paragraph_append_text(char *text,int baseline)
 	if (count) {
 	  chars[count]=0;
 	  if (islower)
-	    paragraph_append_characters(chars,current_font_smallcaps,baseline);
+	    paragraph_append_characters(chars,current_font.smallcaps,
+					baseline+current_font.baseline_delta);
 	  else
-	    paragraph_append_characters(chars,current_font_size,baseline);
+	    paragraph_append_characters(chars,current_font.font_size,
+					baseline+current_font.baseline_delta);
 	  break;
 	}
       }
   } else {
     // Regular text. Render as one piece.
-    paragraph_append_characters(text,current_font_size,baseline);
+    paragraph_append_characters(text,current_font.font_size,
+				baseline+current_font.baseline_delta);
   }
     
   return 0;
@@ -696,7 +698,7 @@ int paragraph_append_space()
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
   if (last_char_is_a_full_stop) fprintf(stderr,"  space follows a full-stop.\n");
-  paragraph_append_characters(" ",current_font_size,0);
+  paragraph_append_characters(" ",current_font.font_size,0);
   return 0;
 }
 
@@ -711,9 +713,10 @@ int paragraph_push_style(int font_alignment,
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
 
-  current_font=font;
-  current_font_size=font_size;
-  current_font_smallcaps=font_smallcaps;
+  current_font.font=font;
+  current_font.font_size=font_size;
+  current_font.smallcaps=font_smallcaps;
+  current_font.baseline_delta=0;
   
   return 0;
 }
@@ -727,9 +730,10 @@ int paragraph_pop_style()
 int paragraph_clear_style_stack()
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
-  current_font = blackletter_font;
-  current_font_size = blackletter_fontsize;
-  current_font_smallcaps = 0;
+  current_font.font = blackletter_font;
+  current_font.font_size = blackletter_fontsize;
+  current_font.smallcaps = 0;
+  current_font.baseline_delta = 0;
   return 0;
 }
 
