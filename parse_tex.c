@@ -168,7 +168,7 @@ int tokenise_file(char *filename)
     case PS_SLASH:
       switch(file[i]) {
 	// Check for latex escape characters
-      case '@': case '&': 
+      case '@': case '&': case '\\':
 	parse_state = PS_NORMAL;
 	token_text[token_len++]=file[i];
 	break;

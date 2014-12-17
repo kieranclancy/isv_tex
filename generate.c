@@ -868,10 +868,20 @@ int render_tokens()
 	    paragraph_push_style(AL_CENTRED,
 				 versenum_font,
 				 versenum_fontsize,
-				 0);	    
-	  } else {
+				 0);
+
+	    // Poem line indenting
+	  } else if (!strcasecmp(token_strings[i],"poeml")) {
+	  } else if (!strcasecmp(token_strings[i],"poemll")) {
+	  } else if (!strcasecmp(token_strings[i],"poemlll")) {
 	    
-	    fprintf(stderr,"Warning: unknown tag \%s\n",token_strings[i]);
+	  } else {	    
+	    fprintf(stderr,"Warning: unknown tag \%s (%d styles on the stack.)\n",
+		    token_strings[i],type_face_stack_pointer);
+	    paragraph_push_style(AL_CENTRED,
+				 blackletter_font,
+				 blackletter_fontsize,
+				 0);
 	  }	  
 	}
 	break;
