@@ -261,6 +261,10 @@ int read_profile(char *file)
 	      blackletter_fontsize=atoi(value);
 	    else if (!strcasecmp(key,"blackletter_fontfile"))
 	      blackletter_fontfile=strdup(value);	    
+	    else if (!strcasecmp(key,"versenum_fontsize"))
+	      versenum_fontsize=atoi(value);
+	    else if (!strcasecmp(key,"versenum_fontfile"))
+	      versenum_fontfile=strdup(value);	    
 
 	    // Size of solid colour book tabs
 	    else if (!strcasecmp(key,"booktab_width")) booktab_width=atoi(value);
@@ -300,6 +304,7 @@ HPDF_Font booktitle_font;
 HPDF_Font header_font;
 HPDF_Font passage_header_font;
 HPDF_Font booktab_font;
+HPDF_Font versenum_font;
 HPDF_Font blackletter_font;
 HPDF_Font redletter_font;
 HPDF_Font blackletter_font;
@@ -846,11 +851,24 @@ int render_tokens()
 				 booktitle_smallcaps);
 	    
 	  } else if (!strcasecmp(token_strings[i],"passage")) {
-	    // Book title header line
+	    // Passage header line
 	    paragraph_push_style(AL_CENTRED,
 				 passage_header_font,
 				 passage_header_fontsize,
 				 passage_header_smallcaps);	    
+	  } else if (!strcasecmp(token_strings[i],"chapt")) {
+	    // Chapter big number
+	    // XXX We don't support the drop-characters yet.
+	    paragraph_push_style(AL_CENTRED,
+				 passage_header_font,
+				 passage_header_fontsize,
+				 passage_header_smallcaps);	    
+	  } else if (!strcasecmp(token_strings[i],"v")) {
+	    // Verse number
+	    paragraph_push_style(AL_CENTRED,
+				 versenum_font,
+				 versenum_fontsize,
+				 0);	    
 	  } else {
 	    
 	    fprintf(stderr,"Warning: unknown tag \%s\n",token_strings[i]);
@@ -904,6 +922,8 @@ int main(int argc,char **argv)
   header_font=HPDF_GetFont(pdf,resolve_font(header_fontfile),NULL);
   fprintf(stderr,"  Loading passage header font from %s\n",passage_header_fontfile);
   passage_header_font=HPDF_GetFont(pdf,resolve_font(passage_header_fontfile),NULL);
+  fprintf(stderr,"  Loading verse number font from %s\n",versenum_fontfile);
+  versenum_font=HPDF_GetFont(pdf,resolve_font(versenum_fontfile),NULL);
   fprintf(stderr,"  Loading booktab font from %s\n",booktab_fontfile);
   booktab_font=HPDF_GetFont(pdf,resolve_font(booktab_fontfile),NULL);
   fprintf(stderr,"  Loading black-letter font from %s\n",blackletter_fontfile);

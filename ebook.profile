@@ -36,3 +36,5 @@ bookpretitle_fontfile urw-palladio-l-roman.ttf
 booktitle_fontfile urw-palladio-l-bold.ttf
 redletter_fontfile urw-palladio-l-roman.ttf
 blackletter_fontfile urw-palladio-l-roman.ttf
+versenum_fontfile urw-palladio-l-roman.ttf
+versenum_fontsize 6
