@@ -113,6 +113,9 @@ int booktitle_fontsize=25;
 int booktitle_smallcaps=20;
 char *header_fontfile="header.ttf";
 int header_fontsize=12;
+char *passage_header_fontfile="passage_header.ttf";
+int passage_header_fontsize=10;
+int passage_header_smallcaps=0;
 char *booktab_fontfile="booktab.ttf";
 int booktab_fontsize=12;
 char *blackletter_fontfile="blacktext.ttf";
@@ -234,6 +237,10 @@ int read_profile(char *file)
 	      header_fontsize=atoi(value);
 	    else if (!strcasecmp(key,"header_fontfile"))
 	      header_fontfile=strdup(value);	    
+	    else if (!strcasecmp(key,"passage_header_fontsize"))
+	      passage_header_fontsize=atoi(value);
+	    else if (!strcasecmp(key,"passage_header_fontfile"))
+	      passage_header_fontfile=strdup(value);	    
 	    else if (!strcasecmp(key,"bookpretitle_fontfile"))
 	      bookpretitle_fontfile=strdup(value);	    
 	    else if (!strcasecmp(key,"bookpretitle_fontsize"))
@@ -291,6 +298,7 @@ HPDF_Page page;
 HPDF_Font bookpretitle_font;
 HPDF_Font booktitle_font;
 HPDF_Font header_font;
+HPDF_Font passage_header_font;
 HPDF_Font booktab_font;
 HPDF_Font blackletter_font;
 HPDF_Font redletter_font;
@@ -312,6 +320,9 @@ int page_y=0;
 
 // Short name of book used for finding cross-references
 char *short_book_name=NULL;
+
+// For page headers
+char *chapter_label=NULL;
 
 // Create a new empty page
 // Empty of main content, that is, a booktab will be added
@@ -706,13 +717,23 @@ int paragraph_append_space()
 #define AL_LEFT -1
 #define AL_RIGHT 1
 #define AL_JUSTIFIED -2
+
+#define TYPE_FACE_STACK_DEPTH 32
+struct type_face type_face_stack[TYPE_FACE_STACK_DEPTH];
+int type_face_stack_pointer=0;
 int paragraph_push_style(int font_alignment,
 			 HPDF_Font font,
 			 int font_size,
 			 int font_smallcaps)
 {
-  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  fprintf(stderr,"%s()\n",__FUNCTION__);
 
+  if (type_face_stack_pointer<TYPE_FACE_STACK_DEPTH)
+    type_face_stack[type_face_stack_pointer++]=current_font;
+  else {
+    fprintf(stderr,"Typeface stack overflowed.\n"); exit(-1);
+  }
+  
   current_font.font=font;
   current_font.font_size=font_size;
   current_font.smallcaps=font_smallcaps;
@@ -723,17 +744,25 @@ int paragraph_push_style(int font_alignment,
 
 int paragraph_pop_style()
 {
-  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  fprintf(stderr,"%s()\n",__FUNCTION__);
+
+  if (type_face_stack_pointer)
+    current_font=type_face_stack[--type_face_stack_pointer];
+  else {
+    fprintf(stderr,"Typeface stack underflowed.\n"); exit(-1);
+  }
+
   return 0;
 }
 
 int paragraph_clear_style_stack()
 {
-  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  fprintf(stderr,"%s()\n",__FUNCTION__);
   current_font.font = blackletter_font;
   current_font.font_size = blackletter_fontsize;
   current_font.smallcaps = 0;
   current_font.baseline_delta = 0;
+  type_face_stack_pointer=0;
   return 0;
 }
 
@@ -789,6 +818,19 @@ int render_tokens()
 	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
 	      exit(-1);
 	    }
+	  } else if (!strcasecmp(token_strings[i],"labelchapt")) {
+	    // Remember short name of book for inserting entries from the
+	    // cross-reference database.
+	    if (chapter_label) free(chapter_label); chapter_label=NULL;
+	    i++; if (token_types[i]!=TT_TEXT) {
+	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
+	      exit(-1);
+	    }
+	    chapter_label=strdup(token_strings[i]);
+	    i++; if (token_types[i]!=TT_ENDTAG) {
+	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
+	      exit(-1);
+	    }
 	  } else if (!strcasecmp(token_strings[i],"bookpretitle")) {
 	    // Book title header line
 	    paragraph_push_style(AL_CENTRED,
@@ -796,6 +838,19 @@ int render_tokens()
 				 bookpretitle_fontsize,
 				 bookpretitle_smallcaps);
 	    
+	  } else if (!strcasecmp(token_strings[i],"booktitle")) {
+	    // Book title header line
+	    paragraph_push_style(AL_CENTRED,
+				 booktitle_font,
+				 booktitle_fontsize,
+				 booktitle_smallcaps);
+	    
+	  } else if (!strcasecmp(token_strings[i],"passage")) {
+	    // Book title header line
+	    paragraph_push_style(AL_CENTRED,
+				 passage_header_font,
+				 passage_header_fontsize,
+				 passage_header_smallcaps);	    
 	  } else {
 	    
 	    fprintf(stderr,"Warning: unknown tag \%s\n",token_strings[i]);
@@ -847,6 +902,8 @@ int main(int argc,char **argv)
   booktitle_font=HPDF_GetFont(pdf,resolve_font(booktitle_fontfile),NULL);
   fprintf(stderr,"  Loading header font from %s\n",header_fontfile);
   header_font=HPDF_GetFont(pdf,resolve_font(header_fontfile),NULL);
+  fprintf(stderr,"  Loading passage header font from %s\n",passage_header_fontfile);
+  passage_header_font=HPDF_GetFont(pdf,resolve_font(passage_header_fontfile),NULL);
   fprintf(stderr,"  Loading booktab font from %s\n",booktab_fontfile);
   booktab_font=HPDF_GetFont(pdf,resolve_font(booktab_fontfile),NULL);
   fprintf(stderr,"  Loading black-letter font from %s\n",blackletter_fontfile);
