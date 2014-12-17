@@ -350,13 +350,96 @@ const char *resolve_font(char *font_filename)
   return font_names[font_count-1];
 }
 
+HPDF_Font current_font=NULL;
+int current_font_size=0;
+int current_font_smallcaps=0;
+
 int paragraph_flush()
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
   return 0;
 }
 
+/* To build a paragraph we need to build lines, and then to know 
+   which lines are inseparable and those which can be separated, i.e.,
+   what the separable units of the paragraph are.
+   With this information the paragraph can be written by seeing if each
+   separable unit in turn can fit on the current page. If not, the page
+   gets flushed, and the process continues on the next (initially empty)
+   page.
+
+   At the next lower level we need to assemble lines from the incoming words.
+   This works by computing the dimenstions of each word, and seeing if it
+   can fit on the current line.  If so, then good, else the previous line is
+   finalised (which may involve adjusting the horizontal spacing if centring
+   or justification is applied.
+
+   Line assembly has a few corner cases to handle.  First, some smallcaps
+   output is emulated using the capital characters of a regular font, in
+   which case words may need to be split into two or more pieces, with no
+   space in between.  Similarly foot notes and verse numbers are pieces
+   which must be able to be placed without any space before or after them
+   depending on the context.
+
+*/
+int paragraph_append_characters(char *text,int size)
+{
+  fprintf(stderr,"%s(\"%s\",%d): STUB\n",__FUNCTION__,text,size);
+  return 0;
+}
+
 int paragraph_append_text(char *text)
+{  
+  fprintf(stderr,"%s(\"%s\"): STUB\n",__FUNCTION__,text);
+
+  if (current_font_smallcaps) {
+    // This font uses emulated small caps, so break the word down into
+    // as many pieces as necessary.
+    int i,j;
+    char chars[strlen(text)+1];
+    for(i=0;text[i];)
+      {
+	int islower=0;
+	int count=0;
+	if ((text[i]>='a')&&(text[i]<='z')) islower=1;
+	for(j=i;text[i];j++)
+	  {
+	    int thisislower=0;
+	    if ((text[j]>='a')&&(text[j]<='z')) thisislower=1;
+	    if (thisislower!=islower)
+	      {
+		// case change
+		chars[count]=0;
+		if (islower)
+		  paragraph_append_characters(chars,current_font_smallcaps);
+		else
+		  paragraph_append_characters(chars,current_font_size);
+		i=j;
+		count=0;
+		break;
+	      } else chars[count++]=text[j];
+	  }
+	if (count) {
+	  chars[count]=0;
+	  if (islower)
+	    paragraph_append_characters(chars,current_font_smallcaps);
+	  else
+	    paragraph_append_characters(chars,current_font_size);
+	  break;
+	}
+      }
+  } else {
+    // Regular text. Render as one piece.
+    paragraph_append_characters(text,current_font_size);
+  }
+    
+  return 0;
+}
+
+/* Add a space to a paragraph.  Similar to appending text, but adds elastic
+   space that can be expanded if required for justified text.
+*/
+int paragraph_append_space()
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
   return 0;
@@ -372,6 +455,11 @@ int paragraph_push_style(int font_alignment,
 			 int font_smallcaps)
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+
+  current_font=font;
+  current_font_size=font_size;
+  current_font_smallcaps=font_smallcaps;
+  
   return 0;
 }
 
