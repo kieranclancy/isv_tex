@@ -30,5 +30,7 @@ booktab_lowerlimit 430
 
 # Set fonts and font sizes
 header_fontfile urw-palladio-l-roman.ttf
+bookpretitle_fontfile urw-palladio-l-roman.ttf
+booktitle_fontfile urw-palladio-l-bold.ttf
 redletter_fontfile urw-palladio-l-roman.ttf
 blackletter_fontfile urw-palladio-l-roman.ttf
