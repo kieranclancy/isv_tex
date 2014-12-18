@@ -1017,7 +1017,8 @@ int insert_vspace(int points)
 {
   current_line_flush();
   paragraph_setup_next_line();
-  paragraph_append_characters("",points,0); 
+  paragraph_append_characters("",points,0);
+  current_line_flush();
   return 0;
 }
 
@@ -1151,8 +1152,8 @@ int render_tokens()
 	    paragraph_push_style(AL_CENTRED,set_font("booktitle"));
 	    
 	  } else if (!strcasecmp(token_strings[i],"passage")) {
-	    // Passage header line
-	    current_line_flush();
+	    // Passage header line	    
+	    insert_vspace(1);
 	    paragraph_push_style(AL_LEFT,set_font("passageheader"));
 	    // Require at least one more line after this before page breaking
 	    set_widow_counter(1);
