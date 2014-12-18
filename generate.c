@@ -51,6 +51,7 @@ struct type_face type_faces[] = {
   {"versenum","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
   {"chapternum","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
   {"footnotemark","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
+  {"footnote","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
   {NULL,NULL,0,0,0,0,0.00,0.00,0.00,NULL,0}
 };
 
@@ -61,6 +62,18 @@ struct type_face type_faces[] = {
 #define AL_JUSTIFIED 4
 
 int last_char_is_a_full_stop=0;
+
+int footnote_stack_depth=-1;
+int footnote_mode=0;
+char footnote_mark_string[2]={'@',0};
+
+
+char *next_footnote_mark()
+{
+  footnote_mark_string[0]++;
+  if (footnote_mark_string[0]>'z') footnote_mark_string[0]='a';
+  return footnote_mark_string;
+}
 
 struct line_pieces {
 #define MAX_LINE_PIECES 256
@@ -795,6 +808,11 @@ int paragraph_append_characters(char *text,int size,int baseline)
 {
   fprintf(stderr,"%s(\"%s\",%d): STUB\n",__FUNCTION__,text,size);
 
+  if (footnote_mode==1) {
+    // Foot note text.  Collect separately.
+    return 0;
+  }
+  
   if (!current_line) paragraph_setup_next_line();
 
   // Don't start lines with empty space.
@@ -880,7 +898,7 @@ int paragraph_append_characters(char *text,int size,int baseline)
 int paragraph_append_text(char *text,int baseline)
 {  
   fprintf(stderr,"%s(\"%s\"): STUB\n",__FUNCTION__,text);
-
+  
   // Keep track of whether the last character is a full stop so that we can
   // apply double spacing between sentences (if desired).
   if (text[strlen(text)-1]=='.') last_char_is_a_full_stop=1;
@@ -991,6 +1009,12 @@ int paragraph_pop_style()
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
 
+  if (type_face_stack_pointer==footnote_stack_depth) {
+    fprintf(stderr,"Ending footnote collection mode.\n");
+    footnote_mode=0;
+    footnote_stack_depth=-1;
+  }
+  
   if (type_face_stack_pointer) {
     // Add vertical space after certain type faces
     if (!strcasecmp(current_font->font_nickname,"booktitle"))
@@ -1110,7 +1134,29 @@ int render_tokens()
 	    // Verse number
 	    paragraph_push_style(AL_LEFT,set_font("versenum"));
 
-	    // Poem line indenting
+	  } else if (!strcasecmp(token_strings[i],"fnote")) {
+	    // Foot note.
+	    // 1. Insert a footnote mark here.
+	    // 2. Redirect contents of tag to footnote block
+	    // The major complication is that we don't know at this time what the
+	    // foot note mark will be, because we may defer this line to the next
+	    // page.  One solution to this is to just go through a-z continuously,
+	    // and don't reset to a on each page. This is simple, and effective.
+
+	    // Draw the mark.
+	    char *mark=next_footnote_mark();
+	    paragraph_push_style(current_line->alignment,set_font("footnotemark"));
+	    paragraph_append_text(mark,current_font->baseline_delta);
+	    paragraph_pop_style();
+
+	    // Select footnote font
+	    paragraph_push_style(current_line->alignment,set_font("footnote"));
+
+	    // XXX Redirect the foot note text itself to the footnote accumulator.
+	    footnote_stack_depth=type_face_stack_pointer;
+	    footnote_mode=1;
+	    
+	    // Poem line indenting. Set default left margin for lines.
 	  } else if (!strcasecmp(token_strings[i],"poeml")) {
 	  } else if (!strcasecmp(token_strings[i],"poemll")) {
 	  } else if (!strcasecmp(token_strings[i],"poemlll")) {

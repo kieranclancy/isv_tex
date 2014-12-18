@@ -50,4 +50,9 @@ chapternum_filename urw-palladio-l-bold.ttf
 chapternum_fontsize 31
 chapternum_linecount 2
 chapternum_ydelta 13
-footnotemark_filename urw-palladio-l-roman.ttf
+footnotemark_filename urw-palladio-l-bold.ttf
+footnotemark_fontsize 6
+footnotemark_ydelta -2
+footnotemark_smallcaps 0
+footnote_filename urw-palladio-l-roman.ttf
+footnote_fontsize 8
