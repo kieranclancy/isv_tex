@@ -634,8 +634,8 @@ int line_calculate_height(struct line_pieces *l)
       fprintf(stderr,"  '%s' is %.1fpt wide.\n",
 	      l->pieces[i],l->piece_widths[i]);
       if (descender_depth<0) descender_depth=-descender_depth;
-      if (ascender_height+l->piece_baseline[i]>max)
-	max=ascender_height+l->piece_baseline[i];
+      if (ascender_height-l->piece_baseline[i]>max)
+	max=ascender_height-l->piece_baseline[i];
       if (l->piece_baseline[i]-descender_depth<min)
 	min=l->piece_baseline[i]-descender_depth;
     }
