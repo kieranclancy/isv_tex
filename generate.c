@@ -617,7 +617,10 @@ int line_emit(struct line_pieces *l)
     HPDF_Page_TextOut(page,left_margin+x,y-l->piece_baseline[i],
 		      l->pieces[i]);
     x=x+l->piece_widths[i];
-    if (l->fonts[i]->linegap>linegap) linegap=l->fonts[i]->linegap;
+    // Don't adjust line gap for dropchars
+    if (l->fonts[i]->line_count==1) {
+      if (l->fonts[i]->linegap>linegap) linegap=l->fonts[i]->linegap;
+    }
   }
   HPDF_Page_EndText (page);
 
