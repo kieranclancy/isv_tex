@@ -65,7 +65,7 @@ int last_char_is_a_full_stop=0;
 
 int footnote_stack_depth=-1;
 int footnote_mode=0;
-char footnote_mark_string[2]={'@',0};
+char footnote_mark_string[2]={'z',0};
 
 
 char *next_footnote_mark()
@@ -1146,6 +1146,7 @@ int render_tokens()
 	    // Draw the mark.
 	    char *mark=next_footnote_mark();
 	    paragraph_push_style(current_line->alignment,set_font("footnotemark"));
+	    fprintf(stderr,"Footnote mark is '%s'\n",mark);
 	    paragraph_append_text(mark,current_font->baseline_delta);
 	    paragraph_pop_style();
 
