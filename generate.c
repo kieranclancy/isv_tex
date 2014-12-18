@@ -395,7 +395,7 @@ HPDF_Page page;
 #define LR_LEFT -1
 #define LR_RIGHT 1
 #define LR_NEITHER 0
-int leftRight=LR_RIGHT;
+int leftRight=LR_NEITHER;
 
 // Current booktab text
 char *booktab_text=NULL;
@@ -415,6 +415,8 @@ char *chapter_label=NULL;
 // Empty of main content, that is, a booktab will be added
 int new_empty_page(int leftRight)
 {
+  fprintf(stderr,"%s()\n",__FUNCTION__);
+  
   // Create the page
   page = HPDF_AddPage(pdf);
 
@@ -949,6 +951,7 @@ int render_tokens()
 	    // If we are on a left page, add a blank right page so that
 	    // the book starts on a left page
 	    if (leftRight==LR_LEFT) {
+	      fprintf(stderr,"Inserting blank page so that book starts on left.\n");
 	      new_empty_page(LR_RIGHT);	      
 	    }
 	    leftRight=LR_LEFT;
@@ -1082,8 +1085,8 @@ int main(int argc,char **argv)
   }
   fprintf(stderr,"Loaded fonts\n");
   
-  // Start with a left page
-  leftRight=LR_LEFT;
+  // Start with a right page so that we don't insert a blank one
+  leftRight=LR_RIGHT;
 
   tokenise_file("books/01_Genesis.tex");
   fprintf(stderr,"Parsed Genesis.tex\n");
