@@ -642,10 +642,14 @@ int line_calculate_height(struct line_pieces *l)
       fprintf(stderr,"  '%s' is %.1fpt wide.\n",
 	      l->pieces[i],l->piece_widths[i]);
       if (descender_depth<0) descender_depth=-descender_depth;
-      if (ascender_height-l->piece_baseline[i]>max)
-	max=ascender_height-l->piece_baseline[i];
-      if (l->piece_baseline[i]-descender_depth<min)
-	min=l->piece_baseline[i]-descender_depth;
+      // Don't count the space used by dropchars, since it gets covered by
+      // the extra line(s) of the dropchar.
+      if (l->fonts[i]->line_count==1) {
+	if (ascender_height-l->piece_baseline[i]>max)
+	  max=ascender_height-l->piece_baseline[i];
+	if (l->piece_baseline[i]-descender_depth<min)
+	  min=l->piece_baseline[i]-descender_depth;
+      }
     }
 
   l->line_height=max-min+1;
