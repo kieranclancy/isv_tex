@@ -47,7 +47,7 @@ versenum_filename urw-palladio-l-roman.ttf
 versenum_fontsize 6
 versenum_ydelta -4
 chapternum_filename urw-palladio-l-bold.ttf
-chapternum_fontsize 25
+chapternum_fontsize 31
 chapternum_linecount 2
-chapternum_ydelta 9
+chapternum_ydelta 13
 footnotemark_filename urw-palladio-l-roman.ttf
