@@ -54,11 +54,11 @@ struct type_face type_faces[] = {
   {NULL,NULL,0,0,0,0,0.00,0.00,0.00,NULL,0}
 };
 
-#define AL_NONE -99
-#define AL_CENTRED 0
-#define AL_LEFT -1
-#define AL_RIGHT 1
-#define AL_JUSTIFIED -2
+#define AL_NONE 0
+#define AL_CENTRED 1
+#define AL_LEFT 2
+#define AL_RIGHT 3
+#define AL_JUSTIFIED 4
 
 int last_char_is_a_full_stop=0;
 
@@ -979,14 +979,14 @@ int render_tokens()
 	    
 	  } else if (!strcasecmp(token_strings[i],"passage")) {
 	    // Passage header line
-	    paragraph_push_style(AL_CENTRED,set_font("passageheader"));
+	    paragraph_push_style(AL_LEFT,set_font("passageheader"));
 	  } else if (!strcasecmp(token_strings[i],"chapt")) {
 	    // Chapter big number
 	    // XXX We don't support the drop-characters yet.
-	    paragraph_push_style(AL_CENTRED,set_font("chapternum"));
+	    paragraph_push_style(AL_LEFT,set_font("chapternum"));
 	  } else if (!strcasecmp(token_strings[i],"v")) {
 	    // Verse number
-	    paragraph_push_style(AL_CENTRED,set_font("versenum"));
+	    paragraph_push_style(AL_LEFT,set_font("versenum"));
 
 	    // Poem line indenting
 	  } else if (!strcasecmp(token_strings[i],"poeml")) {
@@ -996,7 +996,7 @@ int render_tokens()
 	  } else {	    
 	    fprintf(stderr,"Warning: unknown tag \%s (%d styles on the stack.)\n",
 		    token_strings[i],type_face_stack_pointer);
-	    paragraph_push_style(AL_CENTRED,set_font("blackletter"));
+	    paragraph_push_style(AL_LEFT,set_font("blackletter"));
 	  }	  
 	}
 	break;
