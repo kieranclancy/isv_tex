@@ -65,6 +65,7 @@ struct line_pieces {
   int line_width_so_far;
   char *pieces[MAX_LINE_PIECES];
   struct type_face *fonts[MAX_LINE_PIECES];
+  int actualsizes[MAX_LINE_PIECES];
   int piece_widths[MAX_LINE_PIECES];
   // Used to mark spaces that can be stretched for justification
   int piece_is_elastic[MAX_LINE_PIECES];
@@ -561,7 +562,7 @@ int line_emit(struct line_pieces *l)
   HPDF_Page_SetTextRenderingMode (page, HPDF_FILL);
   int x=0;
   for(i=0;i<l->piece_count;i++) {
-    HPDF_Page_SetFontAndSize(page,l->fonts[i]->font,l->fonts[i]->font_size);
+    HPDF_Page_SetFontAndSize(page,l->fonts[i]->font,l->actualsizes[i]);
     HPDF_Page_SetRGBFill(page,l->fonts[i]->red,l->fonts[i]->green,l->fonts[i]->blue);
     HPDF_Page_TextOut(page,left_margin+x,y-l->piece_baseline[i],
 		      l->pieces[i]);
@@ -711,6 +712,7 @@ int paragraph_append_characters(char *text,int size,int baseline)
 
   current_line->pieces[current_line->piece_count]=strdup(text);
   current_line->fonts[current_line->piece_count]=current_font;
+  current_line->actualsizes[current_line->piece_count]=size;
   current_line->piece_widths[current_line->piece_count]=text_width;
   if (strcmp(text," "))
     current_line->piece_is_elastic[current_line->piece_count]=0;
@@ -740,6 +742,8 @@ int paragraph_append_characters(char *text,int size,int baseline)
 	{
 	  current_line->pieces[current_line->piece_count]=last_line->pieces[i];
 	  current_line->fonts[current_line->piece_count]=last_line->fonts[i];
+	  current_line->actualsizes[current_line->piece_count]
+	    =last_line->actualsizes[i];
 	  current_line->piece_widths[current_line->piece_count]
 	    =last_line->piece_widths[i];
 	  current_line->piece_is_elastic[current_line->piece_count]
