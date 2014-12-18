@@ -299,7 +299,7 @@ int read_profile(char *file)
 		}
 	      if (!type_faces[i].font_nickname) {
 		include_show_stack();
-		fprintf(stderr,"%s:%d:Unknown text style in attribute '%s'\n",
+		fprintf(stderr,"%s:%d:Unknown font in text style in attribute '%s'\n",
 			file,line_num,key);
 		errors++;
 	      }
@@ -310,12 +310,12 @@ int read_profile(char *file)
 		if (strlen(key)
 		    ==strlen(type_faces[i].font_nickname)+strlen("_green")) {
 		  if (!strncasecmp(key,type_faces[i].font_nickname,
-				   strlen(key)-strlen("_red")))
+				   strlen(key)-strlen("_green")))
 		    { type_faces[i].green=atoi(value)*1.0/255.0; break; }
 		}
 	      if (!type_faces[i].font_nickname) {
 		include_show_stack();
-		fprintf(stderr,"%s:%d:Unknown text style in attribute '%s'\n",
+		fprintf(stderr,"%s:%d:Unknown font in text style in attribute '%s'\n",
 			file,line_num,key);
 		errors++;
 	      }
@@ -331,7 +331,7 @@ int read_profile(char *file)
 		}
 	      if (!type_faces[i].font_nickname) {
 		include_show_stack();
-		fprintf(stderr,"%s:%d:Unknown text style in attribute '%s'\n",
+		fprintf(stderr,"%s:%d:Unknown font in text style in attribute '%s'\n",
 			file,line_num,key);
 		errors++;
 	      }
@@ -954,7 +954,7 @@ int render_tokens()
 	    
 	  } else if (!strcasecmp(token_strings[i],"passage")) {
 	    // Passage header line
-	    paragraph_push_style(AL_CENTRED,set_font("passage"));
+	    paragraph_push_style(AL_CENTRED,set_font("passageheader"));
 	  } else if (!strcasecmp(token_strings[i],"chapt")) {
 	    // Chapter big number
 	    // XXX We don't support the drop-characters yet.

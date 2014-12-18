@@ -20,7 +20,7 @@ booktab_width 27
 booktab_height 115
 # and the text on the book tabs
 booktab_fontsize 12
-booktab_fontfile urw-palladio-l-roman.ttf
+booktab_filename urw-palladio-l-roman.ttf
 
 # Limit vertical positioning of booktabs.
 # If the next book table would be lower down than allowed,
@@ -29,12 +29,16 @@ booktab_upperlimit 36
 booktab_lowerlimit 430
 
 # Set fonts and font sizes
-passage_header_fontfile urw-palladio-l-roman.ttf
-passage_header_fontsize 11
-header_fontfile urw-palladio-l-roman.ttf
-bookpretitle_fontfile urw-palladio-l-roman.ttf
-booktitle_fontfile urw-palladio-l-bold.ttf
-redletter_fontfile urw-palladio-l-roman.ttf
-blackletter_fontfile urw-palladio-l-roman.ttf
-versenum_fontfile urw-palladio-l-roman.ttf
+passageheader_filename urw-palladio-l-roman.ttf
+passageheader_fontsize 11
+header_filename urw-palladio-l-roman.ttf
+bookpretitle_filename urw-palladio-l-roman.ttf
+booktitle_filename urw-palladio-l-bold.ttf
+redletter_filename urw-palladio-l-roman.ttf
+blackletter_filename urw-palladio-l-roman.ttf
+versenum_filename urw-palladio-l-roman.ttf
 versenum_fontsize 6
+chapternum_filename urw-palladio-l-bold.ttf
+chapternum_fontsize 25
+chapternum_linecount 2
+footnotemark_filename urw-palladio-l-roman.ttf
