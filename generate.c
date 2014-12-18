@@ -613,6 +613,13 @@ int line_emit(struct line_pieces *l)
   HPDF_Page_SetTextRenderingMode (page, HPDF_FILL);
   float x=0;
   switch(l->alignment) {
+  case AL_LEFT: case AL_JUSTIFIED:
+    // Finally apply any left margin that has been set
+    x+=l->left_margin;
+    if (l->left_margin) {
+      fprintf(stderr,"Applying left margin of %dpts\n",l->left_margin);
+    }
+    break;
   case AL_CENTRED:
     x=(l->max_line_width-l->line_width_so_far)/2;
     fprintf(stderr,"x=%.1f (centre alignment, w=%.1fpt, max w=%d)\n",
@@ -625,12 +632,6 @@ int line_emit(struct line_pieces *l)
   default:
     fprintf(stderr,"x=%.1f (left/justified alignment)\n",x);
 
-  }
-
-  // Finally apply any left margin that has been set
-  x+=l->left_margin;
-  if (l->left_margin) {
-    fprintf(stderr,"Applying left margin of %dpts\n",l->left_margin);
   }
   
   for(i=0;i<l->piece_count;i++) {
