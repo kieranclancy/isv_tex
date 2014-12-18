@@ -503,10 +503,14 @@ int get_linegap(char *font_filename, int size)
       fprintf(stderr,"Could not set font '%s' to size %d\n",font_filename,size);
       exit(-1);
     }
-  FT_Done_Face(face);
-  int linegap=face->height/64;
+  if (!face->size) {
+      fprintf(stderr,"Could not get size structure of font '%s' to size %d\n",font_filename,size);
+      exit(-1);
+  }
+  int linegap=face->size->metrics.height/64;
   fprintf(stderr,"Line gap is %dpt for %dpt text\n",linegap,size);
   
+  FT_Done_Face(face);
   return linegap;
 }
 
@@ -589,6 +593,7 @@ int line_emit(struct line_pieces *l)
   HPDF_Page_EndText (page);
 
   page_y=page_y+linegap;
+  fprintf(stderr,"Added linegap of %d to page_y. Next line at %dpt\n",linegap,page_y);
   return 0;
 }
 
@@ -975,10 +980,14 @@ int render_tokens()
 	    
 	  } else if (!strcasecmp(token_strings[i],"booktitle")) {
 	    // Book title header line
+	    if (current_line&&current_line->piece_count)
+	      paragraph_setup_next_line();
 	    paragraph_push_style(AL_CENTRED,set_font("booktitle"));
 	    
 	  } else if (!strcasecmp(token_strings[i],"passage")) {
 	    // Passage header line
+	    if (current_line&&current_line->piece_count)
+	      paragraph_setup_next_line();
 	    paragraph_push_style(AL_LEFT,set_font("passageheader"));
 	  } else if (!strcasecmp(token_strings[i],"chapt")) {
 	    // Chapter big number
@@ -1054,6 +1063,8 @@ int main(int argc,char **argv)
       =HPDF_GetFont(pdf,resolve_font(type_faces[i].font_filename),NULL);
     type_faces[i].linegap=get_linegap(type_faces[i].font_filename,
 				      type_faces[i].font_size);
+    fprintf(stderr,"%s linegap is %dpt\n",type_faces[i].font_nickname,
+	    type_faces[i].linegap);
   }
   fprintf(stderr,"Loaded fonts\n");
   
