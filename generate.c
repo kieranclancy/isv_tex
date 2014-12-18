@@ -592,9 +592,9 @@ int line_free(struct line_pieces *l)
 
 int line_emit(struct line_pieces *l)
 {
-  int baseline_y=page_y+l->ascent;
+  int baseline_y=page_y+l->line_height;
   // convert y to libharu coordinate system
-  int y=page_height-baseline_y-l->ascent;
+  int y=page_height-baseline_y-l->line_height;
 
   int i;
   int linegap=0;
@@ -646,6 +646,7 @@ int line_emit(struct line_pieces *l)
 int line_calculate_height(struct line_pieces *l)
 {
   int max=-1; int min=0;
+  int linegap=0;
   int i;
   fprintf(stderr,"Calculating height of line %p (%d pieces, %.1fpts wide, align=%d)\n",
 	  l,l->piece_count,l->line_width_so_far,l->alignment);
@@ -666,9 +667,14 @@ int line_calculate_height(struct line_pieces *l)
 	if (l->piece_baseline[i]-descender_depth<min)
 	  min=l->piece_baseline[i]-descender_depth;
       }
+      if (l->fonts[i]->line_count==1) {
+	if (l->fonts[i]->linegap>linegap) linegap=l->fonts[i]->linegap;
     }
 
-  l->line_height=max-min+1;
+    }
+
+  // l->line_height=max-min+1;
+  l->line_height=linegap;
   l->ascent=max; l->descent=-min;
   fprintf(stderr,"  line ascends %dpts and descends %d points.\n",max,-min);
   return 0;
