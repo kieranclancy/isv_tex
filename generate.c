@@ -70,11 +70,11 @@ struct line_pieces {
   int alignment;
   
   int piece_count;
-  int line_width_so_far;
+  float line_width_so_far;
   char *pieces[MAX_LINE_PIECES];
   struct type_face *fonts[MAX_LINE_PIECES];
   int actualsizes[MAX_LINE_PIECES];
-  int piece_widths[MAX_LINE_PIECES];
+  float piece_widths[MAX_LINE_PIECES];
   // Used to mark spaces that can be stretched for justification
   int piece_is_elastic[MAX_LINE_PIECES];
   // Where the piece sits with respect to the nominal baseline
@@ -587,19 +587,19 @@ int line_emit(struct line_pieces *l)
   // Now draw the pieces
   HPDF_Page_BeginText (page);
   HPDF_Page_SetTextRenderingMode (page, HPDF_FILL);
-  int x=0;
+  float x=0;
   switch(l->alignment) {
   case AL_CENTRED:
     x=(l->max_line_width-l->line_width_so_far)/2;
-    fprintf(stderr,"x=%d (centre alignment, w=%d, max w=%d)\n",
+    fprintf(stderr,"x=%.1f (centre alignment, w=%.1fpt, max w=%d)\n",
 	    x,l->line_width_so_far,l->max_line_width);
     break;
   case AL_RIGHT:
     x=l->max_line_width-l->line_width_so_far;
-    fprintf(stderr,"x=%d (right alignment)\n",x);
+    fprintf(stderr,"x=%.1f (right alignment)\n",x);
     break;
   default:
-    fprintf(stderr,"x=%d (left/justified alignment)\n",x);
+    fprintf(stderr,"x=%.1f (left/justified alignment)\n",x);
 
   }
   
@@ -623,7 +623,7 @@ int line_calculate_height(struct line_pieces *l)
 {
   int max=-1; int min=0;
   int i;
-  fprintf(stderr,"Calculating height of line %p (%d pieces, %dpts wide, align=%d)\n",
+  fprintf(stderr,"Calculating height of line %p (%d pieces, %.1fpts wide, align=%d)\n",
 	  l,l->piece_count,l->line_width_so_far,l->alignment);
   for(i=0;i<l->piece_count;i++)
     {
@@ -631,6 +631,8 @@ int line_calculate_height(struct line_pieces *l)
       int ascender_height=HPDF_Font_GetAscent(l->fonts[i]->font)*l->fonts[i]->font_size/1000;
       // Get descender depth of font
       int descender_depth=HPDF_Font_GetDescent(l->fonts[i]->font)*l->fonts[i]->font_size/1000;
+      fprintf(stderr,"  '%s' is %.1fpt wide.\n",
+	      l->pieces[i],l->piece_widths[i]);
       if (descender_depth<0) descender_depth=-descender_depth;
       if (ascender_height+l->piece_baseline[i]>max)
 	max=ascender_height+l->piece_baseline[i];
@@ -767,7 +769,7 @@ int paragraph_append_characters(char *text,int size,int baseline)
   current_line->piece_count++;
 
   if (current_line->line_width_so_far>current_line->max_line_width) {
-    fprintf(stderr,"Breaking line at %d points wide.\n",
+    fprintf(stderr,"Breaking line at %1.f points wide.\n",
 	    current_line->line_width_so_far);
     // Line is too long.
     if (current_line->checkpoint) {
