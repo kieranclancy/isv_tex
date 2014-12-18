@@ -30,8 +30,12 @@
 #include <unistd.h>
 #include <math.h>
 #include <ctype.h>
+#include "ft2build.h"
+#include FT_FREETYPE_H
 #include "hpdf.h"
 #include "generate.h"
+
+FT_Library  library;
 
 struct type_face current_font = { NULL,0,0,0 };
 int last_char_is_a_full_stop=0;
@@ -469,6 +473,7 @@ int line_calculate_height(struct line_pieces *l)
       int ascender_height=HPDF_Font_GetAscent(l->fonts[i])*l->fontsizes[i]/1000;
       // Get descender depth of font
       int descender_depth=HPDF_Font_GetDescent(l->fonts[i])*l->fontsizes[i]/1000;
+      if (descender_depth<0) descender_depth=-descender_depth;
       if (ascender_height+l->piece_baseline[i]>max)
 	max=ascender_height+l->piece_baseline[i];
       if (l->piece_baseline[i]-descender_depth<min)
@@ -915,6 +920,13 @@ int main(int argc,char **argv)
       exit(-1);
     }
 
+  int error = FT_Init_FreeType( &library );
+  if ( error )
+    {
+      fprintf(stderr,"Could not initialise libfreetype\n");
+      exit(-1);
+    }
+  
   // Create empty PDF
   pdf = HPDF_New(error_handler,NULL);
   if (!pdf) {
