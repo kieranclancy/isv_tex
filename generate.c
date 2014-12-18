@@ -446,12 +446,6 @@ int new_empty_page(int leftRight)
 
   // XXX Draw booktab
   if (booktab_text) {
-    // Work out vertical position of book tab
-    if ((booktab_y<booktab_upperlimit)|| 
-	(booktab_y+booktab_height*2>booktab_lowerlimit))
-      booktab_y=booktab_upperlimit;
-    else
-      booktab_y=booktab_y+booktab_height;
 
     // Draw booktab box
     int x=0;
@@ -1051,6 +1045,22 @@ int paragraph_pop_style()
   return 0;
 }
 
+int set_booktab_text(char *text)
+{
+  int j;
+  // Work out vertical position of book tab
+  if ((booktab_y<booktab_upperlimit)|| 
+      (booktab_y+booktab_height*2>booktab_lowerlimit))
+    booktab_y=booktab_upperlimit;
+  else
+    booktab_y=booktab_y+booktab_height;
+
+  if (booktab_text) free(booktab_text);
+  booktab_text=strdup(text);
+  for(j=0;booktab_text[j];j++) booktab_text[j]=toupper(booktab_text[j]);
+  return 0;
+}
+
 int paragraph_clear_style_stack()
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
@@ -1061,7 +1071,7 @@ int paragraph_clear_style_stack()
 
 int render_tokens()
 {
-  int i,j;
+  int i;
 
   paragraph_clear_style_stack();
   
@@ -1097,12 +1107,11 @@ int render_tokens()
 	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
 	      exit(-1);
 	    }
-	    booktab_text=strdup(token_strings[i]);
+	    set_booktab_text(token_strings[i]);
 	    i++; if (token_types[i]!=TT_ENDTAG) {
 	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
 	      exit(-1);
 	    }
-	    for(j=0;booktab_text[j];j++) booktab_text[j]=toupper(booktab_text[j]);
 	    // Start new empty page
 	    new_empty_page(leftRight);
 	  } else if (!strcasecmp(token_strings[i],"labelbook")) {
