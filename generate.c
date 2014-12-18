@@ -591,10 +591,16 @@ int line_emit(struct line_pieces *l)
   switch(l->alignment) {
   case AL_CENTRED:
     x=(l->max_line_width-l->line_width_so_far)/2;
+    fprintf(stderr,"x=%d (centre alignment, w=%d, max w=%d)\n",
+	    x,l->line_width_so_far,l->max_line_width);
     break;
   case AL_RIGHT:
     x=l->max_line_width-l->line_width_so_far;
+    fprintf(stderr,"x=%d (right alignment)\n",x);
     break;
+  default:
+    fprintf(stderr,"x=%d (left/justified alignment)\n",x);
+
   }
   
   for(i=0;i<l->piece_count;i++) {
@@ -778,6 +784,8 @@ int paragraph_append_characters(char *text,int size,int baseline)
       int i;
       for(i=saved_checkpoint;i<saved_piece_count;i++)
 	{
+	  last_line->line_width_so_far-=last_line->piece_widths[i];
+	  current_line->line_width_so_far+=last_line->piece_widths[i];
 	  current_line->pieces[current_line->piece_count]=last_line->pieces[i];
 	  current_line->fonts[current_line->piece_count]=last_line->fonts[i];
 	  current_line->actualsizes[current_line->piece_count]
@@ -788,7 +796,6 @@ int paragraph_append_characters(char *text,int size,int baseline)
 	    =last_line->piece_is_elastic[i];
 	  current_line->piece_baseline[current_line->piece_count]
 	    =last_line->piece_baseline[i];
-	  current_line->line_width_so_far+=last_line->piece_widths[i];
 	  current_line->piece_count++;	  
 	}
       // Inherit alignment of previous line
