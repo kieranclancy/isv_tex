@@ -105,6 +105,8 @@ struct line_pieces *paragraph_lines[MAX_LINES_IN_PARAGRAPH];
 
 int set_font(char *nickname);
 int paragraph_append_line(struct line_pieces *line);
+int paragraph_setup_next_line();
+
 
 void error_handler(HPDF_STATUS error_number, HPDF_STATUS detail_number,
 		   void *data)
@@ -393,7 +395,7 @@ HPDF_Page page;
 #define LR_LEFT -1
 #define LR_RIGHT 1
 #define LR_NEITHER 0
-int leftRight=LR_LEFT;
+int leftRight=LR_RIGHT;
 
 // Current booktab text
 char *booktab_text=NULL;
@@ -472,6 +474,8 @@ int new_empty_page(int leftRight)
     HPDF_Page_EndText (page);
 
   }
+
+  page_y=top_margin;
   
   return 0;
 }
@@ -536,8 +540,26 @@ const char *resolve_font(char *font_filename)
 int current_line_flush()
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
-  if (current_line)
-    paragraph_append_line(current_line);
+
+
+  if (current_line) {
+    // Remove any trailing spaces from the line
+    int i;
+    for(i=current_line->piece_count-1;i>=0;i--) {
+      fprintf(stderr,"Considering piece #%d/%d '%s'\n",i,current_line->piece_count,
+	      current_line->pieces[i]);
+      if (!strcmp(" ",current_line->pieces[i])) {
+	current_line->piece_count=i;
+	current_line->line_width_so_far-=current_line->piece_widths[i];
+	free(current_line->pieces[i]);
+      } else break;      
+    }
+    if (current_line->piece_count) {
+      fprintf(stderr,"%d pieces left in %p.\n",current_line->piece_count,current_line);
+      paragraph_append_line(current_line);
+      paragraph_setup_next_line();
+    }
+  }
   current_line=NULL;
   return 0;
 }
@@ -593,7 +615,8 @@ int line_calculate_height(struct line_pieces *l)
 {
   int max=-1; int min=0;
   int i;
-  fprintf(stderr,"Calculating height of line %p\n",l);
+  fprintf(stderr,"Calculating height of line %p (%d pieces, %dpts wide)\n",
+	  l,l->piece_count,l->line_width_so_far);
   for(i=0;i<l->piece_count;i++)
     {
       // Get ascender height of font
@@ -619,7 +642,7 @@ int paragraph_flush()
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
 
   // First flush the current line
-  if (current_line) current_line_flush();
+  current_line_flush();
 
   // XXX mark last line terminal (so that it doesn't get justified).
 
@@ -925,7 +948,9 @@ int render_tokens()
 	    if (booktab_text) free(booktab_text); booktab_text=NULL;
 	    // If we are on a left page, add a blank right page so that
 	    // the book starts on a left page
-	    if (leftRight==LR_LEFT) new_empty_page(LR_RIGHT);
+	    if (leftRight==LR_LEFT) {
+	      new_empty_page(LR_RIGHT);	      
+	    }
 	    leftRight=LR_LEFT;
 	    i++; if (token_types[i]!=TT_TEXT) {
 	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
@@ -971,14 +996,12 @@ int render_tokens()
 	    
 	  } else if (!strcasecmp(token_strings[i],"booktitle")) {
 	    // Book title header line
-	    if (current_line&&current_line->piece_count)
-	      paragraph_setup_next_line();
+	    current_line_flush();
 	    paragraph_push_style(AL_CENTRED,set_font("booktitle"));
 	    
 	  } else if (!strcasecmp(token_strings[i],"passage")) {
 	    // Passage header line
-	    if (current_line&&current_line->piece_count)
-	      paragraph_setup_next_line();
+	    current_line_flush();
 	    paragraph_push_style(AL_LEFT,set_font("passageheader"));
 	  } else if (!strcasecmp(token_strings[i],"chapt")) {
 	    // Chapter big number
