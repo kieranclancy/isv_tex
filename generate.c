@@ -105,7 +105,7 @@ struct line_pieces {
   int checkpoint;
 
   // Vertical height data
-  int line_height;
+  float line_height;
   int ascent;
   int descent;
 };
@@ -151,6 +151,7 @@ int booktab_height=115;
 int booktab_upperlimit=36;
 int booktab_lowerlimit=72*5.5;
 int paragraph_indent=18;
+float line_spacing=1.2;
 
 /* Read the profile of the bible to build.
    The profile consists of a series of key=value pairs that set various 
@@ -246,6 +247,7 @@ int read_profile(char *file)
 	    else if (!strcasecmp(key,"bottom_margin")) bottom_margin=atoi(value);
 
 	    else if (!strcasecmp(key,"paragraph_indent")) paragraph_indent=atoi(value);
+	    else if (!strcasecmp(key,"line_spacing")) line_spacing=atof(value);
 	    
 	    // Width of marginpar for holding cross-references
 	    else if (!strcasecmp(key,"marginpar_width")) marginpar_width=atoi(value);
@@ -421,7 +423,7 @@ char *booktab_text=NULL;
 int booktab_y=0;
 
 // Current vertical position on the page
-int page_y=0;
+float page_y=0;
 
 // Short name of book used for finding cross-references
 char *short_book_name=NULL;
@@ -595,22 +597,22 @@ int line_free(struct line_pieces *l)
 
 int line_emit(struct line_pieces *l)
 {
-  int baseline_y=page_y+l->line_height;
+  float baseline_y=page_y+l->line_height*line_spacing;
 
   if (baseline_y>(page_height-bottom_margin)) {
     // No room on this page. Start a new page.
     leftRight=-leftRight;
     new_empty_page(leftRight);
     page_y=top_margin;
-    baseline_y=page_y+l->line_height;
+    baseline_y=page_y+l->line_height*line_spacing;
   }
 
   
   // convert y to libharu coordinate system
-  int y=page_height-baseline_y-l->line_height;
+  float y=page_height-baseline_y-l->line_height*line_spacing;
 
   int i;
-  int linegap=0;
+  float linegap=0;
 
   // Now draw the pieces
   HPDF_Page_BeginText (page);
@@ -650,8 +652,8 @@ int line_emit(struct line_pieces *l)
   }
   HPDF_Page_EndText (page);
 
-  page_y=page_y+linegap;
-  fprintf(stderr,"Added linegap of %d to page_y. Next line at %dpt\n",linegap,page_y);
+  page_y=page_y+linegap*line_spacing;
+  fprintf(stderr,"Added linegap of %.1f to page_y. Next line at %.1fpt\n",linegap,page_y);
   return 0;
 }
 
@@ -687,7 +689,7 @@ int line_calculate_height(struct line_pieces *l)
     }
 
   // l->line_height=max-min+1;
-  l->line_height=linegap;
+  l->line_height=linegap*line_spacing;
   l->ascent=max; l->descent=-min;
   fprintf(stderr,"  line ascends %dpts and descends %d points.\n",max,-min);
   return 0;
