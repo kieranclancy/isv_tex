@@ -617,8 +617,8 @@ int line_calculate_height(struct line_pieces *l)
 {
   int max=-1; int min=0;
   int i;
-  fprintf(stderr,"Calculating height of line %p (%d pieces, %dpts wide)\n",
-	  l,l->piece_count,l->line_width_so_far);
+  fprintf(stderr,"Calculating height of line %p (%d pieces, %dpts wide, align=%d)\n",
+	  l,l->piece_count,l->line_width_so_far,l->alignment);
   for(i=0;i<l->piece_count;i++)
     {
       // Get ascender height of font
@@ -791,6 +791,8 @@ int paragraph_append_characters(char *text,int size,int baseline)
 	  current_line->line_width_so_far+=last_line->piece_widths[i];
 	  current_line->piece_count++;	  
 	}
+      // Inherit alignment of previous line
+      current_line->alignment=last_line->alignment;
     } else {
       // Line too long, but no checkpoint.  This is bad.
       // Just add this line as is to the paragraph and report a warning.
@@ -881,7 +883,8 @@ struct type_face *type_face_stack[TYPE_FACE_STACK_DEPTH];
 int type_face_stack_pointer=0;
 int paragraph_push_style(int font_alignment,int font_index)
 {
-  fprintf(stderr,"%s()\n",__FUNCTION__);
+  fprintf(stderr,"%s(): alignment=%d, style=%s\n",__FUNCTION__,
+	  font_alignment,type_faces[font_index].font_nickname);
 
   if ((!current_line)
       ||(current_line->piece_count
@@ -889,9 +892,10 @@ int paragraph_push_style(int font_alignment,int font_index)
 	 &&current_line->alignment!=AL_NONE))
     {
       // Change of alignment - start on new line
+      fprintf(stderr,"Creating new line due to alignment change.\n");
       paragraph_setup_next_line();
     }    
-  else current_line->alignment=font_alignment;
+  current_line->alignment=font_alignment;
   
   if (type_face_stack_pointer<TYPE_FACE_STACK_DEPTH)
     type_face_stack[type_face_stack_pointer++]=current_font;
