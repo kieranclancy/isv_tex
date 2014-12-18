@@ -34,14 +34,15 @@ passageheader_fontsize 11
 header_filename urw-palladio-l-roman.ttf
 bookpretitle_filename urw-palladio-l-roman.ttf
 bookpretitle_fontsize 12
-bookpretitle_smallcaps 8
+bookpretitle_smallcaps 9
 booktitle_filename urw-palladio-l-bold.ttf
 booktitle_fontsize 20
-booktitle_smallcaps 12
+booktitle_smallcaps 15
 redletter_filename urw-palladio-l-roman.ttf
 blackletter_filename urw-palladio-l-roman.ttf
 versenum_filename urw-palladio-l-roman.ttf
 versenum_fontsize 6
+versenum_ydelta -4
 chapternum_filename urw-palladio-l-bold.ttf
 chapternum_fontsize 25
 chapternum_linecount 2
