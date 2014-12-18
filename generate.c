@@ -54,6 +54,12 @@ struct type_face type_faces[] = {
   {NULL,NULL,0,0,0,0,0.00,0.00,0.00,NULL,0}
 };
 
+#define AL_NONE -99
+#define AL_CENTRED 0
+#define AL_LEFT -1
+#define AL_RIGHT 1
+#define AL_JUSTIFIED -2
+
 int last_char_is_a_full_stop=0;
 
 struct line_pieces {
@@ -61,6 +67,8 @@ struct line_pieces {
   // Horizontal space available to the line
   int max_line_width;
 
+  int alignment;
+  
   int piece_count;
   int line_width_so_far;
   char *pieces[MAX_LINE_PIECES];
@@ -561,6 +569,15 @@ int line_emit(struct line_pieces *l)
   HPDF_Page_BeginText (page);
   HPDF_Page_SetTextRenderingMode (page, HPDF_FILL);
   int x=0;
+  switch(l->alignment) {
+  case AL_CENTRED:
+    x=(l->max_line_width-l->line_width_so_far)/2;
+    break;
+  case AL_RIGHT:
+    x=l->max_line_width-l->line_width_so_far;
+    break;
+  }
+  
   for(i=0;i<l->piece_count;i++) {
     HPDF_Page_SetFontAndSize(page,l->fonts[i]->font,l->actualsizes[i]);
     HPDF_Page_SetRGBFill(page,l->fonts[i]->red,l->fonts[i]->green,l->fonts[i]->blue);
@@ -838,11 +855,6 @@ int paragraph_append_space()
   return 0;
 }
 
-#define AL_CENTRED 0
-#define AL_LEFT -1
-#define AL_RIGHT 1
-#define AL_JUSTIFIED -2
-
 #define TYPE_FACE_STACK_DEPTH 32
 struct type_face *type_face_stack[TYPE_FACE_STACK_DEPTH];
 int type_face_stack_pointer=0;
@@ -850,6 +862,16 @@ int paragraph_push_style(int font_alignment,int font_index)
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
 
+  if ((!current_line)
+      ||(current_line->piece_count
+	 &&current_line->alignment!=font_alignment
+	 &&current_line->alignment!=AL_NONE))
+    {
+      // Change of alignment - start on new line
+      paragraph_setup_next_line();
+    }    
+  else current_line->alignment=font_alignment;
+  
   if (type_face_stack_pointer<TYPE_FACE_STACK_DEPTH)
     type_face_stack[type_face_stack_pointer++]=current_font;
   else {
