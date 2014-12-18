@@ -37,7 +37,23 @@
 
 FT_Library  library;
 
-struct type_face current_font = { NULL,0,0,0 };
+struct type_face *current_font = NULL;
+
+// List of typefaces we have available
+struct type_face type_faces[] = {
+  {"blackletter","blackletter.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
+  {"redletter","redletter.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
+  {"bookpretitle","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
+  {"booktitle","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
+  {"header","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
+  {"passageheader","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
+  {"booktab","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
+  {"versenum","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
+  {"chapternum","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
+  {"footnotemark","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
+  {NULL,NULL,0,0,0,0,0.00,0.00,0.00,NULL,0}
+};
+
 int last_char_is_a_full_stop=0;
 
 struct line_pieces {
@@ -79,6 +95,7 @@ int paragraph_line_count=0;
 #define MAX_LINES_IN_PARAGRAPH 256
 struct line_pieces *paragraph_lines[MAX_LINES_IN_PARAGRAPH];
 
+int set_font(char *nickname);
 int paragraph_append_line(struct line_pieces *line);
 
 void error_handler(HPDF_STATUS error_number, HPDF_STATUS detail_number,
@@ -108,33 +125,6 @@ int booktab_width=27;
 int booktab_height=115;
 int booktab_upperlimit=36;
 int booktab_lowerlimit=72*5.5;
-
-char *bookpretitle_fontfile="bookpretitle.ttf";
-int bookpretitle_fontsize=12;
-int bookpretitle_linegap=12;
-int bookpretitle_smallcaps=10;
-char *booktitle_fontfile="booktitle.ttf";
-int booktitle_fontsize=25;
-int booktitle_smallcaps=20;
-char *header_fontfile="header.ttf";
-int header_fontsize=12;
-char *passage_header_fontfile="passage_header.ttf";
-int passage_header_fontsize=10;
-int passage_header_smallcaps=0;
-char *booktab_fontfile="booktab.ttf";
-int booktab_fontsize=12;
-char *blackletter_fontfile="blacktext.ttf";
-int blackletter_fontsize=8;
-char *redletter_fontfile="redtext.ttf";
-int redletter_fontsize=8;
-char *versenum_fontfile="blacktext.ttf";
-int versenum_fontsize=4;
-char *chapternum_fontfile="redtext.ttf";
-int chapternum_fontsize=8;
-int chapternum_lines=2;
-char *footnotemark_fontfile="blacktext.ttf";
-int footnotemark_fontsize=4;
-
 
 /* Read the profile of the bible to build.
    The profile consists of a series of key=value pairs that set various 
@@ -205,6 +195,7 @@ int read_profile(char *file)
       if (line[0]!='#'&&line[0]!='\r'&&line[0]!='\n') {
 	if (sscanf(line,"%[^ ] %[^\r\n]",key,value)==2)
 	  {
+	    int i;
 	    if (!strcasecmp(key,"include")) {
 	      include_push(file,line_num);
 	      read_profile(value);
@@ -234,42 +225,132 @@ int read_profile(char *file)
 	    else if (!strcasecmp(key,"marginpar_margin")) marginpar_margin=atoi(value);
 
 	    // Font selection
-	    else if (!strcasecmp(key,"booktab_fontsize"))
-	      booktab_fontsize=atoi(value);
-	    else if (!strcasecmp(key,"booktab_fontfile"))
-	      booktab_fontfile=strdup(value);	    
-	    else if (!strcasecmp(key,"header_fontsize"))
-	      header_fontsize=atoi(value);
-	    else if (!strcasecmp(key,"header_fontfile"))
-	      header_fontfile=strdup(value);	    
-	    else if (!strcasecmp(key,"passage_header_fontsize"))
-	      passage_header_fontsize=atoi(value);
-	    else if (!strcasecmp(key,"passage_header_fontfile"))
-	      passage_header_fontfile=strdup(value);	    
-	    else if (!strcasecmp(key,"bookpretitle_fontfile"))
-	      bookpretitle_fontfile=strdup(value);	    
-	    else if (!strcasecmp(key,"bookpretitle_fontsize"))
-	      bookpretitle_fontsize=atoi(value);
-	    else if (!strcasecmp(key,"bookpretitle_smallcaps"))
-	      bookpretitle_smallcaps=atoi(value);
-	    else if (!strcasecmp(key,"booktitle_fontfile"))
-	      booktitle_fontfile=strdup(value);	    
-	    else if (!strcasecmp(key,"booktitle_fontsize"))
-	      booktitle_fontsize=atoi(value);
-	    else if (!strcasecmp(key,"booktitle_smallcaps"))
-	      booktitle_smallcaps=atoi(value);
-	    else if (!strcasecmp(key,"redletter_fontsize"))
-	      redletter_fontsize=atoi(value);
-	    else if (!strcasecmp(key,"redletter_fontfile"))
-	      redletter_fontfile=strdup(value);	    
-	    else if (!strcasecmp(key,"blackletter_fontsize"))
-	      blackletter_fontsize=atoi(value);
-	    else if (!strcasecmp(key,"blackletter_fontfile"))
-	      blackletter_fontfile=strdup(value);	    
-	    else if (!strcasecmp(key,"versenum_fontsize"))
-	      versenum_fontsize=atoi(value);
-	    else if (!strcasecmp(key,"versenum_fontfile"))
-	      versenum_fontfile=strdup(value);	    
+	    else if (!strcasecmp(&key[strlen(key)-strlen("_fontsize")],"_fontsize")) {
+	      for(i=0;type_faces[i].font_nickname;i++)
+		if (strlen(key)
+		    ==strlen(type_faces[i].font_nickname)+strlen("_fontsize")) {
+		  if (!strncasecmp(key,type_faces[i].font_nickname,
+				   strlen(key)-strlen("_fontsize")))
+		    { type_faces[i].font_size=atoi(value); break; }
+		}
+	      if (!type_faces[i].font_nickname) {
+		include_show_stack();
+		fprintf(stderr,"%s:%d:Unknown text style in attribute '%s'\n",
+			file,line_num,key);
+		errors++;
+	      }
+	    }
+	    else if (!strcasecmp(&key[strlen(key)-strlen("_smallcaps")],"_smallcaps"))
+	      {
+	      for(i=0;type_faces[i].font_nickname;i++)
+		if (strlen(key)
+		    ==strlen(type_faces[i].font_nickname)+strlen("_smallcaps")) {
+		  if (!strncasecmp(key,type_faces[i].font_nickname,
+				   strlen(key)-strlen("_smallcaps")))
+		    { type_faces[i].smallcaps=atoi(value); break; }
+		}
+	      if (!type_faces[i].font_nickname) {
+		include_show_stack();
+		fprintf(stderr,"%s:%d:Unknown text style in attribute '%s'\n",
+			file,line_num,key);
+		errors++;
+	      }
+	    }
+	    else if (!strcasecmp(&key[strlen(key)-strlen("_ydelta")],"_ydelta"))
+	      {
+	      for(i=0;type_faces[i].font_nickname;i++)
+		if (strlen(key)
+		    ==strlen(type_faces[i].font_nickname)+strlen("_ydelta")) {
+		  if (!strncasecmp(key,type_faces[i].font_nickname,
+				   strlen(key)-strlen("_ydelta")))
+		    { type_faces[i].baseline_delta=atoi(value); break; }
+		}
+	      if (!type_faces[i].font_nickname) {
+		include_show_stack();
+		fprintf(stderr,"%s:%d:Unknown text style in attribute '%s'\n",
+			file,line_num,key);
+		errors++;
+	      }
+	    }
+	    else if (!strcasecmp(&key[strlen(key)-strlen("_linecount")],"_linecount"))
+	      {
+	      for(i=0;type_faces[i].font_nickname;i++)
+		if (strlen(key)
+		    ==strlen(type_faces[i].font_nickname)+strlen("_linecount")) {
+		  if (!strncasecmp(key,type_faces[i].font_nickname,
+				   strlen(key)-strlen("_linecount")))
+		    { type_faces[i].line_count=atoi(value); break; }
+		}
+	      if (!type_faces[i].font_nickname) {
+		include_show_stack();
+		fprintf(stderr,"%s:%d:Unknown text style in attribute '%s'\n",
+			file,line_num,key);
+		errors++;
+	      }
+	    }
+	    else if (!strcasecmp(&key[strlen(key)-strlen("_red")],"_red"))
+	      {
+	      for(i=0;type_faces[i].font_nickname;i++)
+		if (strlen(key)
+		    ==strlen(type_faces[i].font_nickname)+strlen("_red")) {
+		  if (!strncasecmp(key,type_faces[i].font_nickname,
+				   strlen(key)-strlen("_red")))
+		    { type_faces[i].red=atoi(value)*1.0/255.0; break; }
+		}
+	      if (!type_faces[i].font_nickname) {
+		include_show_stack();
+		fprintf(stderr,"%s:%d:Unknown text style in attribute '%s'\n",
+			file,line_num,key);
+		errors++;
+	      }
+	    }
+	    else if (!strcasecmp(&key[strlen(key)-strlen("_green")],"_green"))
+	      {
+	      for(i=0;type_faces[i].font_nickname;i++)
+		if (strlen(key)
+		    ==strlen(type_faces[i].font_nickname)+strlen("_green")) {
+		  if (!strncasecmp(key,type_faces[i].font_nickname,
+				   strlen(key)-strlen("_red")))
+		    { type_faces[i].green=atoi(value)*1.0/255.0; break; }
+		}
+	      if (!type_faces[i].font_nickname) {
+		include_show_stack();
+		fprintf(stderr,"%s:%d:Unknown text style in attribute '%s'\n",
+			file,line_num,key);
+		errors++;
+	      }
+	    }
+	    else if (!strcasecmp(&key[strlen(key)-strlen("_blue")],"_blue"))
+	      {
+	      for(i=0;type_faces[i].font_nickname;i++)
+		if (strlen(key)
+		    ==strlen(type_faces[i].font_nickname)+strlen("_blue")) {
+		  if (!strncasecmp(key,type_faces[i].font_nickname,
+				   strlen(key)-strlen("_blue")))
+		    { type_faces[i].blue=atoi(value)*1.0/255.0; break; }
+		}
+	      if (!type_faces[i].font_nickname) {
+		include_show_stack();
+		fprintf(stderr,"%s:%d:Unknown text style in attribute '%s'\n",
+			file,line_num,key);
+		errors++;
+	      }
+	    }
+	    else if (!strcasecmp(&key[strlen(key)-strlen("_filename")],"_filename")) {
+	      for(i=0;type_faces[i].font_nickname;i++)
+		if (strlen(key)
+		    ==strlen(type_faces[i].font_nickname)+strlen("_filename")) {
+		  if (!strncasecmp(key,type_faces[i].font_nickname,
+				   strlen(key)-strlen("_filename")))
+		    { type_faces[i].font_filename=strdup(value); break; }
+		}
+	      if (!type_faces[i].font_nickname) {
+		include_show_stack();
+		fprintf(stderr,"%s:%d:Unknown text style in attribute '%s'\n",
+			file,line_num,key);
+		errors++;
+	      }
+	    }
 
 	    // Size of solid colour book tabs
 	    else if (!strcasecmp(key,"booktab_width")) booktab_width=atoi(value);
@@ -277,9 +358,6 @@ int read_profile(char *file)
 	    // Set vertical limit of where booktabs can be placed
 	    else if (!strcasecmp(key,"booktab_upperlimit")) booktab_upperlimit=atoi(value);
 	    else if (!strcasecmp(key,"booktab_lowerlimit")) booktab_lowerlimit=atoi(value);
-
-	    // colour of red text
-	    else if (!strcasecmp(key,"red")) red_colour=strdup(value);
 
 	    else {
 	      include_show_stack();
@@ -365,9 +443,9 @@ int new_empty_page(int leftRight)
     // Now draw sideways text
     float text_width, text_height;
 
-    HPDF_Page_SetFontAndSize (page, booktab_font, booktab_fontsize);
+    int index = set_font("booktab");
     text_width = HPDF_Page_TextWidth(page,booktab_text);
-    text_height = HPDF_Font_GetCapHeight(booktab_font) * booktab_fontsize/1000;
+    text_height = HPDF_Font_GetCapHeight(booktab_font) * type_faces[index].font_size/1000;
     
     int y;
     float angle_degrees=0;
@@ -423,6 +501,19 @@ int get_linegap(char *font_filename, int size)
   
   return linegap;
 }
+
+int set_font(char *nickname) {
+  int i;
+  for(i=0;type_faces[i].font_nickname;i++)
+    if (!strcasecmp(nickname,type_faces[i].font_nickname)) break;
+  if (!type_faces[i].font_nickname) {
+    fprintf(stderr,"Asked to select non-existent font '%s'\n",nickname);
+    exit(-1);
+  }
+  HPDF_Page_SetFontAndSize (page, type_faces[i].font, type_faces[i].font_size);
+  return i;
+};
+
 
 const char *resolve_font(char *font_filename)
 {
@@ -613,12 +704,12 @@ int paragraph_append_characters(char *text,int size,int baseline)
   // Get width of piece
   float text_width, text_height;
   
-  HPDF_Page_SetFontAndSize (page, current_font.font, size);
+  HPDF_Page_SetFontAndSize (page, current_font->font, size);
   text_width = HPDF_Page_TextWidth(page,text);
-  text_height = HPDF_Font_GetCapHeight(current_font.font) * size/1000;
+  text_height = HPDF_Font_GetCapHeight(current_font->font) * size/1000;
 
   current_line->pieces[current_line->piece_count]=strdup(text);
-  current_line->fonts[current_line->piece_count]=current_font.font;
+  current_line->fonts[current_line->piece_count]=current_font->font;
   current_line->fontsizes[current_line->piece_count]=size;
   current_line->piece_widths[current_line->piece_count]=text_width;
   if (strcmp(text," "))
@@ -684,7 +775,7 @@ int paragraph_append_text(char *text,int baseline)
   // Checkpoint where we are up to, in case we need to split the line
   if (current_line) current_line->checkpoint=current_line->piece_count;
   
-  if (current_font.smallcaps) {
+  if (current_font->smallcaps) {
     // This font uses emulated small caps, so break the word down into
     // as many pieces as necessary.
     int i,j;
@@ -703,11 +794,11 @@ int paragraph_append_text(char *text,int baseline)
 		// case change
 		chars[count]=0;
 		if (islower)
-		  paragraph_append_characters(chars,current_font.smallcaps,
-					      baseline+current_font.baseline_delta);
+		  paragraph_append_characters(chars,current_font->smallcaps,
+					      baseline+current_font->baseline_delta);
 		else
-		  paragraph_append_characters(chars,current_font.font_size,
-					      baseline+current_font.baseline_delta);
+		  paragraph_append_characters(chars,current_font->font_size,
+					      baseline+current_font->baseline_delta);
 		i=j;
 		count=0;
 		break;
@@ -716,18 +807,18 @@ int paragraph_append_text(char *text,int baseline)
 	if (count) {
 	  chars[count]=0;
 	  if (islower)
-	    paragraph_append_characters(chars,current_font.smallcaps,
-					baseline+current_font.baseline_delta);
+	    paragraph_append_characters(chars,current_font->smallcaps,
+					baseline+current_font->baseline_delta);
 	  else
-	    paragraph_append_characters(chars,current_font.font_size,
-					baseline+current_font.baseline_delta);
+	    paragraph_append_characters(chars,current_font->font_size,
+					baseline+current_font->baseline_delta);
 	  break;
 	}
       }
   } else {
     // Regular text. Render as one piece.
-    paragraph_append_characters(text,current_font.font_size,
-				baseline+current_font.baseline_delta);
+    paragraph_append_characters(text,current_font->font_size,
+				baseline+current_font->baseline_delta);
   }
     
   return 0;
@@ -740,7 +831,7 @@ int paragraph_append_space()
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
   if (last_char_is_a_full_stop) fprintf(stderr,"  space follows a full-stop.\n");
-  paragraph_append_characters(" ",current_font.font_size,0);
+  paragraph_append_characters(" ",current_font->font_size,0);
   return 0;
 }
 
@@ -750,12 +841,9 @@ int paragraph_append_space()
 #define AL_JUSTIFIED -2
 
 #define TYPE_FACE_STACK_DEPTH 32
-struct type_face type_face_stack[TYPE_FACE_STACK_DEPTH];
+struct type_face *type_face_stack[TYPE_FACE_STACK_DEPTH];
 int type_face_stack_pointer=0;
-int paragraph_push_style(int font_alignment,
-			 HPDF_Font font,
-			 int font_size,
-			 int font_smallcaps)
+int paragraph_push_style(int font_alignment,int font_index)
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
 
@@ -764,11 +852,8 @@ int paragraph_push_style(int font_alignment,
   else {
     fprintf(stderr,"Typeface stack overflowed.\n"); exit(-1);
   }
-  
-  current_font.font=font;
-  current_font.font_size=font_size;
-  current_font.smallcaps=font_smallcaps;
-  current_font.baseline_delta=0;
+
+  current_font=&type_faces[font_index];
   
   return 0;
 }
@@ -789,10 +874,7 @@ int paragraph_pop_style()
 int paragraph_clear_style_stack()
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
-  current_font.font = blackletter_font;
-  current_font.font_size = blackletter_fontsize;
-  current_font.smallcaps = 0;
-  current_font.baseline_delta = 0;
+  current_font=&type_faces[set_font("blackletter")];
   type_face_stack_pointer=0;
   return 0;
 }
@@ -864,37 +946,22 @@ int render_tokens()
 	    }
 	  } else if (!strcasecmp(token_strings[i],"bookpretitle")) {
 	    // Book title header line
-	    paragraph_push_style(AL_CENTRED,
-				 bookpretitle_font,
-				 bookpretitle_fontsize,
-				 bookpretitle_smallcaps);
+	    paragraph_push_style(AL_CENTRED,set_font("bookpretitle"));
 	    
 	  } else if (!strcasecmp(token_strings[i],"booktitle")) {
 	    // Book title header line
-	    paragraph_push_style(AL_CENTRED,
-				 booktitle_font,
-				 booktitle_fontsize,
-				 booktitle_smallcaps);
+	    paragraph_push_style(AL_CENTRED,set_font("booktitle"));
 	    
 	  } else if (!strcasecmp(token_strings[i],"passage")) {
 	    // Passage header line
-	    paragraph_push_style(AL_CENTRED,
-				 passage_header_font,
-				 passage_header_fontsize,
-				 passage_header_smallcaps);	    
+	    paragraph_push_style(AL_CENTRED,set_font("passage"));
 	  } else if (!strcasecmp(token_strings[i],"chapt")) {
 	    // Chapter big number
 	    // XXX We don't support the drop-characters yet.
-	    paragraph_push_style(AL_CENTRED,
-				 passage_header_font,
-				 passage_header_fontsize,
-				 passage_header_smallcaps);	    
+	    paragraph_push_style(AL_CENTRED,set_font("chapternum"));
 	  } else if (!strcasecmp(token_strings[i],"v")) {
 	    // Verse number
-	    paragraph_push_style(AL_CENTRED,
-				 versenum_font,
-				 versenum_fontsize,
-				 0);
+	    paragraph_push_style(AL_CENTRED,set_font("versenum"));
 
 	    // Poem line indenting
 	  } else if (!strcasecmp(token_strings[i],"poeml")) {
@@ -904,10 +971,7 @@ int render_tokens()
 	  } else {	    
 	    fprintf(stderr,"Warning: unknown tag \%s (%d styles on the stack.)\n",
 		    token_strings[i],type_face_stack_pointer);
-	    paragraph_push_style(AL_CENTRED,
-				 blackletter_font,
-				 blackletter_fontsize,
-				 0);
+	    paragraph_push_style(AL_CENTRED,set_font("blackletter"));
 	  }	  
 	}
 	break;
@@ -957,23 +1021,15 @@ int main(int argc,char **argv)
 
   fprintf(stderr,"About to load fonts\n");
   // Load all the fonts we will need
-  fprintf(stderr,"  Loading bookpretitle font from %s\n",bookpretitle_fontfile);
-  bookpretitle_font=HPDF_GetFont(pdf,resolve_font(bookpretitle_fontfile),NULL);
-  bookpretitle_linegap=get_linegap(bookpretitle_fontfile,bookpretitle_fontsize);
-  fprintf(stderr,"  Loading booktitle font from %s\n",booktitle_fontfile);
-  booktitle_font=HPDF_GetFont(pdf,resolve_font(booktitle_fontfile),NULL);
-  fprintf(stderr,"  Loading header font from %s\n",header_fontfile);
-  header_font=HPDF_GetFont(pdf,resolve_font(header_fontfile),NULL);
-  fprintf(stderr,"  Loading passage header font from %s\n",passage_header_fontfile);
-  passage_header_font=HPDF_GetFont(pdf,resolve_font(passage_header_fontfile),NULL);
-  fprintf(stderr,"  Loading verse number font from %s\n",versenum_fontfile);
-  versenum_font=HPDF_GetFont(pdf,resolve_font(versenum_fontfile),NULL);
-  fprintf(stderr,"  Loading booktab font from %s\n",booktab_fontfile);
-  booktab_font=HPDF_GetFont(pdf,resolve_font(booktab_fontfile),NULL);
-  fprintf(stderr,"  Loading black-letter font from %s\n",blackletter_fontfile);
-  blackletter_font=HPDF_GetFont(pdf,resolve_font(blackletter_fontfile),NULL);
-  fprintf(stderr,"  Loading red-letter font from %s\n",redletter_fontfile);
-  redletter_font=HPDF_GetFont(pdf,resolve_font(redletter_fontfile),NULL);
+  int i;
+  for(i=0;type_faces[i].font_nickname;i++) {
+    fprintf(stderr,"  Loading %s font from %s\n",
+	    type_faces[i].font_nickname,type_faces[i].font_filename);
+    type_faces[i].font
+      =HPDF_GetFont(pdf,resolve_font(type_faces[i].font_filename),NULL);
+    type_faces[i].linegap=get_linegap(type_faces[i].font_filename,
+				      type_faces[i].font_size);
+  }
   fprintf(stderr,"Loaded fonts\n");
   
   // Start with a left page

@@ -28,10 +28,29 @@ struct parsed_text {
 };
 
 struct type_face {
-  HPDF_Font font;
+  // Name of font as referenced by us
+  char *font_nickname;
+
+  // Information about which font to use and at what size
+  char *font_filename;
   int font_size;
   int smallcaps;
   int baseline_delta;
+  int line_count;
+
+  // colour of text
+  float red;
+  float green;
+  float blue;
+
+  // -----------------
+  // Fields below here are populated by us, whereas fields above are set by the
+  // user in .profile files.
+
+  HPDF_Font font;
+
+  // points between lines (read from libfreetype)
+  int linegap;
 };
 
 #define TT_TEXT 0
