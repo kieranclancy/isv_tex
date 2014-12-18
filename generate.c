@@ -111,7 +111,7 @@ int booktab_lowerlimit=72*5.5;
 
 char *bookpretitle_fontfile="bookpretitle.ttf";
 int bookpretitle_fontsize=12;
-int bookpretitle_leading=12;
+int bookpretitle_linegap=12;
 int bookpretitle_smallcaps=10;
 char *booktitle_fontfile="booktitle.ttf";
 int booktitle_fontsize=25;
@@ -404,7 +404,7 @@ int font_count=0;
 char *font_filenames[MAX_FONTS];
 const char *font_names[MAX_FONTS];
 
-int get_leading(char *font_filename, int size)
+int get_linegap(char *font_filename, int size)
 {
   FT_Face face;
   if (FT_New_Face( library,font_filename,0,&face))
@@ -418,9 +418,10 @@ int get_leading(char *font_filename, int size)
       exit(-1);
     }
   FT_Done_Face(face);
-  int leading=0;
+  int linegap=face->height/64;
+  fprintf(stderr,"Line gap is %dpt for %dpt text\n",linegap,size);
   
-  return leading;
+  return linegap;
 }
 
 const char *resolve_font(char *font_filename)
@@ -958,7 +959,7 @@ int main(int argc,char **argv)
   // Load all the fonts we will need
   fprintf(stderr,"  Loading bookpretitle font from %s\n",bookpretitle_fontfile);
   bookpretitle_font=HPDF_GetFont(pdf,resolve_font(bookpretitle_fontfile),NULL);
-  bookpretitle_leading=get_leading(bookpretitle_fontfile,bookpretitle_fontsize);
+  bookpretitle_linegap=get_linegap(bookpretitle_fontfile,bookpretitle_fontsize);
   fprintf(stderr,"  Loading booktitle font from %s\n",booktitle_fontfile);
   booktitle_font=HPDF_GetFont(pdf,resolve_font(booktitle_fontfile),NULL);
   fprintf(stderr,"  Loading header font from %s\n",header_fontfile);
