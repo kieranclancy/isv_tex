@@ -2,7 +2,7 @@
 
 # Set various dimensions (all are measured in points)
 
-page_width 288
+page_width 360
 page_height 540
 
 # left and right margins
