@@ -389,17 +389,6 @@ HPDF_Doc pdf;
 
 HPDF_Page page;
 
-
-HPDF_Font bookpretitle_font;
-HPDF_Font booktitle_font;
-HPDF_Font header_font;
-HPDF_Font passage_header_font;
-HPDF_Font booktab_font;
-HPDF_Font versenum_font;
-HPDF_Font blackletter_font;
-HPDF_Font redletter_font;
-HPDF_Font blackletter_font;
-
 // Are we drawing a left or right face, or neither
 #define LR_LEFT -1
 #define LR_RIGHT 1
@@ -453,7 +442,9 @@ int new_empty_page(int leftRight)
 
     int index = set_font("booktab");
     text_width = HPDF_Page_TextWidth(page,booktab_text);
-    text_height = HPDF_Font_GetCapHeight(booktab_font) * type_faces[index].font_size/1000;
+    int ascender_height=HPDF_Font_GetAscent(type_faces[index].font)*type_faces[index].font_size/1000;
+    // int descender_depth=HPDF_Font_GetDescent(type_faces[index].font)*type_faces[index].font_size/1000;
+    text_height = ascender_height; // -descender_depth;
     
     int y;
     float angle_degrees=0;
