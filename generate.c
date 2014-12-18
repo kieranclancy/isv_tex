@@ -797,6 +797,9 @@ int paragraph_append_characters(char *text,int size,int baseline)
 
   if (!current_line) paragraph_setup_next_line();
 
+  // Don't start lines with empty space.
+  if ((!strcmp(text," "))&&(current_line->piece_count==0)) return 0;
+  
   // Make sure the line has enough space
   if (current_line->piece_count>=MAX_LINE_PIECES) {
     fprintf(stderr,"Cannot add '%s' to line, as line is too long.\n",text);
