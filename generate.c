@@ -66,6 +66,8 @@ struct line_pieces {
 #define MAX_LINE_PIECES 256
   // Horizontal space available to the line
   int max_line_width;
+  // Reserved space on left side, e.g., for dropchars
+  int left_margin;
 
   int alignment;
   
@@ -602,6 +604,12 @@ int line_emit(struct line_pieces *l)
     fprintf(stderr,"x=%.1f (left/justified alignment)\n",x);
 
   }
+
+  // Finally apply any left margin that has been set
+  x+=l->left_margin;
+  if (l->left_margin) {
+    fprintf(stderr,"Applying left margin of %dpts\n",l->left_margin);
+  }
   
   for(i=0;i<l->piece_count;i++) {
     HPDF_Page_SetFontAndSize(page,l->fonts[i]->font,l->actualsizes[i]);
@@ -723,10 +731,14 @@ int paragraph_append_line(struct line_pieces *line)
   return 0;
 }
 
-// Setup a line 
+// Setup a line
+
+int drop_char_left_margin=0;
+int drop_char_margin_line_count=0;
+
 int paragraph_setup_next_line()
 {
-  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  fprintf(stderr,"%s()\n",__FUNCTION__);
 
   // Allocate structure
   current_line=calloc(sizeof(struct line_pieces),1); 
@@ -734,6 +746,41 @@ int paragraph_setup_next_line()
   // Set maximum line width
   current_line->max_line_width=page_width-left_margin-right_margin;
 
+  // If there is a dropchar margin in effect, then apply it.
+  if (drop_char_margin_line_count>0) {
+    fprintf(stderr,"Applying dropchar margin of %dpt (%d more lines, including this one)\n",drop_char_left_margin,drop_char_margin_line_count);
+    current_line->max_line_width
+      =page_width-left_margin-right_margin-drop_char_left_margin;
+    current_line->left_margin=drop_char_left_margin;
+    drop_char_margin_line_count--;
+  }
+  
+  return 0;
+}
+
+int set_widow_counter(int lines)
+{
+  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  return 0;
+}
+
+int dropchar_margin_check(struct line_pieces *l)
+{
+  // If the current font has drop chars (i.e, line_count > 1),
+  // then set the dropchar margin line count to (line_count-1),
+  // and set drop_char_left_margin to the width accumulated on the
+  // line so far.
+  if ((current_font->line_count-1)>drop_char_margin_line_count) {
+    fprintf(stderr,"Font '%s' spans %d lines -- activating dropchar margin\n",
+	    current_font->font_nickname,current_font->line_count);
+    drop_char_margin_line_count=current_font->line_count-1;
+    if (l->line_width_so_far>drop_char_left_margin)
+      drop_char_left_margin=l->line_width_so_far;
+  } else {
+    fprintf(stderr,"Font '%s' spans %d lines -- not touching dropchar margin\n",
+	    current_font->font_nickname,current_font->line_count);
+
+  }
   return 0;
 }
 
@@ -802,14 +849,19 @@ int paragraph_append_characters(char *text,int size,int baseline)
 	}
       // Inherit alignment of previous line
       current_line->alignment=last_line->alignment;
+      dropchar_margin_check(current_line);
     } else {
       // Line too long, but no checkpoint.  This is bad.
       // Just add this line as is to the paragraph and report a warning.
       fprintf(stderr,"Line too wide when appending '%s'\n",text);
       paragraph_append_line(current_line);
+      dropchar_margin_check(current_line);
       current_line=NULL;
       paragraph_setup_next_line();
     }
+  } else {
+    // Fits on this line.
+    dropchar_margin_check(current_line);
   }
   
   return 0;
@@ -1033,10 +1085,17 @@ int render_tokens()
 	    // Passage header line
 	    current_line_flush();
 	    paragraph_push_style(AL_LEFT,set_font("passageheader"));
+	    // Require at least one more line after this before page breaking
+	    set_widow_counter(1);
 	  } else if (!strcasecmp(token_strings[i],"chapt")) {
 	    // Chapter big number
 	    // XXX We don't support the drop-characters yet.
-	    paragraph_push_style(AL_LEFT,set_font("chapternum"));
+	    int index=set_font("chapternum");
+	    paragraph_push_style(AL_LEFT,index);
+	    // Require sufficient lines after this one so that the
+	    // drop character can fit.
+	    if (type_faces[index].line_count>1)
+	      set_widow_counter(type_faces[index].line_count-1);	    
 	  } else if (!strcasecmp(token_strings[i],"v")) {
 	    // Verse number
 	    paragraph_push_style(AL_LEFT,set_font("versenum"));
