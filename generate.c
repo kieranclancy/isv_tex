@@ -64,8 +64,7 @@ struct line_pieces {
   int piece_count;
   int line_width_so_far;
   char *pieces[MAX_LINE_PIECES];
-  HPDF_Font fonts[MAX_LINE_PIECES];
-  int fontsizes[MAX_LINE_PIECES];
+  struct type_face *fonts[MAX_LINE_PIECES];
   int piece_widths[MAX_LINE_PIECES];
   // Used to mark spaces that can be stretched for justification
   int piece_is_elastic[MAX_LINE_PIECES];
@@ -555,21 +554,23 @@ int line_emit(struct line_pieces *l)
   int y=page_height-baseline_y-l->ascent;
 
   int i;
+  int linegap=0;
 
   // Now draw the pieces
   HPDF_Page_BeginText (page);
   HPDF_Page_SetTextRenderingMode (page, HPDF_FILL);
   int x=0;
   for(i=0;i<l->piece_count;i++) {
-    HPDF_Page_SetFontAndSize(page,l->fonts[i],l->fontsizes[i]);
-    HPDF_Page_SetRGBFill(page,0.00,0.00,0.00);
+    HPDF_Page_SetFontAndSize(page,l->fonts[i]->font,l->fonts[i]->font_size);
+    HPDF_Page_SetRGBFill(page,l->fonts[i]->red,l->fonts[i]->green,l->fonts[i]->blue);
     HPDF_Page_TextOut(page,left_margin+x,y-l->piece_baseline[i],
 		      l->pieces[i]);
     x=x+l->piece_widths[i];
+    if (l->fonts[i]->linegap>linegap) linegap=l->fonts[i]->linegap;
   }
   HPDF_Page_EndText (page);
 
-  page_y=page_y+l->ascent+l->descent;
+  page_y=page_y+linegap;
   return 0;
 }
 
@@ -582,9 +583,9 @@ int line_calculate_height(struct line_pieces *l)
   for(i=0;i<l->piece_count;i++)
     {
       // Get ascender height of font
-      int ascender_height=HPDF_Font_GetAscent(l->fonts[i])*l->fontsizes[i]/1000;
+      int ascender_height=HPDF_Font_GetAscent(l->fonts[i]->font)*l->fonts[i]->font_size/1000;
       // Get descender depth of font
-      int descender_depth=HPDF_Font_GetDescent(l->fonts[i])*l->fontsizes[i]/1000;
+      int descender_depth=HPDF_Font_GetDescent(l->fonts[i]->font)*l->fonts[i]->font_size/1000;
       if (descender_depth<0) descender_depth=-descender_depth;
       if (ascender_height+l->piece_baseline[i]>max)
 	max=ascender_height+l->piece_baseline[i];
@@ -709,8 +710,7 @@ int paragraph_append_characters(char *text,int size,int baseline)
   text_height = HPDF_Font_GetCapHeight(current_font->font) * size/1000;
 
   current_line->pieces[current_line->piece_count]=strdup(text);
-  current_line->fonts[current_line->piece_count]=current_font->font;
-  current_line->fontsizes[current_line->piece_count]=size;
+  current_line->fonts[current_line->piece_count]=current_font;
   current_line->piece_widths[current_line->piece_count]=text_width;
   if (strcmp(text," "))
     current_line->piece_is_elastic[current_line->piece_count]=0;
@@ -740,7 +740,6 @@ int paragraph_append_characters(char *text,int size,int baseline)
 	{
 	  current_line->pieces[current_line->piece_count]=last_line->pieces[i];
 	  current_line->fonts[current_line->piece_count]=last_line->fonts[i];
-	  current_line->fontsizes[current_line->piece_count]=last_line->fontsizes[i];
 	  current_line->piece_widths[current_line->piece_count]
 	    =last_line->piece_widths[i];
 	  current_line->piece_is_elastic[current_line->piece_count]
