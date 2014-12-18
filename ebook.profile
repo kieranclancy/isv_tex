@@ -47,12 +47,14 @@ versenum_filename urw-palladio-l-roman.ttf
 versenum_fontsize 9
 versenum_ydelta -4
 chapternum_filename urw-palladio-l-bold.ttf
-chapternum_fontsize 31
+chapternum_fontsize 36
 chapternum_linecount 2
-chapternum_ydelta 13
+chapternum_ydelta 16
 footnotemark_filename urw-palladio-l-bold.ttf
 footnotemark_fontsize 9
 footnotemark_ydelta -2
 footnotemark_smallcaps 0
 footnote_filename urw-palladio-l-roman.ttf
 footnote_fontsize 8
+
+line_spacing 1.2
