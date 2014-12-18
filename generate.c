@@ -150,6 +150,7 @@ int booktab_width=27;
 int booktab_height=115;
 int booktab_upperlimit=36;
 int booktab_lowerlimit=72*5.5;
+int paragraph_indent=18;
 
 /* Read the profile of the bible to build.
    The profile consists of a series of key=value pairs that set various 
@@ -244,6 +245,8 @@ int read_profile(char *file)
 	    else if (!strcasecmp(key,"top_margin")) top_margin=atoi(value);
 	    else if (!strcasecmp(key,"bottom_margin")) bottom_margin=atoi(value);
 
+	    else if (!strcasecmp(key,"paragraph_indent")) paragraph_indent=atoi(value);
+	    
 	    // Width of marginpar for holding cross-references
 	    else if (!strcasecmp(key,"marginpar_width")) marginpar_width=atoi(value);
 	    // Margin between marginpar and edge of page
@@ -1064,7 +1067,11 @@ int render_tokens()
     {
       switch(token_types[i]) {
       case TT_PARAGRAPH:
+	// Flush the previous paragraph.
 	paragraph_flush();
+	// Indent the paragraph.  
+	paragraph_setup_next_line();
+	current_line->left_margin=paragraph_indent;
 	break;
       case TT_SPACE:
 	paragraph_append_space();
@@ -1138,14 +1145,17 @@ int render_tokens()
 	    // Require at least one more line after this before page breaking
 	    set_widow_counter(1);
 	  } else if (!strcasecmp(token_strings[i],"chapt")) {
-	    // Chapter big number
-	    // XXX We don't support the drop-characters yet.
+	    // Chapter big number (dropchar)
+	    current_line_flush();
 	    int index=set_font("chapternum");
 	    paragraph_push_style(AL_LEFT,index);
 	    // Require sufficient lines after this one so that the
 	    // drop character can fit.
 	    if (type_faces[index].line_count>1)
-	      set_widow_counter(type_faces[index].line_count-1);	    
+	      set_widow_counter(type_faces[index].line_count-1);
+	    // Don't indent lines beginning with dropchars
+	    paragraph_setup_next_line();
+	    current_line->left_margin=0;
 	  } else if (!strcasecmp(token_strings[i],"v")) {
 	    // Verse number
 	    paragraph_push_style(AL_LEFT,set_font("versenum"));
