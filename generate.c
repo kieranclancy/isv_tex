@@ -593,6 +593,16 @@ int line_free(struct line_pieces *l)
 int line_emit(struct line_pieces *l)
 {
   int baseline_y=page_y+l->line_height;
+
+  if (baseline_y>(page_height-bottom_margin)) {
+    // No room on this page. Start a new page.
+    leftRight=-leftRight;
+    new_empty_page(leftRight);
+    page_y=top_margin;
+    baseline_y=page_y+l->line_height;
+  }
+
+  
   // convert y to libharu coordinate system
   int y=page_height-baseline_y-l->line_height;
 
