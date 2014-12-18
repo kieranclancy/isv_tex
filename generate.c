@@ -915,12 +915,26 @@ int paragraph_push_style(int font_alignment,int font_index)
   return 0;
 }
 
+int insert_vspace(int points)
+{
+  current_line_flush();
+  paragraph_setup_next_line();
+  paragraph_append_characters("",points,0); 
+  return 0;
+}
+
 int paragraph_pop_style()
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
 
-  if (type_face_stack_pointer)
+  if (type_face_stack_pointer) {
+    // Add vertical space after certain type faces
+    if (!strcasecmp(current_font->font_nickname,"booktitle"))
+      {
+	insert_vspace(type_faces[set_font("blackletter")].linegap/2);
+      }
     current_font=type_face_stack[--type_face_stack_pointer];
+  }
   else {
     fprintf(stderr,"Typeface stack underflowed.\n"); exit(-1);
   }
