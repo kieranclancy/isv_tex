@@ -44,7 +44,7 @@ blackletter_fontsize 12
 redletter_filename urw-palladio-l-roman.ttf
 redletter_fontsize 12
 versenum_filename urw-palladio-l-roman.ttf
-versenum_fontsize 6
+versenum_fontsize 9
 versenum_ydelta -4
 chapternum_filename urw-palladio-l-bold.ttf
 chapternum_fontsize 31
