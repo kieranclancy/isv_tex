@@ -181,11 +181,11 @@ int footnotes_reset()
   return 0;
 }
 
-int generate_footnote_mark(int footnote_count)
+int generate_footnote_mark(int n)
 {
-  if (footnote_count<27) footnote_mark_string[0]='a'+(footnote_count);
+  if (n<27) footnote_mark_string[0]='a'+(n);
   else {
-    int n=footnote_count-26;
+    n-=26;
     footnote_mark_string[0]='a'+(n/26);
     footnote_mark_string[1]='a'+(n%26);
     footnote_mark_string[2]=0;
@@ -738,13 +738,49 @@ int reenumerate_footnotes(int first_remaining_line_uid)
       footnote_count--;
     }
 
-  // Update footnote mark based on number of footnotes remaining
-  generate_footnote_mark(footnote_count-1);
-
   // Now that we have only the relevant footnotes left, update the footnote marks
   // in the footnotes, and in the lines that reference them.
   // XXX - If the footnote mark becomes wider, it might stick out into the margin.
-  
+  int i;
+  int footnote_number_in_line=0;
+  int footnotemark_typeface_index=set_font("footnotemark");
+  for(i=0;i<footnote_count;i++)
+    {
+
+      if (i) {
+	if (footnote_line_numbers[i]==footnote_line_numbers[i-1])
+	  footnote_number_in_line++;
+	else
+	  footnote_number_in_line=0;
+      }
+
+      generate_footnote_mark(i);
+      struct paragraph *p=&body_paragraph;
+      int j,k;
+      for(j=0;j<p->line_count;j++)
+	if (p->paragraph_lines[j]->line_uid==footnote_line_numbers[i])
+	{	  
+	  int position_in_line=-1;
+	  for(k=0;k<p->paragraph_lines[j]->piece_count;k++)
+	    {
+	      if (p->paragraph_lines[j]->fonts[k]
+		  ==&type_faces[footnotemark_typeface_index])
+		{
+		  position_in_line++;
+		  if (position_in_line==footnote_number_in_line) {
+		    // This is the piece
+		    free(p->paragraph_lines[j]->pieces[k]);
+		    p->paragraph_lines[j]->pieces[k]=strdup(footnote_mark_string);
+		    fprintf(stderr,"  footnotemark #%d = '%s'\n",i,footnote_mark_string);
+		  }
+		}
+	    }
+	}
+    }
+
+  // Update footnote mark based on number of footnotes remaining
+  generate_footnote_mark(footnote_count-1);
+
   return 0;
 }
 
