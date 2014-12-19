@@ -212,10 +212,14 @@ int paragraph_setup_next_line(struct paragraph *p);
 int begin_footnote()
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
-  target_paragraph=&footnote_paragraphs[footnote_count];
-  footnote_line_numbers[footnote_count]=body_paragraph.line_count;
-  fprintf(stderr,"Footnote '%s' is in line #%d\n",
-	  footnote_mark_string,body_paragraph.line_count);
+
+  // footnote_count has already been incremented, so take one away when working out
+  // which paragraph to access.
+  target_paragraph=&footnote_paragraphs[footnote_count-1];
+  footnote_line_numbers[footnote_count-1]=body_paragraph.current_line->line_uid;
+  fprintf(stderr,"Footnote '%s' is in line #%d (line uid %d). There are %d foot notes.\n",
+	  footnote_mark_string,body_paragraph.line_count,
+	  body_paragraph.current_line->line_uid,footnote_count);
   return 0;
 }
 
@@ -718,13 +722,15 @@ int reenumerate_footnotes(int first_remaining_line_uid)
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
 
   // While there are footnotes we have already output, purge them.
-  while(footnote_count>0&&footnote_line_numbers[0]<first_remaining_line_uid)
+  while((footnote_count>0)&&(footnote_line_numbers[0]<first_remaining_line_uid))
     {
-      fprintf(stderr,"%d foot notes remaining.\n",footnote_count);
+      fprintf(stderr,"%d foot notes remaining: deleting %d (is < %d)\n",
+	      footnote_count,
+	      footnote_line_numbers[0],first_remaining_line_uid);
       paragraph_clear(&footnote_paragraphs[0]);
       int i;
       // Copy down foot notes
-      for(i=0;i<footnote_count-1;i++) {
+      for(i=0;i<footnote_count;i++) {
 	footnote_line_numbers[i]=footnote_line_numbers[i+1];
 	bcopy(&footnote_paragraphs[i],&footnote_paragraphs[i+1],
 	      sizeof (struct paragraph));
