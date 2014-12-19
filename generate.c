@@ -38,6 +38,7 @@
 int debug_vspace=1;
 int debug_vspace_x=0;
 
+int poem_level=0;
 
 FT_Library  library;
 
@@ -1228,9 +1229,40 @@ int render_tokens()
 	    
 	    // Poem line indenting. Set default left margin for lines.
 	  } else if (!strcasecmp(token_strings[i],"poeml")) {
-	  } else if (!strcasecmp(token_strings[i],"poemll")) {
-	  } else if (!strcasecmp(token_strings[i],"poemlll")) {
+	    poem_level=1;
 	    
+	  } else if (!strcasecmp(token_strings[i],"poemll")) {
+	    poem_level=2;
+	  } else if (!strcasecmp(token_strings[i],"poemlll")) {
+	    poem_level=3;
+	  } else if (!strcasecmp(token_strings[i],"end")) {
+	    i++; if (token_types[i]!=TT_TEXT) {
+	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
+	      exit(-1);
+	    }
+	    if (!strcasecmp(token_strings[i],"poetry")) poem_level=0;
+	    else {
+	      fprintf(stderr,"Warning: I don't know about \%s{%s}\n",
+		      token_strings[i-1],token_strings[i]);	      
+	    }
+	    i++; if (token_types[i]!=TT_ENDTAG) {
+	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
+	      exit(-1);
+	    }
+	  } else if (!strcasecmp(token_strings[i],"begin")) {
+	    i++; if (token_types[i]!=TT_TEXT) {
+	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
+	      exit(-1);
+	    }
+	    if (!strcasecmp(token_strings[i],"poetry")) poem_level=0;
+	    else {
+	      fprintf(stderr,"Warning: I don't know about \%s{%s}\n",
+		      token_strings[i-1],token_strings[i]);	      
+	    }
+	    i++; if (token_types[i]!=TT_ENDTAG) {
+	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
+	      exit(-1);
+	    }
 	  } else {	    
 	    fprintf(stderr,"Warning: unknown tag \%s (%d styles on the stack.)\n",
 		    token_strings[i],type_face_stack_pointer);
