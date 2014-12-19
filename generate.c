@@ -130,6 +130,7 @@ struct paragraph body_paragraph;
 
 #define MAX_FOOTNOTES_ON_PAGE 256
 struct paragraph footnote_paragraphs[MAX_FOOTNOTES_ON_PAGE];
+int footnote_line_numbers[MAX_FOOTNOTES_ON_PAGE];
 #define MAX_VERSES_ON_PAGE 256
 struct paragraph cross_reference_paragraphs[MAX_VERSES_ON_PAGE];
 
@@ -162,8 +163,10 @@ int footnote_number=-1;
 int footnotes_reset()
 {
   int i;
-  for(i=0;i<MAX_FOOTNOTES_ON_PAGE;i++)
+  for(i=0;i<MAX_FOOTNOTES_ON_PAGE;i++) {
     paragraph_clear(&footnote_paragraphs[i]);
+    footnote_line_numbers[i]=-1;
+  }
     
   footnote_stack_depth=-1;
   footnote_mark_string[0]='a'-1;
@@ -209,6 +212,9 @@ int begin_footnote()
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
   target_paragraph=&footnote_paragraphs[footnote_number];
+  footnote_line_numbers[footnote_number]=body_paragraph.line_count;
+  fprintf(stderr,"Footnote '%s' is in line #%d\n",
+	  footnote_mark_string,body_paragraph.line_count);
   return 0;
 }
 
@@ -1303,6 +1309,8 @@ int render_tokens()
 {
   int i;
 
+  footnotes_reset();
+  
   // Initialise all paragraph structures.
   paragraph_init(&body_paragraph);
   for(i=0;i<MAX_FOOTNOTES_ON_PAGE;i++) paragraph_init(&footnote_paragraphs[i]);
