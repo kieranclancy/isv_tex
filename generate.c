@@ -166,6 +166,8 @@ struct paragraph footnote_paragraphs[MAX_FOOTNOTES_ON_PAGE];
 #define MAX_VERSES_ON_PAGE 256
 struct paragraph cross_reference_paragraphs[MAX_VERSES_ON_PAGE];
 
+struct paragraph *target_paragraph=&body_paragraph;
+
 int paragraph_init(struct paragraph *p)
 {
   bzero(p,sizeof(struct paragraph));
@@ -194,12 +196,14 @@ int paragraph_setup_next_line(struct paragraph *p);
 int begin_footnote()
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  target_paragraph=&footnote_paragraphs[footnote_number];
   return 0;
 }
 
 int end_footnote()
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  target_paragraph=&body_paragraph;
   return 0;
 }
 
@@ -1233,9 +1237,6 @@ int render_tokens()
   paragraph_init(&body_paragraph);
   for(i=0;i<MAX_FOOTNOTES_ON_PAGE;i++) paragraph_init(&footnote_paragraphs[i]);
   for(i=0;i<MAX_VERSES_ON_PAGE;i++) paragraph_init(&cross_reference_paragraphs[i]);
-
-  
-  struct paragraph *target_paragraph=&body_paragraph;
   
   paragraph_clear_style_stack();
   
