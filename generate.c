@@ -161,6 +161,7 @@ int booktab_height=115;
 int booktab_upperlimit=36;
 int booktab_lowerlimit=72*5.5;
 int paragraph_indent=18;
+int passageheader_vspace=4;
 float line_spacing=1.2;
 
 /* Read the profile of the bible to build.
@@ -398,6 +399,11 @@ int read_profile(char *file)
 	    // Set vertical limit of where booktabs can be placed
 	    else if (!strcasecmp(key,"booktab_upperlimit")) booktab_upperlimit=atoi(value);
 	    else if (!strcasecmp(key,"booktab_lowerlimit")) booktab_lowerlimit=atoi(value);
+	    else if (!strcasecmp(key,"passageheader_vspace")) passageheader_vspace=atoi(value);
+	    else if (!strcasecmp(key,"poetry_left_margin")) poetry_left_margin=atoi(value);
+	    else if (!strcasecmp(key,"poetry_level_indent")) poetry_level_indent=atoi(value);
+	    else if (!strcasecmp(key,"poetry_wrap_indent")) poetry_wrap_indent=atoi(value);
+	    else if (!strcasecmp(key,"poetry_vspace")) poetry_vspace=atoi(value);
 
 	    else {
 	      include_show_stack();
@@ -1236,8 +1242,9 @@ int render_tokens()
 	    
 	  } else if (!strcasecmp(token_strings[i],"passage")) {
 	    // Passage header line	    
-	    insert_vspace(1);
-	    paragraph_push_style(AL_LEFT,set_font("passageheader"));
+	    int index=set_font("passageheader");
+	    insert_vspace(passageheader_vspace);
+	    paragraph_push_style(AL_LEFT,index);
 	    // Require at least one more line after this before page breaking
 	    set_widow_counter(1);
 	  } else if (!strcasecmp(token_strings[i],"chapt")) {
