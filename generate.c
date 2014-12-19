@@ -108,7 +108,7 @@ struct line_pieces {
 };
 
 int line_free(struct line_pieces *l);
-
+int generate_footnote_mark(int footnote_count);
 
 // Current paragraph
 struct paragraph {
@@ -163,7 +163,7 @@ int paragraph_clear(struct paragraph *p)
 
 int footnote_stack_depth=-1;
 char footnote_mark_string[4]={'a'-1,0,0,0};
-int footnote_count=-1;
+int footnote_count=0;
 
 int footnotes_reset()
 {
@@ -172,38 +172,34 @@ int footnotes_reset()
     paragraph_clear(&footnote_paragraphs[i]);
     footnote_line_numbers[i]=-1;
   }
-    
-  footnote_stack_depth=-1;
-  footnote_mark_string[0]='a'-1;
-  footnote_mark_string[1]=0;
-  footnote_count=-1;
 
+  generate_footnote_mark(-1);
+
+  footnote_stack_depth=-1;
+  footnote_count=0;
+
+  return 0;
+}
+
+int generate_footnote_mark(int footnote_count)
+{
+  if (footnote_count<27) footnote_mark_string[0]='a'+(footnote_count);
+  else {
+    int n=footnote_count-26;
+    footnote_mark_string[0]='a'+(n/26);
+    footnote_mark_string[1]='a'+(n%26);
+    footnote_mark_string[2]=0;
+  }
   return 0;
 }
 
 char *next_footnote_mark()
 {
-  footnote_count++;
+  generate_footnote_mark(footnote_count++);
   if(footnote_count>MAX_FOOTNOTES_ON_PAGE) {
     fprintf(stderr,"Too many footnotes on a single page (limit is %d)\n",
 	    MAX_FOOTNOTES_ON_PAGE);
     exit(-1);
-  }
-  if (strlen(footnote_mark_string)==1) {
-    footnote_mark_string[0]++;
-    if (footnote_mark_string[0]>'z') {
-      footnote_mark_string[0]='a';
-      footnote_mark_string[1]='a';
-      footnote_mark_string[2]=0;
-    }
-    return footnote_mark_string;
-  }
-
-  // After first 26 foot notes we use aa--zz as footnote marks
-  footnote_mark_string[1]++;
-  if (footnote_mark_string[1]>'z') {
-    footnote_mark_string[0]++;
-    footnote_mark_string[1]='a';
   }
   return footnote_mark_string;
 }
@@ -735,6 +731,9 @@ int reenumerate_footnotes(int first_remaining_line_uid)
       }
       footnote_count--;
     }
+
+  // Update footnote mark based on number of footnotes remaining
+  generate_footnote_mark(footnote_count-1);
 
   // Now that we have only the relevant footnotes left, update the footnote marks
   // in the footnotes, and in the lines that reference them.
