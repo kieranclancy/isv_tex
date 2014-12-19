@@ -708,6 +708,12 @@ int output_accumulated_cross_references()
 int reenumerate_footnotes()
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+
+  // XXX We shouldn't just reset, but rather clear out the footnotes we have
+  // dealt with, and then shuffle the rest down.  We have to update the footnote
+  // text itself to change the footnote marks, and then also the lines that point
+  // to them in the same way.
+  footnotes_reset();
   return 0;
 }
 
