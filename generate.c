@@ -70,13 +70,36 @@ struct type_face type_faces[] = {
 #define AL_JUSTIFIED 4
 
 int footnote_stack_depth=-1;
-int footnote_mode=0;
-char footnote_mark_string[2]={'z',0};
+char footnote_mark_string[4]={'a'-1,0,0,0};
+int footnote_number=-1;
+
+int footnotes_reset()
+{
+  footnote_stack_depth=-1;
+  footnote_mark_string[0]='a'-1;
+  footnote_mark_string[1]=0;
+  footnote_number=-1;
+  return 0;
+}
 
 char *next_footnote_mark()
 {
+  footnote_number++;
+  if (strlen(footnote_mark_string)==1) {
+    footnote_mark_string[0]++;
+    if (footnote_mark_string[0]>'z') {
+      footnote_mark_string[0]='a';
+      footnote_mark_string[1]='a';
+    }
+    return footnote_mark_string;
+  }
+
+  // After first 26 foot notes we use aa--zz as footnote marks
   footnote_mark_string[0]++;
-  if (footnote_mark_string[0]>'z') footnote_mark_string[0]='a';
+  if (footnote_mark_string[0]>'z') {
+    footnote_mark_string[0]++;
+    footnote_mark_string[1]='a';
+  }
   return footnote_mark_string;
 }
 
@@ -167,6 +190,18 @@ int set_font(char *nickname);
 int paragraph_append_line(struct paragraph *p,struct line_pieces *line);
 int paragraph_setup_next_line(struct paragraph *p);
 
+
+int begin_footnote()
+{
+  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  return 0;
+}
+
+int end_footnote()
+{
+  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  return 0;
+}
 
 void error_handler(HPDF_STATUS error_number, HPDF_STATUS detail_number,
 		   void *data)
@@ -487,6 +522,8 @@ char *chapter_label=NULL;
 int new_empty_page(int leftRight)
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
+
+  footnotes_reset();
   
   // Create the page
   page = HPDF_AddPage(pdf);
@@ -919,11 +956,6 @@ int dropchar_margin_check(struct paragraph *p,struct line_pieces *l)
 int paragraph_append_characters(struct paragraph *p,char *text,int size,int baseline)
 {
   fprintf(stderr,"%s(\"%s\",%d): STUB\n",__FUNCTION__,text,size);
-
-  if (footnote_mode==1) {
-    // Foot note text.  Collect separately.
-    return 0;
-  }
   
   if (!p->current_line) paragraph_setup_next_line(p);
 
@@ -1150,7 +1182,7 @@ int paragraph_pop_style(struct paragraph *p)
 
   if (type_face_stack_pointer==footnote_stack_depth) {
     fprintf(stderr,"Ending footnote collection mode.\n");
-    footnote_mode=0;
+    end_footnote();
     footnote_stack_depth=-1;
   }
   
@@ -1328,7 +1360,7 @@ int render_tokens()
 
 	    // XXX Redirect the foot note text itself to the footnote accumulator.
 	    footnote_stack_depth=type_face_stack_pointer;
-	    footnote_mode=1;
+	    begin_footnote();	    
 	    
 	    // Poem line indenting. Set default left margin for lines.
 	  } else if (!strcasecmp(token_strings[i],"poeml")) {
