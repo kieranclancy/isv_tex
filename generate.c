@@ -176,18 +176,24 @@ int footnotes_reset()
 char *next_footnote_mark()
 {
   footnote_number++;
+  if(footnote_number>MAX_FOOTNOTES_ON_PAGE) {
+    fprintf(stderr,"Too many footnotes on a single page (limit is %d)\n",
+	    MAX_FOOTNOTES_ON_PAGE);
+    exit(-1);
+  }
   if (strlen(footnote_mark_string)==1) {
     footnote_mark_string[0]++;
     if (footnote_mark_string[0]>'z') {
       footnote_mark_string[0]='a';
       footnote_mark_string[1]='a';
+      footnote_mark_string[2]=0;
     }
     return footnote_mark_string;
   }
 
   // After first 26 foot notes we use aa--zz as footnote marks
-  footnote_mark_string[0]++;
-  if (footnote_mark_string[0]>'z') {
+  footnote_mark_string[1]++;
+  if (footnote_mark_string[1]>'z') {
     footnote_mark_string[0]++;
     footnote_mark_string[1]='a';
   }
@@ -533,8 +539,6 @@ int new_empty_page(int leftRight)
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
 
-  footnotes_reset();
-  
   // Create the page
   page = HPDF_AddPage(pdf);
 
@@ -689,17 +693,71 @@ int line_free(struct line_pieces *l)
   return 0;
 }
 
-int line_emit(struct line_pieces *l)
+int output_accumulated_footnotes()
 {
-  float baseline_y=page_y+l->line_height*line_spacing;
+  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  return 0;
+}
 
-  if (baseline_y>(page_height-bottom_margin)) {
+int output_accumulated_cross_references()
+{
+  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  return 0;
+}
+
+int reenumerate_footnotes()
+{
+  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  return 0;
+}
+
+
+int line_emit(struct paragraph *p,struct line_pieces *l)
+{
+  int break_page=0;
+  
+  // XXX Does the line plus footnotes require more space than there is?
+  // XXX - clone footnote paragraph and then append footnotes referenced in this
+  // line to the clone, then measure its height.
+  // XXX - deduct footnote space from remaining space.
+  if (p==&body_paragraph) {
+  }
+
+  // Does the line itself require more space than there is?
+  float baseline_y=page_y+l->line_height*line_spacing;
+  if (baseline_y>(page_height-bottom_margin)) break_page=1;
+
+  // XXX Does the line plus its cross-references require more space than there is?
+  // XXX - add height of cross-references for any verses in this line to height of
+  // all cross-references and make sure that it can fit above the cross-references.
+  if (p==&body_paragraph) {
+  }
+  
+  if (break_page) {
     // No room on this page. Start a new page.
+
+    // The footnotes that have been collected so far need to be output, then
+    // freed.  Then any remaining footnotes need to be shuffled up the list
+    // and references to them re-enumerated.
+
+    // Cross-references also need to be output.
+    
     leftRight=-leftRight;
-    new_empty_page(leftRight);
+
+    // Reenumerate footnotes 
+
+    if (p==&body_paragraph) {
+      output_accumulated_footnotes();
+      output_accumulated_cross_references();
+      reenumerate_footnotes();
+      new_empty_page(leftRight);
+    }
+    
     page_y=top_margin;
     baseline_y=page_y+l->line_height*line_spacing;
   }
+
+  // XXX Deduct height of cross-references from 
 
   // convert y to libharu coordinate system (y=0 is at the bottom,
   // and the y position is the base-line of the text to render).
@@ -847,7 +905,7 @@ int paragraph_flush(struct paragraph *p)
   int i;
   for(i=0;i<p->line_count;i++) line_calculate_height(p->paragraph_lines[i]);
 
-  for(i=0;i<p->line_count;i++) line_emit(p->paragraph_lines[i]);
+  for(i=0;i<p->line_count;i++) line_emit(p,p->paragraph_lines[i]);
   
   // Clear out old lines
   for(i=0;i<p->line_count;i++) line_free(p->paragraph_lines[i]);
@@ -1269,6 +1327,9 @@ int render_tokens()
 	    // Set booktab text to upper case version of this tag and
 	    // begin a new page
 	    paragraph_flush(target_paragraph);
+	    output_accumulated_footnotes();
+	    output_accumulated_cross_references();
+	    footnotes_reset();
 	    paragraph_clear_style_stack();
 	    // If we are on a left page, add a blank right page so that
 	    // the book starts on a left page
