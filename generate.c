@@ -39,6 +39,10 @@ int debug_vspace=1;
 int debug_vspace_x=0;
 
 int poem_level=0;
+int poem_subsequent_line=0;
+int poetry_left_margin=30;
+int poetry_level_indent=10;
+int poetry_wrap_indent=30;
 
 FT_Library  library;
 
@@ -1229,12 +1233,11 @@ int render_tokens()
 	    
 	    // Poem line indenting. Set default left margin for lines.
 	  } else if (!strcasecmp(token_strings[i],"poeml")) {
-	    poem_level=1;
-	    
+	    poem_level=1; poem_subsequent_line=0;	    
 	  } else if (!strcasecmp(token_strings[i],"poemll")) {
-	    poem_level=2;
+	    poem_level=2; poem_subsequent_line=0;
 	  } else if (!strcasecmp(token_strings[i],"poemlll")) {
-	    poem_level=3;
+	    poem_level=3; poem_subsequent_line=0;
 	  } else if (!strcasecmp(token_strings[i],"end")) {
 	    i++; if (token_types[i]!=TT_TEXT) {
 	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
