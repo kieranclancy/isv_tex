@@ -43,6 +43,7 @@ int poem_subsequent_line=0;
 int poetry_left_margin=30;
 int poetry_level_indent=10;
 int poetry_wrap_indent=30;
+int poetry_vspace=5;
 
 FT_Library  library;
 
@@ -1281,8 +1282,10 @@ int render_tokens()
 	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
 	      exit(-1);
 	    }
-	    if (!strcasecmp(token_strings[i],"poetry")) poem_level=0;
-	    else {
+	    if (!strcasecmp(token_strings[i],"poetry")) {
+	      poem_level=0;
+	      insert_vspace(poetry_vspace);
+	    } else {
 	      fprintf(stderr,"Warning: I don't know about \%s{%s}\n",
 		      token_strings[i-1],token_strings[i]);	      
 	    }
@@ -1295,8 +1298,10 @@ int render_tokens()
 	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
 	      exit(-1);
 	    }
-	    if (!strcasecmp(token_strings[i],"poetry")) poem_level=0;
-	    else {
+	    if (!strcasecmp(token_strings[i],"poetry")) {
+	      poem_level=0;
+	      insert_vspace(poetry_vspace);
+	    } else {
 	      fprintf(stderr,"Warning: I don't know about \%s{%s}\n",
 		      token_strings[i-1],token_strings[i]);	      
 	    }
