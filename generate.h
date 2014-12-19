@@ -58,6 +58,7 @@ struct type_face {
 #define TT_ENDTAG 2
 #define TT_PARAGRAPH 3
 #define TT_SPACE 4
+#define TT_THINSPACE 5
 #define MAX_TOKENS 1048576
 extern int token_count;
 extern int token_types[MAX_TOKENS];

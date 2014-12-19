@@ -1053,6 +1053,15 @@ int paragraph_append_space()
   return 0;
 }
 
+// Thin space.  Append a normal space, then revise it's width down to 1/2
+int paragraph_append_thinspace()
+{
+  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  paragraph_append_characters(" ",current_font->font_size,0);
+  current_line->piece_widths[current_line->piece_count-1]/=2;
+  return 0;
+}
+
 #define TYPE_FACE_STACK_DEPTH 32
 struct type_face *type_face_stack[TYPE_FACE_STACK_DEPTH];
 int type_face_stack_pointer=0;
@@ -1161,6 +1170,9 @@ int render_tokens()
 	break;
       case TT_SPACE:
 	paragraph_append_space();
+	break;
+      case TT_THINSPACE:
+	paragraph_append_thinspace();
 	break;
       case TT_TAG:
 	if (token_strings[i]) {

@@ -177,6 +177,18 @@ int tokenise_file(char *filename)
 	parse_state = PS_NORMAL;
 	token_text[token_len++]='\r';
 	break;
+	// Thin space
+      case ',':
+	parse_state = PS_NORMAL;
+	token_text[token_len]=0;
+	if (token_len)
+	  next_file_token(p,token_type,token_len,token_text);
+
+	token_text[0]=0;
+	next_file_token(p,TT_THINSPACE,0,token_text);
+	token_type= TT_TEXT;
+	token_len=0;
+	break;
       default:
 	// not an escape character, so assume it is a label
 	if (token_len!=0) {
