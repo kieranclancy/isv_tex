@@ -682,8 +682,8 @@ int line_calculate_height(struct line_pieces *l)
   int max=-1; int min=0;
   int linegap=0;
   int i;
-  fprintf(stderr,"Calculating height of line %p (%d pieces, %.1fpts wide, align=%d)\n",
-	  l,l->piece_count,l->line_width_so_far,l->alignment);
+  fprintf(stderr,"Calculating height of line %p (%d pieces, %.1fpts wide, align=%d, left margin=%d)\n",
+	  l,l->piece_count,l->line_width_so_far,l->alignment,l->left_margin);
 
   // insert_vspace() works by making a line with zero pieces, and the space to skip
   // is set in l->line_height, so we don't need to do anything in that case.
@@ -886,11 +886,19 @@ int paragraph_append_characters(char *text,int size,int baseline)
 
   // Don't start lines with empty space.
   if ((!strcmp(text," "))&&(current_line->piece_count==0)) return 0;
-  
-  // Make sure the line has enough space
-  if (current_line->piece_count>=MAX_LINE_PIECES) {
-    fprintf(stderr,"Cannot add '%s' to line, as line is too long.\n",text);
-    exit(-1);
+
+  // Verse numbers at the start of poetry lines appear left of the poetry margin
+  int is_poetry_leading_verse=0;
+  if (poem_level&&(!current_line->piece_count)
+      &&!strcmp("versenum",current_font->font_nickname)) {
+    is_poetry_leading_verse=1;
+    fprintf(stderr,"Placing verse number in margin at start of poem line\n");
+  } else {  
+    // Make sure the line has enough space
+    if (current_line->piece_count>=MAX_LINE_PIECES) {
+      fprintf(stderr,"Cannot add '%s' to line, as line is too long.\n",text);
+      exit(-1);
+    }
   }
 
   // Get width of piece
@@ -900,6 +908,12 @@ int paragraph_append_characters(char *text,int size,int baseline)
   text_width = HPDF_Page_TextWidth(page,text);
   text_height = HPDF_Font_GetCapHeight(current_font->font) * size/1000;
 
+  // Place initial verse number in margin for poetry.
+  if (is_poetry_leading_verse) {
+    current_line->left_margin-=text_width;
+    current_line->max_line_width+=text_width;
+  }
+  
   current_line->pieces[current_line->piece_count]=strdup(text);
   current_line->fonts[current_line->piece_count]=current_font;
   current_line->actualsizes[current_line->piece_count]=size;
@@ -1255,16 +1269,13 @@ int render_tokens()
 	    // Poem line indenting. Set default left margin for lines.
 	  } else if (!strcasecmp(token_strings[i],"poeml")) {
 	    poem_level=1; poem_subsequent_line=0;
-	    if (current_line&&!current_line->piece_count)
-	      line_apply_poetry_margin();
+	    paragraph_setup_next_line();
 	  } else if (!strcasecmp(token_strings[i],"poemll")) {
 	    poem_level=2; poem_subsequent_line=0;
-	    if (current_line&&!current_line->piece_count)
-	      line_apply_poetry_margin();
+	    paragraph_setup_next_line();
 	  } else if (!strcasecmp(token_strings[i],"poemlll")) {
 	    poem_level=3; poem_subsequent_line=0;
-	    if (current_line&&!current_line->piece_count)
-	      line_apply_poetry_margin();
+	    paragraph_setup_next_line();
 	  } else if (!strcasecmp(token_strings[i],"end")) {
 	    i++; if (token_types[i]!=TT_TEXT) {
 	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
