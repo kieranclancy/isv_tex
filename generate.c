@@ -624,7 +624,7 @@ int line_emit(struct line_pieces *l)
   HPDF_Page_SetTextRenderingMode (page, HPDF_FILL);
   float x=0;
   switch(l->alignment) {
-  case AL_LEFT: case AL_JUSTIFIED:
+  case AL_LEFT: case AL_JUSTIFIED: case AL_NONE:
     // Finally apply any left margin that has been set
     x+=l->left_margin;
     if (l->left_margin) {
@@ -806,6 +806,23 @@ int paragraph_append_line(struct line_pieces *line)
 int drop_char_left_margin=0;
 int drop_char_margin_line_count=0;
 
+int line_apply_poetry_margin()
+{
+  // If we are in poetry mode, then apply margin.
+  if (poem_level) {
+    current_line->left_margin
+      =poetry_left_margin
+      +(poem_level-1)*poetry_level_indent
+      +poem_subsequent_line*poetry_wrap_indent;
+    current_line->max_line_width
+      =page_width-left_margin-right_margin-current_line->left_margin;
+    fprintf(stderr,"Applying indent of %dpts in poetry mode (level=%d, subs=%d).\n",
+	    current_line->left_margin,poem_level,poem_subsequent_line);
+    poem_subsequent_line=1;
+  }
+  return 0;
+}
+
 int paragraph_setup_next_line()
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
@@ -824,6 +841,8 @@ int paragraph_setup_next_line()
     current_line->left_margin=drop_char_left_margin;
     drop_char_margin_line_count--;
   }
+
+  line_apply_poetry_margin();
   
   return 0;
 }
@@ -907,6 +926,8 @@ int paragraph_append_characters(char *text,int size,int baseline)
       struct line_pieces *last_line=current_line;
       paragraph_append_line(current_line);
       paragraph_setup_next_line();
+      fprintf(stderr,"  new line is indented %dpts\n",
+	      current_line->left_margin);
       // Now populate new line with the left overs from the old line
       int i;
       for(i=saved_checkpoint;i<saved_piece_count;i++)
@@ -1233,11 +1254,17 @@ int render_tokens()
 	    
 	    // Poem line indenting. Set default left margin for lines.
 	  } else if (!strcasecmp(token_strings[i],"poeml")) {
-	    poem_level=1; poem_subsequent_line=0;	    
+	    poem_level=1; poem_subsequent_line=0;
+	    if (current_line&&!current_line->piece_count)
+	      line_apply_poetry_margin();
 	  } else if (!strcasecmp(token_strings[i],"poemll")) {
 	    poem_level=2; poem_subsequent_line=0;
+	    if (current_line&&!current_line->piece_count)
+	      line_apply_poetry_margin();
 	  } else if (!strcasecmp(token_strings[i],"poemlll")) {
 	    poem_level=3; poem_subsequent_line=0;
+	    if (current_line&&!current_line->piece_count)
+	      line_apply_poetry_margin();
 	  } else if (!strcasecmp(token_strings[i],"end")) {
 	    i++; if (token_types[i]!=TT_TEXT) {
 	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
