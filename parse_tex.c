@@ -167,10 +167,15 @@ int tokenise_file(char *filename)
       break;
     case PS_SLASH:
       switch(file[i]) {
-	// Check for latex escape characters
-      case '@': case '&': case '\\':
+	// Check for latex escape characters (literals)
+      case '@': case '&':
 	parse_state = PS_NORMAL;
 	token_text[token_len++]=file[i];
+	break;
+	// Check for latex force line break
+      case '\\': 
+	parse_state = PS_NORMAL;
+	token_text[token_len++]='\r';
 	break;
       default:
 	// not an escape character, so assume it is a label

@@ -1240,9 +1240,10 @@ int render_tokens()
 	break;
       case TT_TEXT:
 	// Append to paragraph
-	// XXX - Adjust baseline for verse numbers, footnote references and
-	// large chapter numbers.
-	paragraph_append_text(token_strings[i],0);
+	if (!strcmp(token_strings[i],"\r")) {
+	  current_line_flush();
+	} else
+	  paragraph_append_text(token_strings[i],0);
 	break;
       case TT_ENDTAG:
 	paragraph_pop_style();
