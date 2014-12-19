@@ -35,6 +35,10 @@
 #include "hpdf.h"
 #include "generate.h"
 
+int debug_vspace=1;
+int debug_vspace_x=0;
+
+
 FT_Library  library;
 
 struct type_face *current_font = NULL;
@@ -570,7 +574,7 @@ int current_line_flush()
 	free(current_line->pieces[i]);
       } else break;      
     }
-    if (current_line->piece_count) {
+    if (current_line->piece_count||current_line->line_height) {
       fprintf(stderr,"%d pieces left in %p.\n",current_line->piece_count,current_line);
       paragraph_append_line(current_line);
       paragraph_setup_next_line();
@@ -601,9 +605,11 @@ int line_emit(struct line_pieces *l)
     baseline_y=page_y+l->line_height*line_spacing;
   }
 
-  
-  // convert y to libharu coordinate system
-  float y=page_height-baseline_y-l->line_height*line_spacing;
+  // convert y to libharu coordinate system (y=0 is at the bottom,
+  // and the y position is the base-line of the text to render).
+  // Don't apply line_spacing to adjustment, so that extra line spacing
+  // appears below the line, rather than above it.
+  float y=(page_height-page_y)-l->line_height;
 
   int i;
   float linegap=0;
@@ -646,9 +652,22 @@ int line_emit(struct line_pieces *l)
     }
   }
   HPDF_Page_EndText (page);
+  if (!l->piece_count) linegap=l->line_height;
 
+  // Indicate the height of each line
+  if (debug_vspace) {
+    debug_vspace_x^=8;
+    HPDF_Page_SetRGBFill (page, 0.0,0.0,0.0);
+    HPDF_Page_Rectangle(page,
+			32+debug_vspace_x, y,
+			8,linegap*line_spacing);
+    HPDF_Page_Fill(page);
+  }
+
+  float old_page_y=page_y;
   page_y=page_y+linegap*line_spacing;
-  fprintf(stderr,"Added linegap of %.1f to page_y. Next line at %.1fpt\n",linegap,page_y);
+  fprintf(stderr,"Added linegap of %.1f to page_y (= %.1fpts). Next line at %.1fpt\n",
+	  linegap*line_spacing,old_page_y,page_y);
   return 0;
 }
 
@@ -660,6 +679,16 @@ int line_calculate_height(struct line_pieces *l)
   int i;
   fprintf(stderr,"Calculating height of line %p (%d pieces, %.1fpts wide, align=%d)\n",
 	  l,l->piece_count,l->line_width_so_far,l->alignment);
+
+  // insert_vspace() works by making a line with zero pieces, and the space to skip
+  // is set in l->line_height, so we don't need to do anything in that case.
+  if (l->piece_count==0) {
+    l->ascent=l->line_height;
+    l->descent=0;
+    fprintf(stderr,"  Line is vspace(%.1fpt)\n",l->line_height);
+    return 0;
+  }
+  
   for(i=0;i<l->piece_count;i++)
     {
       // Get ascender height of font
@@ -1015,9 +1044,10 @@ int paragraph_push_style(int font_alignment,int font_index)
 
 int insert_vspace(int points)
 {
+  fprintf(stderr,"%s(%dpt)\n",__FUNCTION__,points);
   current_line_flush();
   paragraph_setup_next_line();
-  paragraph_append_characters("",points,0);
+  current_line->line_height=points;
   current_line_flush();
   return 0;
 }
@@ -1078,6 +1108,7 @@ int render_tokens()
   paragraph_clear_style_stack();
   
   for(i=0;i<token_count;i++)
+  //  for(i=0;i<50;i++)
     {
       switch(token_types[i]) {
       case TT_PARAGRAPH:
