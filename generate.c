@@ -1048,10 +1048,6 @@ int dropchar_margin_check(struct paragraph *p,struct line_pieces *l)
     p->drop_char_margin_line_count=current_font->line_count-1;
     if (l->line_width_so_far>p->drop_char_left_margin)
       p->drop_char_left_margin=l->line_width_so_far;
-  } else {
-    fprintf(stderr,"Font '%s' spans %d lines -- not touching dropchar margin\n",
-	    current_font->font_nickname,current_font->line_count);
-
   }
   return 0;
 }
