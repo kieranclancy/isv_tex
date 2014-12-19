@@ -72,6 +72,8 @@ struct type_face type_faces[] = {
 
 struct line_pieces {
 #define MAX_LINE_PIECES 256
+  int line_uid;
+  
   // Horizontal space available to the line
   int max_line_width;
   // Reserved space on left side, e.g., for dropchars
@@ -147,10 +149,13 @@ int paragraph_clear(struct paragraph *p)
 
   // Free any line structures in this paragraph
   int i;
+  fprintf(stderr,"Freeing %d lines in paragraph %p\n",
+	  p->line_count,p);
   for(i=0;i<p->line_count;i++) {
     line_free(p->paragraph_lines[i]);
     p->paragraph_lines[i]=NULL;
   }
+  p->line_count=0;
   
   paragraph_init(p);
   return 0;
@@ -158,7 +163,7 @@ int paragraph_clear(struct paragraph *p)
 
 int footnote_stack_depth=-1;
 char footnote_mark_string[4]={'a'-1,0,0,0};
-int footnote_number=-1;
+int footnote_count=-1;
 
 int footnotes_reset()
 {
@@ -171,15 +176,15 @@ int footnotes_reset()
   footnote_stack_depth=-1;
   footnote_mark_string[0]='a'-1;
   footnote_mark_string[1]=0;
-  footnote_number=-1;
+  footnote_count=-1;
 
   return 0;
 }
 
 char *next_footnote_mark()
 {
-  footnote_number++;
-  if(footnote_number>MAX_FOOTNOTES_ON_PAGE) {
+  footnote_count++;
+  if(footnote_count>MAX_FOOTNOTES_ON_PAGE) {
     fprintf(stderr,"Too many footnotes on a single page (limit is %d)\n",
 	    MAX_FOOTNOTES_ON_PAGE);
     exit(-1);
@@ -211,8 +216,8 @@ int paragraph_setup_next_line(struct paragraph *p);
 int begin_footnote()
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
-  target_paragraph=&footnote_paragraphs[footnote_number];
-  footnote_line_numbers[footnote_number]=body_paragraph.line_count;
+  target_paragraph=&footnote_paragraphs[footnote_count];
+  footnote_line_numbers[footnote_count]=body_paragraph.line_count;
   fprintf(stderr,"Footnote '%s' is in line #%d\n",
 	  footnote_mark_string,body_paragraph.line_count);
   return 0;
@@ -694,6 +699,7 @@ int line_free(struct line_pieces *l)
 {
   int i;
   if (!l) return 0;
+  fprintf(stderr,"Freeing line with uid = %d\n",l->line_uid);
   for(i=0;i<l->piece_count;i++) free(l->pieces[i]);
   free(l);
   return 0;
@@ -711,15 +717,29 @@ int output_accumulated_cross_references()
   return 0;
 }
 
-int reenumerate_footnotes()
+int reenumerate_footnotes(int first_remaining_line_uid)
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
 
-  // XXX We shouldn't just reset, but rather clear out the footnotes we have
-  // dealt with, and then shuffle the rest down.  We have to update the footnote
-  // text itself to change the footnote marks, and then also the lines that point
-  // to them in the same way.
-  footnotes_reset();
+  // While there are footnotes we have already output, purge them.
+  while(footnote_count>0&&footnote_line_numbers[0]<first_remaining_line_uid)
+    {
+      fprintf(stderr,"%d foot notes remaining.\n",footnote_count);
+      paragraph_clear(&footnote_paragraphs[0]);
+      int i;
+      // Copy down foot notes
+      for(i=0;i<footnote_count-1;i++) {
+	footnote_line_numbers[i]=footnote_line_numbers[i+1];
+	bcopy(&footnote_paragraphs[i],&footnote_paragraphs[i+1],
+	      sizeof (struct paragraph));
+      }
+      footnote_count--;
+    }
+
+  // Now that we have only the relevant footnotes left, update the footnote marks
+  // in the footnotes, and in the lines that reference them.
+  // XXX - If the footnote mark becomes wider, it might stick out into the margin.
+  
   return 0;
 }
 
@@ -762,7 +782,7 @@ int line_emit(struct paragraph *p,int line_num)
     if (p==&body_paragraph) {
       output_accumulated_footnotes();
       output_accumulated_cross_references();
-      reenumerate_footnotes();
+      reenumerate_footnotes(p->paragraph_lines[line_num]->line_uid);
       new_empty_page(leftRight);
     }
     
@@ -919,7 +939,7 @@ int paragraph_flush(struct paragraph *p)
   for(i=0;i<p->line_count;i++) line_calculate_height(p->paragraph_lines[i]);
 
   for(i=0;i<p->line_count;i++) line_emit(p,i);
-  
+
   // Clear out old lines
   for(i=0;i<p->line_count;i++) line_free(p->paragraph_lines[i]);
   p->line_count=0;
@@ -982,6 +1002,7 @@ int line_apply_poetry_margin(struct paragraph *p,struct line_pieces *current_lin
   return 0;
 }
 
+int line_uid_counter=0;
 int paragraph_setup_next_line(struct paragraph *p)
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
@@ -989,6 +1010,8 @@ int paragraph_setup_next_line(struct paragraph *p)
   // Allocate structure
   p->current_line=calloc(sizeof(struct line_pieces),1); 
 
+  p->current_line->line_uid=line_uid_counter++;
+  
   // Set maximum line width
   p->current_line->max_line_width=page_width-left_margin-right_margin;
 
