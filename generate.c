@@ -73,7 +73,6 @@ int footnote_stack_depth=-1;
 int footnote_mode=0;
 char footnote_mark_string[2]={'z',0};
 
-
 char *next_footnote_mark()
 {
   footnote_mark_string[0]++;
@@ -116,6 +115,8 @@ struct line_pieces {
   int descent;
 };
 
+int line_free(struct line_pieces *l);
+
 
 // Current paragraph
 struct paragraph {
@@ -137,13 +138,28 @@ struct paragraph {
 
 struct paragraph body_paragraph;
 
+#define MAX_FOOTNOTES_ON_PAGE 256
+struct paragraph footnote_paragraphs[MAX_FOOTNOTES_ON_PAGE];
 #define MAX_VERSES_ON_PAGE 256
-struct paragraph footnote_paragraphs[MAX_VERSES_ON_PAGE];
 struct paragraph cross_reference_paragraphs[MAX_VERSES_ON_PAGE];
+
+int paragraph_init(struct paragraph *p)
+{
+  bzero(p,sizeof(struct paragraph));
+  return 0;
+}
 
 int paragraph_clear(struct paragraph *p)
 {
-  bzero(p,sizeof(struct paragraph));
+
+  // Free any line structures in this paragraph
+  int i;
+  for(i=0;i<p->line_count;i++) {
+    line_free(p->paragraph_lines[i]);
+    p->paragraph_lines[i]=NULL;
+  }
+  
+  paragraph_init(p);
   return 0;
 }
 
@@ -1181,7 +1197,11 @@ int render_tokens()
 {
   int i;
 
-  paragraph_clear(&body_paragraph);
+  // Initialise all paragraph structures.
+  paragraph_init(&body_paragraph);
+  for(i=0;i<MAX_FOOTNOTES_ON_PAGE;i++) paragraph_init(&footnote_paragraphs[i]);
+  for(i=0;i<MAX_VERSES_ON_PAGE;i++) paragraph_init(&cross_reference_paragraphs[i]);
+
   
   struct paragraph *target_paragraph=&body_paragraph;
   
