@@ -724,8 +724,9 @@ int reenumerate_footnotes()
 }
 
 
-int line_emit(struct paragraph *p,struct line_pieces *l)
+int line_emit(struct paragraph *p,int line_num)
 {
+  struct line_pieces *l=p->paragraph_lines[line_num];
   int break_page=0;
   
   // XXX Does the line plus footnotes require more space than there is?
@@ -917,7 +918,7 @@ int paragraph_flush(struct paragraph *p)
   int i;
   for(i=0;i<p->line_count;i++) line_calculate_height(p->paragraph_lines[i]);
 
-  for(i=0;i<p->line_count;i++) line_emit(p,p->paragraph_lines[i]);
+  for(i=0;i<p->line_count;i++) line_emit(p,i);
   
   // Clear out old lines
   for(i=0;i<p->line_count;i++) line_free(p->paragraph_lines[i]);
