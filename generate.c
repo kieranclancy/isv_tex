@@ -38,8 +38,6 @@
 int debug_vspace=1;
 int debug_vspace_x=0;
 
-int poem_level=0;
-int poem_subsequent_line=0;
 int poetry_left_margin=35;
 int poetry_level_indent=10;
 int poetry_wrap_indent=30;
@@ -70,8 +68,6 @@ struct type_face type_faces[] = {
 #define AL_LEFT 2
 #define AL_RIGHT 3
 #define AL_JUSTIFIED 4
-
-int last_char_is_a_full_stop=0;
 
 int footnote_stack_depth=-1;
 int footnote_mode=0;
@@ -120,17 +116,40 @@ struct line_pieces {
   int descent;
 };
 
-// The line currently being assembled
-struct line_pieces *current_line=NULL;
 
 // Current paragraph
-int paragraph_line_count=0;
+struct paragraph {
+  int line_count;
 #define MAX_LINES_IN_PARAGRAPH 256
-struct line_pieces *paragraph_lines[MAX_LINES_IN_PARAGRAPH];
+  struct line_pieces *paragraph_lines[MAX_LINES_IN_PARAGRAPH];
+
+  // The line currently being assembled
+  struct line_pieces *current_line;
+
+  int drop_char_left_margin;
+  int drop_char_margin_line_count;
+  
+  int poem_level;
+  int poem_subsequent_line;
+
+  int last_char_is_a_full_stop;
+};
+
+struct paragraph body_paragraph;
+
+#define MAX_VERSES_ON_PAGE 256
+struct paragraph footnote_paragraphs[MAX_VERSES_ON_PAGE];
+struct paragraph cross_reference_paragraphs[MAX_VERSES_ON_PAGE];
+
+int paragraph_clear(struct paragraph *p)
+{
+  bzero(p,sizeof(struct paragraph));
+  return 0;
+}
 
 int set_font(char *nickname);
-int paragraph_append_line(struct line_pieces *line);
-int paragraph_setup_next_line();
+int paragraph_append_line(struct paragraph *p,struct line_pieces *line);
+int paragraph_setup_next_line(struct paragraph *p);
 
 
 void error_handler(HPDF_STATUS error_number, HPDF_STATUS detail_number,
@@ -569,30 +588,32 @@ const char *resolve_font(char *font_filename)
   return font_names[font_count-1];
 }
 
-int current_line_flush()
+int current_line_flush(struct paragraph *para)
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
 
 
-  if (current_line) {
+  if (para->current_line) {
     // Remove any trailing spaces from the line
     int i;
-    for(i=current_line->piece_count-1;i>=0;i--) {
-      fprintf(stderr,"Considering piece #%d/%d '%s'\n",i,current_line->piece_count,
-	      current_line->pieces[i]);
-      if (!strcmp(" ",current_line->pieces[i])) {
-	current_line->piece_count=i;
-	current_line->line_width_so_far-=current_line->piece_widths[i];
-	free(current_line->pieces[i]);
+    for(i=para->current_line->piece_count-1;i>=0;i--) {
+      fprintf(stderr,"Considering piece #%d/%d '%s'\n",i,
+	      para->current_line->piece_count,
+	      para->current_line->pieces[i]);
+      if (!strcmp(" ",para->current_line->pieces[i])) {
+	para->current_line->piece_count=i;
+	para->current_line->line_width_so_far-=para->current_line->piece_widths[i];
+	free(para->current_line->pieces[i]);
       } else break;      
     }
-    if (current_line->piece_count||current_line->line_height) {
-      fprintf(stderr,"%d pieces left in %p.\n",current_line->piece_count,current_line);
-      paragraph_append_line(current_line);
-      paragraph_setup_next_line();
+    if (para->current_line->piece_count||para->current_line->line_height) {
+      fprintf(stderr,"%d pieces left in %p.\n",
+	      para->current_line->piece_count,para->current_line);
+      paragraph_append_line(para,para->current_line);
+      paragraph_setup_next_line(para);
     }
   }
-  current_line=NULL;
+  para->current_line=NULL;
   return 0;
 }
 
@@ -732,12 +753,12 @@ int line_calculate_height(struct line_pieces *l)
 }
 
 
-int paragraph_flush()
+int paragraph_flush(struct paragraph *p)
 {  
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
 
   // First flush the current line
-  current_line_flush();
+  current_line_flush(p);
 
   // XXX mark last line terminal (so that it doesn't get justified).
 
@@ -761,13 +782,13 @@ int paragraph_flush()
      to determine the maximum extents of that line.
   */  
   int i;
-  for(i=0;i<paragraph_line_count;i++) line_calculate_height(paragraph_lines[i]);
+  for(i=0;i<p->line_count;i++) line_calculate_height(p->paragraph_lines[i]);
 
-  for(i=0;i<paragraph_line_count;i++) line_emit(paragraph_lines[i]);
+  for(i=0;i<p->line_count;i++) line_emit(p->paragraph_lines[i]);
   
   // Clear out old lines
-  for(i=0;i<paragraph_line_count;i++) line_free(paragraph_lines[i]);
-  paragraph_line_count=0;
+  for(i=0;i<p->line_count;i++) line_free(p->paragraph_lines[i]);
+  p->line_count=0;
   
   return 0;
 }
@@ -794,84 +815,83 @@ int paragraph_flush()
    depending on the context.
 
 */
-int paragraph_append_line(struct line_pieces *line)
+int paragraph_append_line(struct paragraph *p,struct line_pieces *line)
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
 
-  if (paragraph_line_count>=MAX_LINES_IN_PARAGRAPH) {
+  if (p->line_count>=MAX_LINES_IN_PARAGRAPH) {
     fprintf(stderr,"Too many lines in paragraph.\n");
     exit(-1);
   }
 
-  paragraph_lines[paragraph_line_count++]=current_line;
-  current_line=NULL;
+  p->paragraph_lines[p->line_count++]=p->current_line;
+  p->current_line=NULL;
   return 0;
 }
 
 // Setup a line
 
-int drop_char_left_margin=0;
-int drop_char_margin_line_count=0;
-
-int line_apply_poetry_margin()
+int line_apply_poetry_margin(struct paragraph *p,struct line_pieces *current_line)
 {
   // If we are in poetry mode, then apply margin.
-  if (poem_level) {
+  if (p->poem_level) {
     current_line->left_margin
       =poetry_left_margin
-      +(poem_level-1)*poetry_level_indent
-      +poem_subsequent_line*poetry_wrap_indent;
+      +(p->poem_level-1)*poetry_level_indent
+      +p->poem_subsequent_line*poetry_wrap_indent;
     current_line->max_line_width
       =page_width-left_margin-right_margin-current_line->left_margin;
     fprintf(stderr,"Applying indent of %dpts in poetry mode (level=%d, subs=%d).\n",
-	    current_line->left_margin,poem_level,poem_subsequent_line);
-    poem_subsequent_line=1;
+	    current_line->left_margin,p->poem_level,p->poem_subsequent_line);
+    p->poem_subsequent_line=1;
   }
   return 0;
 }
 
-int paragraph_setup_next_line()
+int paragraph_setup_next_line(struct paragraph *p)
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
 
   // Allocate structure
-  current_line=calloc(sizeof(struct line_pieces),1); 
+  p->current_line=calloc(sizeof(struct line_pieces),1); 
 
   // Set maximum line width
-  current_line->max_line_width=page_width-left_margin-right_margin;
+  p->current_line->max_line_width=page_width-left_margin-right_margin;
 
   // If there is a dropchar margin in effect, then apply it.
-  if (drop_char_margin_line_count>0) {
-    fprintf(stderr,"Applying dropchar margin of %dpt (%d more lines, including this one)\n",drop_char_left_margin,drop_char_margin_line_count);
-    current_line->max_line_width
-      =page_width-left_margin-right_margin-drop_char_left_margin;
-    current_line->left_margin=drop_char_left_margin;
-    drop_char_margin_line_count--;
+  if (p->drop_char_margin_line_count>0) {
+    fprintf(stderr,
+	    "Applying dropchar margin of %dpt (%d more lines, including this one)\n",
+	    p->drop_char_left_margin,p->drop_char_margin_line_count);
+    p->current_line->max_line_width
+      =page_width-left_margin-right_margin-p->drop_char_left_margin;
+    p->current_line->left_margin=p->drop_char_left_margin;
+    p->drop_char_margin_line_count--;
   }
 
-  line_apply_poetry_margin();
+  line_apply_poetry_margin(p,p->current_line);
   
   return 0;
 }
 
-int set_widow_counter(int lines)
+int set_widow_counter(struct paragraph *p,int lines)
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
   return 0;
 }
 
-int dropchar_margin_check(struct line_pieces *l)
+int dropchar_margin_check(struct paragraph *p,struct line_pieces *l)
 {
   // If the current font has drop chars (i.e, line_count > 1),
   // then set the dropchar margin line count to (line_count-1),
   // and set drop_char_left_margin to the width accumulated on the
   // line so far.
-  if ((current_font->line_count-1)>drop_char_margin_line_count) {
+  if ((current_font->line_count-1)>p->drop_char_margin_line_count) {
     fprintf(stderr,"Font '%s' spans %d lines -- activating dropchar margin\n",
 	    current_font->font_nickname,current_font->line_count);
-    drop_char_margin_line_count=current_font->line_count-1;
-    if (l->line_width_so_far>drop_char_left_margin)
-      drop_char_left_margin=l->line_width_so_far;
+    p->drop_char_margin_line_count=current_font->line_count-1;
+    if (l->line_width_so_far>p->drop_char_left_margin)
+      p->drop_char_left_margin=l->line_width_so_far;
   } else {
     fprintf(stderr,"Font '%s' spans %d lines -- not touching dropchar margin\n",
 	    current_font->font_nickname,current_font->line_count);
@@ -880,7 +900,7 @@ int dropchar_margin_check(struct line_pieces *l)
   return 0;
 }
 
-int paragraph_append_characters(char *text,int size,int baseline)
+int paragraph_append_characters(struct paragraph *p,char *text,int size,int baseline)
 {
   fprintf(stderr,"%s(\"%s\",%d): STUB\n",__FUNCTION__,text,size);
 
@@ -889,20 +909,20 @@ int paragraph_append_characters(char *text,int size,int baseline)
     return 0;
   }
   
-  if (!current_line) paragraph_setup_next_line();
+  if (!p->current_line) paragraph_setup_next_line(p);
 
   // Don't start lines with empty space.
-  if ((!strcmp(text," "))&&(current_line->piece_count==0)) return 0;
+  if ((!strcmp(text," "))&&(p->current_line->piece_count==0)) return 0;
 
   // Verse numbers at the start of poetry lines appear left of the poetry margin
   int is_poetry_leading_verse=0;
-  if (poem_level&&(!current_line->piece_count)
+  if (p->poem_level&&(!p->current_line->piece_count)
       &&!strcmp("versenum",current_font->font_nickname)) {
     is_poetry_leading_verse=1;
     fprintf(stderr,"Placing verse number in margin at start of poem line\n");
   } else {  
     // Make sure the line has enough space
-    if (current_line->piece_count>=MAX_LINE_PIECES) {
+    if (p->current_line->piece_count>=MAX_LINE_PIECES) {
       fprintf(stderr,"Cannot add '%s' to line, as line is too long.\n",text);
       exit(-1);
     }
@@ -917,87 +937,87 @@ int paragraph_append_characters(char *text,int size,int baseline)
 
   // Place initial verse number in margin for poetry.
   if (is_poetry_leading_verse) {
-    current_line->left_margin-=text_width;
-    current_line->max_line_width+=text_width;
+    p->current_line->left_margin-=text_width;
+    p->current_line->max_line_width+=text_width;
   }
   
-  current_line->pieces[current_line->piece_count]=strdup(text);
-  current_line->fonts[current_line->piece_count]=current_font;
-  current_line->actualsizes[current_line->piece_count]=size;
-  current_line->piece_widths[current_line->piece_count]=text_width;
+  p->current_line->pieces[p->current_line->piece_count]=strdup(text);
+  p->current_line->fonts[p->current_line->piece_count]=current_font;
+  p->current_line->actualsizes[p->current_line->piece_count]=size;
+  p->current_line->piece_widths[p->current_line->piece_count]=text_width;
   if (strcmp(text," "))
-    current_line->piece_is_elastic[current_line->piece_count]=0;
+    p->current_line->piece_is_elastic[p->current_line->piece_count]=0;
   else
-    current_line->piece_is_elastic[current_line->piece_count]=1;
-  current_line->piece_baseline[current_line->piece_count]=baseline;  
-  current_line->line_width_so_far+=text_width;
-  current_line->piece_count++;
+    p->current_line->piece_is_elastic[p->current_line->piece_count]=1;
+  p->current_line->piece_baseline[p->current_line->piece_count]=baseline;  
+  p->current_line->line_width_so_far+=text_width;
+  p->current_line->piece_count++;
 
-  if (current_line->line_width_so_far>current_line->max_line_width) {
+  if (p->current_line->line_width_so_far>p->current_line->max_line_width) {
     fprintf(stderr,"Breaking line at %1.f points wide.\n",
-	    current_line->line_width_so_far);
+	    p->current_line->line_width_so_far);
     // Line is too long.
-    if (current_line->checkpoint) {
+    if (p->current_line->checkpoint) {
       // Rewind to checkpoint, add this line
       // to the current paragraph.  Then allocate a new line with just
       // the recently added stuff.
-      int saved_piece_count=current_line->piece_count;
-      int saved_checkpoint=current_line->checkpoint;
-      current_line->piece_count=current_line->checkpoint;
-      struct line_pieces *last_line=current_line;
-      paragraph_append_line(current_line);
-      paragraph_setup_next_line();
+      int saved_piece_count=p->current_line->piece_count;
+      int saved_checkpoint=p->current_line->checkpoint;
+      p->current_line->piece_count=p->current_line->checkpoint;
+      struct line_pieces *last_line=p->current_line;
+      paragraph_append_line(p,p->current_line);
+      paragraph_setup_next_line(p);
       fprintf(stderr,"  new line is indented %dpts\n",
-	      current_line->left_margin);
+	      p->current_line->left_margin);
       // Now populate new line with the left overs from the old line
       int i;
       for(i=saved_checkpoint;i<saved_piece_count;i++)
 	{
 	  last_line->line_width_so_far-=last_line->piece_widths[i];
-	  current_line->line_width_so_far+=last_line->piece_widths[i];
-	  current_line->pieces[current_line->piece_count]=last_line->pieces[i];
-	  current_line->fonts[current_line->piece_count]=last_line->fonts[i];
-	  current_line->actualsizes[current_line->piece_count]
+	  p->current_line->line_width_so_far+=last_line->piece_widths[i];
+	  p->current_line->pieces[p->current_line->piece_count]=last_line->pieces[i];
+	  p->current_line->fonts[p->current_line->piece_count]=last_line->fonts[i];
+	  p->current_line->actualsizes[p->current_line->piece_count]
 	    =last_line->actualsizes[i];
-	  current_line->piece_widths[current_line->piece_count]
+	  p->current_line->piece_widths[p->current_line->piece_count]
 	    =last_line->piece_widths[i];
-	  current_line->piece_is_elastic[current_line->piece_count]
+	  p->current_line->piece_is_elastic[p->current_line->piece_count]
 	    =last_line->piece_is_elastic[i];
-	  current_line->piece_baseline[current_line->piece_count]
+	  p->current_line->piece_baseline[p->current_line->piece_count]
 	    =last_line->piece_baseline[i];
-	  current_line->piece_count++;	  
+	  p->current_line->piece_count++;	  
 	}
       // Inherit alignment of previous line
-      current_line->alignment=last_line->alignment;
-      dropchar_margin_check(current_line);
+      p->current_line->alignment=last_line->alignment;
+      dropchar_margin_check(p,p->current_line);
     } else {
       // Line too long, but no checkpoint.  This is bad.
       // Just add this line as is to the paragraph and report a warning.
       fprintf(stderr,"Line too wide when appending '%s'\n",text);
-      paragraph_append_line(current_line);
-      dropchar_margin_check(current_line);
-      current_line=NULL;
-      paragraph_setup_next_line();
+      paragraph_append_line(p,p->current_line);
+      dropchar_margin_check(p,p->current_line);
+      p->current_line=NULL;
+      paragraph_setup_next_line(p);
     }
   } else {
     // Fits on this line.
-    dropchar_margin_check(current_line);
+    dropchar_margin_check(p,p->current_line);
   }
   
   return 0;
 }
 
-int paragraph_append_text(char *text,int baseline)
+int paragraph_append_text(struct paragraph *p,char *text,int baseline)
 {  
   fprintf(stderr,"%s(\"%s\"): STUB\n",__FUNCTION__,text);
   
   // Keep track of whether the last character is a full stop so that we can
   // apply double spacing between sentences (if desired).
-  if (text[strlen(text)-1]=='.') last_char_is_a_full_stop=1;
-  else last_char_is_a_full_stop=0;
+  if (text[strlen(text)-1]=='.') p->last_char_is_a_full_stop=1;
+  else p->last_char_is_a_full_stop=0;
 
   // Checkpoint where we are up to, in case we need to split the line
-  if (current_line) current_line->checkpoint=current_line->piece_count;
+  if (p->current_line) p->current_line->checkpoint=p->current_line->piece_count;
   
   if (current_font->smallcaps) {
     // This font uses emulated small caps, so break the word down into
@@ -1018,10 +1038,10 @@ int paragraph_append_text(char *text,int baseline)
 		// case change
 		chars[count]=0;
 		if (islower)
-		  paragraph_append_characters(chars,current_font->smallcaps,
+		  paragraph_append_characters(p,chars,current_font->smallcaps,
 					      baseline+current_font->baseline_delta);
 		else
-		  paragraph_append_characters(chars,current_font->font_size,
+		  paragraph_append_characters(p,chars,current_font->font_size,
 					      baseline+current_font->baseline_delta);
 		i=j;
 		count=0;
@@ -1031,17 +1051,17 @@ int paragraph_append_text(char *text,int baseline)
 	if (count) {
 	  chars[count]=0;
 	  if (islower)
-	    paragraph_append_characters(chars,current_font->smallcaps,
+	    paragraph_append_characters(p,chars,current_font->smallcaps,
 					baseline+current_font->baseline_delta);
 	  else
-	    paragraph_append_characters(chars,current_font->font_size,
+	    paragraph_append_characters(p,chars,current_font->font_size,
 					baseline+current_font->baseline_delta);
 	  break;
 	}
       }
   } else {
     // Regular text. Render as one piece.
-    paragraph_append_characters(text,current_font->font_size,
+    paragraph_append_characters(p,text,current_font->font_size,
 				baseline+current_font->baseline_delta);
   }
     
@@ -1051,41 +1071,41 @@ int paragraph_append_text(char *text,int baseline)
 /* Add a space to a paragraph.  Similar to appending text, but adds elastic
    space that can be expanded if required for justified text.
 */
-int paragraph_append_space()
+int paragraph_append_space(struct paragraph *p)
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
-  if (last_char_is_a_full_stop) fprintf(stderr,"  space follows a full-stop.\n");
-  paragraph_append_characters(" ",current_font->font_size,0);
+  if (p->last_char_is_a_full_stop) fprintf(stderr,"  space follows a full-stop.\n");
+  paragraph_append_characters(p," ",current_font->font_size,0);
   return 0;
 }
 
 // Thin space.  Append a normal space, then revise it's width down to 1/2
-int paragraph_append_thinspace()
+int paragraph_append_thinspace(struct paragraph *p)
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
-  paragraph_append_characters(" ",current_font->font_size,0);
-  current_line->piece_widths[current_line->piece_count-1]/=2;
+  paragraph_append_characters(p," ",current_font->font_size,0);
+  p->current_line->piece_widths[p->current_line->piece_count-1]/=2;
   return 0;
 }
 
 #define TYPE_FACE_STACK_DEPTH 32
 struct type_face *type_face_stack[TYPE_FACE_STACK_DEPTH];
 int type_face_stack_pointer=0;
-int paragraph_push_style(int font_alignment,int font_index)
+int paragraph_push_style(struct paragraph *p, int font_alignment,int font_index)
 {
   fprintf(stderr,"%s(): alignment=%d, style=%s\n",__FUNCTION__,
 	  font_alignment,type_faces[font_index].font_nickname);
 
-  if ((!current_line)
-      ||(current_line->piece_count
-	 &&current_line->alignment!=font_alignment
-	 &&current_line->alignment!=AL_NONE))
+  if ((!p->current_line)
+      ||(p->current_line->piece_count
+	 &&p->current_line->alignment!=font_alignment
+	 &&p->current_line->alignment!=AL_NONE))
     {
       // Change of alignment - start on new line
       fprintf(stderr,"Creating new line due to alignment change.\n");
-      paragraph_setup_next_line();
+      paragraph_setup_next_line(p);
     }    
-  current_line->alignment=font_alignment;
+  p->current_line->alignment=font_alignment;
   
   if (type_face_stack_pointer<TYPE_FACE_STACK_DEPTH)
     type_face_stack[type_face_stack_pointer++]=current_font;
@@ -1098,17 +1118,17 @@ int paragraph_push_style(int font_alignment,int font_index)
   return 0;
 }
 
-int insert_vspace(int points)
+int insert_vspace(struct paragraph *p,int points)
 {
   fprintf(stderr,"%s(%dpt)\n",__FUNCTION__,points);
-  current_line_flush();
-  paragraph_setup_next_line();
-  current_line->line_height=points;
-  current_line_flush();
+  current_line_flush(p);
+  paragraph_setup_next_line(p);
+  p->current_line->line_height=points;
+  current_line_flush(p);
   return 0;
 }
 
-int paragraph_pop_style()
+int paragraph_pop_style(struct paragraph *p)
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
 
@@ -1122,7 +1142,7 @@ int paragraph_pop_style()
     // Add vertical space after certain type faces
     if (!strcasecmp(current_font->font_nickname,"booktitle"))
       {
-	insert_vspace(type_faces[set_font("blackletter")].linegap/2);
+	insert_vspace(p,type_faces[set_font("blackletter")].linegap/2);
       }
     current_font=type_face_stack[--type_face_stack_pointer];
   }
@@ -1161,6 +1181,10 @@ int render_tokens()
 {
   int i;
 
+  paragraph_clear(&body_paragraph);
+  
+  struct paragraph *target_paragraph=&body_paragraph;
+  
   paragraph_clear_style_stack();
   
   for(i=0;i<token_count;i++)
@@ -1169,23 +1193,23 @@ int render_tokens()
       switch(token_types[i]) {
       case TT_PARAGRAPH:
 	// Flush the previous paragraph.
-	paragraph_flush();
+	paragraph_flush(target_paragraph);
 	// Indent the paragraph.  
-	paragraph_setup_next_line();
-	current_line->left_margin=paragraph_indent;
+	paragraph_setup_next_line(target_paragraph);
+	body_paragraph.current_line->left_margin=paragraph_indent;
 	break;
       case TT_SPACE:
-	paragraph_append_space();
+	paragraph_append_space(target_paragraph);
 	break;
       case TT_THINSPACE:
-	paragraph_append_thinspace();
+	paragraph_append_thinspace(target_paragraph);
 	break;
       case TT_TAG:
 	if (token_strings[i]) {
 	  if (!strcasecmp(token_strings[i],"bookheader")) {
 	    // Set booktab text to upper case version of this tag and
 	    // begin a new page
-	    paragraph_flush();
+	    paragraph_flush(target_paragraph);
 	    paragraph_clear_style_stack();
 	    // If we are on a left page, add a blank right page so that
 	    // the book starts on a left page
@@ -1233,35 +1257,35 @@ int render_tokens()
 	    }
 	  } else if (!strcasecmp(token_strings[i],"bookpretitle")) {
 	    // Book title header line
-	    paragraph_push_style(AL_CENTRED,set_font("bookpretitle"));
+	    paragraph_push_style(target_paragraph,AL_CENTRED,set_font("bookpretitle"));
 	    
 	  } else if (!strcasecmp(token_strings[i],"booktitle")) {
 	    // Book title header line
-	    current_line_flush();
-	    paragraph_push_style(AL_CENTRED,set_font("booktitle"));
+	    current_line_flush(target_paragraph);
+	    paragraph_push_style(target_paragraph,AL_CENTRED,set_font("booktitle"));
 	    
 	  } else if (!strcasecmp(token_strings[i],"passage")) {
 	    // Passage header line	    
 	    int index=set_font("passageheader");
-	    insert_vspace(passageheader_vspace);
-	    paragraph_push_style(AL_LEFT,index);
+	    insert_vspace(target_paragraph,passageheader_vspace);
+	    paragraph_push_style(target_paragraph,AL_LEFT,index);
 	    // Require at least one more line after this before page breaking
-	    set_widow_counter(1);
+	    set_widow_counter(target_paragraph,1);
 	  } else if (!strcasecmp(token_strings[i],"chapt")) {
 	    // Chapter big number (dropchar)
-	    current_line_flush();
+	    current_line_flush(target_paragraph);
 	    int index=set_font("chapternum");
-	    paragraph_push_style(AL_LEFT,index);
+	    paragraph_push_style(target_paragraph,AL_LEFT,index);
 	    // Require sufficient lines after this one so that the
 	    // drop character can fit.
 	    if (type_faces[index].line_count>1)
-	      set_widow_counter(type_faces[index].line_count-1);
+	      set_widow_counter(target_paragraph,type_faces[index].line_count-1);
 	    // Don't indent lines beginning with dropchars
-	    paragraph_setup_next_line();
-	    current_line->left_margin=0;
+	    paragraph_setup_next_line(target_paragraph);
+	    target_paragraph->current_line->left_margin=0;
 	  } else if (!strcasecmp(token_strings[i],"v")) {
 	    // Verse number
-	    paragraph_push_style(AL_LEFT,set_font("versenum"));
+	    paragraph_push_style(target_paragraph,AL_LEFT,set_font("versenum"));
 
 	  } else if (!strcasecmp(token_strings[i],"fnote")) {
 	    // Foot note.
@@ -1274,13 +1298,13 @@ int render_tokens()
 
 	    // Draw the mark.
 	    char *mark=next_footnote_mark();
-	    paragraph_push_style(current_line->alignment,set_font("footnotemark"));
+	    paragraph_push_style(target_paragraph,target_paragraph->current_line->alignment,set_font("footnotemark"));
 	    fprintf(stderr,"Footnote mark is '%s'\n",mark);
-	    paragraph_append_text(mark,current_font->baseline_delta);
-	    paragraph_pop_style();
+	    paragraph_append_text(target_paragraph,mark,current_font->baseline_delta);
+	    paragraph_pop_style(target_paragraph);
 
 	    // Select footnote font
-	    paragraph_push_style(current_line->alignment,set_font("footnote"));
+	    paragraph_push_style(target_paragraph,target_paragraph->current_line->alignment,set_font("footnote"));
 
 	    // XXX Redirect the foot note text itself to the footnote accumulator.
 	    footnote_stack_depth=type_face_stack_pointer;
@@ -1288,22 +1312,22 @@ int render_tokens()
 	    
 	    // Poem line indenting. Set default left margin for lines.
 	  } else if (!strcasecmp(token_strings[i],"poeml")) {
-	    poem_level=1; poem_subsequent_line=0;
-	    paragraph_setup_next_line();
+	    target_paragraph->poem_level=1; target_paragraph->poem_subsequent_line=0;
+	    paragraph_setup_next_line(target_paragraph);
 	  } else if (!strcasecmp(token_strings[i],"poemll")) {
-	    poem_level=2; poem_subsequent_line=0;
-	    paragraph_setup_next_line();
+	    target_paragraph->poem_level=2; target_paragraph->poem_subsequent_line=0;
+	    paragraph_setup_next_line(target_paragraph);
 	  } else if (!strcasecmp(token_strings[i],"poemlll")) {
-	    poem_level=3; poem_subsequent_line=0;
-	    paragraph_setup_next_line();
+	    target_paragraph->poem_level=3; target_paragraph->poem_subsequent_line=0;
+	    paragraph_setup_next_line(target_paragraph);
 	  } else if (!strcasecmp(token_strings[i],"end")) {
 	    i++; if (token_types[i]!=TT_TEXT) {
 	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
 	      exit(-1);
 	    }
 	    if (!strcasecmp(token_strings[i],"poetry")) {
-	      poem_level=0;
-	      insert_vspace(poetry_vspace);
+	      target_paragraph->poem_level=0;
+	      insert_vspace(target_paragraph,poetry_vspace);
 	    } else {
 	      fprintf(stderr,"Warning: I don't know about \%s{%s}\n",
 		      token_strings[i-1],token_strings[i]);	      
@@ -1318,8 +1342,8 @@ int render_tokens()
 	      exit(-1);
 	    }
 	    if (!strcasecmp(token_strings[i],"poetry")) {
-	      poem_level=0;
-	      insert_vspace(poetry_vspace);
+	      target_paragraph->poem_level=0;
+	      insert_vspace(target_paragraph,poetry_vspace);
 	    } else {
 	      fprintf(stderr,"Warning: I don't know about \%s{%s}\n",
 		      token_strings[i-1],token_strings[i]);	      
@@ -1331,26 +1355,27 @@ int render_tokens()
 	  } else {	    
 	    fprintf(stderr,"Warning: unknown tag \%s (%d styles on the stack.)\n",
 		    token_strings[i],type_face_stack_pointer);
-	    paragraph_push_style(AL_LEFT,set_font("blackletter"));
+	    paragraph_push_style(target_paragraph,AL_LEFT,set_font("blackletter"));
 	  }	  
 	}
 	break;
       case TT_TEXT:
 	// Append to paragraph
 	if (!strcmp(token_strings[i],"\r")) {
-	  current_line_flush();
+	  current_line_flush(target_paragraph);
 	} else
-	  paragraph_append_text(token_strings[i],0);
+	  paragraph_append_text(target_paragraph,token_strings[i],0);
 	break;
       case TT_ENDTAG:
-	paragraph_pop_style();
+	paragraph_pop_style(target_paragraph);
 	break;
       }
     }
 
   // Flush out any queued content.
-  if (current_line&&current_line->piece_count) paragraph_append_line(current_line);
-  paragraph_flush();
+  if (target_paragraph->current_line&&target_paragraph->current_line->piece_count)
+    paragraph_append_line(target_paragraph,target_paragraph->current_line);
+  paragraph_flush(target_paragraph);
 
   
   return 0;
