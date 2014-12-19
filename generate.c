@@ -69,39 +69,6 @@ struct type_face type_faces[] = {
 #define AL_RIGHT 3
 #define AL_JUSTIFIED 4
 
-int footnote_stack_depth=-1;
-char footnote_mark_string[4]={'a'-1,0,0,0};
-int footnote_number=-1;
-
-int footnotes_reset()
-{
-  footnote_stack_depth=-1;
-  footnote_mark_string[0]='a'-1;
-  footnote_mark_string[1]=0;
-  footnote_number=-1;
-  return 0;
-}
-
-char *next_footnote_mark()
-{
-  footnote_number++;
-  if (strlen(footnote_mark_string)==1) {
-    footnote_mark_string[0]++;
-    if (footnote_mark_string[0]>'z') {
-      footnote_mark_string[0]='a';
-      footnote_mark_string[1]='a';
-    }
-    return footnote_mark_string;
-  }
-
-  // After first 26 foot notes we use aa--zz as footnote marks
-  footnote_mark_string[0]++;
-  if (footnote_mark_string[0]>'z') {
-    footnote_mark_string[0]++;
-    footnote_mark_string[1]='a';
-  }
-  return footnote_mark_string;
-}
 
 struct line_pieces {
 #define MAX_LINE_PIECES 256
@@ -186,6 +153,45 @@ int paragraph_clear(struct paragraph *p)
   
   paragraph_init(p);
   return 0;
+}
+
+int footnote_stack_depth=-1;
+char footnote_mark_string[4]={'a'-1,0,0,0};
+int footnote_number=-1;
+
+int footnotes_reset()
+{
+  int i;
+  for(i=0;i<MAX_FOOTNOTES_ON_PAGE;i++)
+    paragraph_clear(&footnote_paragraphs[i]);
+    
+  footnote_stack_depth=-1;
+  footnote_mark_string[0]='a'-1;
+  footnote_mark_string[1]=0;
+  footnote_number=-1;
+
+  return 0;
+}
+
+char *next_footnote_mark()
+{
+  footnote_number++;
+  if (strlen(footnote_mark_string)==1) {
+    footnote_mark_string[0]++;
+    if (footnote_mark_string[0]>'z') {
+      footnote_mark_string[0]='a';
+      footnote_mark_string[1]='a';
+    }
+    return footnote_mark_string;
+  }
+
+  // After first 26 foot notes we use aa--zz as footnote marks
+  footnote_mark_string[0]++;
+  if (footnote_mark_string[0]>'z') {
+    footnote_mark_string[0]++;
+    footnote_mark_string[1]='a';
+  }
+  return footnote_mark_string;
 }
 
 int set_font(char *nickname);
