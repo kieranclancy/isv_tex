@@ -1097,7 +1097,6 @@ int render_tokens()
 	    // begin a new page
 	    paragraph_flush();
 	    paragraph_clear_style_stack();
-	    if (booktab_text) free(booktab_text); booktab_text=NULL;
 	    // If we are on a left page, add a blank right page so that
 	    // the book starts on a left page
 	    if (leftRight==LR_LEFT) {
