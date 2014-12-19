@@ -40,7 +40,7 @@ int debug_vspace_x=0;
 
 int poem_level=0;
 int poem_subsequent_line=0;
-int poetry_left_margin=30;
+int poetry_left_margin=35;
 int poetry_level_indent=10;
 int poetry_wrap_indent=30;
 int poetry_vspace=5;
