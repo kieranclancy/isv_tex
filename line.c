@@ -355,3 +355,13 @@ int line_remove_leading_space(struct line_pieces *l)
   }
   return 0;
 }
+
+int line_dump(struct line_pieces *l)
+{
+  int i;
+  fprintf(stderr,"line_uid #%d: ",l->line_uid);
+  for(i=0;i<l->piece_count;i++)
+    fprintf(stderr,"[%s]",l->pieces[i]);
+  fprintf(stderr,"\n");
+  return 0;
+}

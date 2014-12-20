@@ -206,6 +206,7 @@ int paragraph_pop_style(struct paragraph *p);
 int paragraph_height(struct paragraph *p);
 int current_line_flush(struct paragraph *p);
 
+int line_dump(struct line_pieces *l);
 int line_emit(struct paragraph *p, int n);
 int line_free(struct line_pieces *l);
 int line_calculate_height(struct line_pieces *l);
