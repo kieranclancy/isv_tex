@@ -237,9 +237,21 @@ int line_emit(struct paragraph *p,int line_num)
   // line of a paragraph.
   if (l->alignment==AL_JUSTIFIED
       &&(p->line_count>line_num)) {
-    int points_to_add=l->max_line_width-l->line_width_so_far;
-    fprintf(stderr,"Justification requires sharing of %dpts.\n",points_to_add);
-
+    float points_to_add=l->max_line_width-l->line_width_so_far;
+    fprintf(stderr,"Justification requires sharing of %.1fpts.\n",points_to_add);
+    if (points_to_add>0) {
+      int i;
+      int elastic_pieces=0;
+      for(i=0;i<l->piece_count;i++) if (l->piece_is_elastic[i]) elastic_pieces++;
+      if (elastic_pieces) {
+	float slice=points_to_add/elastic_pieces;
+	fprintf(stderr,
+		"  There are %d elastic pieces to share this among (%.1fpts each).\n",
+		elastic_pieces,slice);
+	for(i=0;i<l->piece_count;i++)
+	  if (l->piece_is_elastic[i]) l->piece_widths[i]+=slice;
+      }
+    }
   }
 
   for(i=0;i<l->piece_count;i++) {
