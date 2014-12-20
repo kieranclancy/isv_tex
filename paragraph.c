@@ -169,14 +169,16 @@ int paragraph_set_widow_counter(struct paragraph *p,int lines)
   return 0;
 }
 
-int paragraph_append_characters(struct paragraph *p,char *text,int size,int baseline)
+int paragraph_append_characters(struct paragraph *p,char *text,int size,int baseline,
+				int forceSpaceAtStartOfLine)
 {
   fprintf(stderr,"%s(\"%s\",%d)\n",__FUNCTION__,text,size);
   
   if (!p->current_line) paragraph_setup_next_line(p);
 
   // Don't start lines with empty space.
-  if ((!strcmp(text," "))&&(p->current_line->piece_count==0)) return 0;
+  if ((!strcmp(text," "))&&(p->current_line->piece_count==0))
+    if (!forceSpaceAtStartOfLine) return 0;
 
   // Verse numbers at the start of poetry lines appear left of the poetry margin
   int is_poetry_leading_verse=0;
@@ -271,7 +273,8 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
   return 0;
 }
 
-int paragraph_append_text(struct paragraph *p,char *text,int baseline)
+int paragraph_append_text(struct paragraph *p,char *text,int baseline,
+			  int forceSpaceAtStartOfLine)
 {  
   fprintf(stderr,"%s(\"%s\")\n",__FUNCTION__,text);
   
@@ -303,10 +306,12 @@ int paragraph_append_text(struct paragraph *p,char *text,int baseline)
 		chars[count]=0;
 		if (islower)
 		  paragraph_append_characters(p,chars,current_font->smallcaps,
-					      baseline+current_font->baseline_delta);
+					      baseline+current_font->baseline_delta,
+					      forceSpaceAtStartOfLine);
 		else
 		  paragraph_append_characters(p,chars,current_font->font_size,
-					      baseline+current_font->baseline_delta);
+					      baseline+current_font->baseline_delta,
+					      forceSpaceAtStartOfLine);
 		i=j;
 		count=0;
 		break;
@@ -316,17 +321,20 @@ int paragraph_append_text(struct paragraph *p,char *text,int baseline)
 	  chars[count]=0;
 	  if (islower)
 	    paragraph_append_characters(p,chars,current_font->smallcaps,
-					baseline+current_font->baseline_delta);
+					baseline+current_font->baseline_delta,
+					forceSpaceAtStartOfLine);
 	  else
 	    paragraph_append_characters(p,chars,current_font->font_size,
-					baseline+current_font->baseline_delta);
+					baseline+current_font->baseline_delta,
+					forceSpaceAtStartOfLine);
 	  break;
 	}
       }
   } else {
     // Regular text. Render as one piece.
     paragraph_append_characters(p,text,current_font->font_size,
-				baseline+current_font->baseline_delta);
+				baseline+current_font->baseline_delta,
+				forceSpaceAtStartOfLine);
   }
     
   return 0;
@@ -335,19 +343,19 @@ int paragraph_append_text(struct paragraph *p,char *text,int baseline)
 /* Add a space to a paragraph.  Similar to appending text, but adds elastic
    space that can be expanded if required for justified text.
 */
-int paragraph_append_space(struct paragraph *p)
+int paragraph_append_space(struct paragraph *p,int forceSpaceAtStartOfLine)
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
   if (p->last_char_is_a_full_stop) fprintf(stderr,"  space follows a full-stop.\n");
-  paragraph_append_characters(p," ",current_font->font_size,0);
+  paragraph_append_characters(p," ",current_font->font_size,0,forceSpaceAtStartOfLine);
   return 0;
 }
 
 // Thin space.  Append a normal space, then revise it's width down to 1/2
-int paragraph_append_thinspace(struct paragraph *p)
+int paragraph_append_thinspace(struct paragraph *p,int forceSpaceAtStartOfLine)
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
-  paragraph_append_characters(p," ",current_font->font_size,0);
+  paragraph_append_characters(p," ",current_font->font_size,0,forceSpaceAtStartOfLine);
   p->current_line->piece_widths[p->current_line->piece_count-1]/=2;
   return 0;
 }
@@ -461,7 +469,7 @@ int paragraph_append(struct paragraph *dst,struct paragraph *src)
 	  paragraph_append_characters(dst,
 				      src->paragraph_lines[i]->pieces[j],
 				      src->paragraph_lines[i]->actualsizes[j],
-				      src->paragraph_lines[i]->piece_baseline[j]);
+				      src->paragraph_lines[i]->piece_baseline[j],1);
 	  current_font = preserved_current_font;
 	}
     }

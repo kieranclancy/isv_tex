@@ -139,15 +139,17 @@ int begin_footnote()
 	  footnote_mark_string,body_paragraph.line_count,
 	  body_paragraph.current_line->line_uid,footnote_count);
 
-  // Put space before each footnote
-  paragraph_append_space(target_paragraph);
-  paragraph_append_space(target_paragraph);
+  // Put space before each footnote.  For space at start of line, since when the
+  // footnotes get appended together later the spaces may be in the middle of a line.
+  // We use 4 normal spaces so that justification will scale the space appropriately.
+  int i;
+  for(i=0;i<4;i++) paragraph_append_space(target_paragraph,1);
 
   // Draw footnote mark at start of footnote
   paragraph_push_style(target_paragraph,AL_JUSTIFIED,
 		       set_font("footnotemarkinfootnote"));
   generate_footnote_mark(footnote_count-1);
-  paragraph_append_text(target_paragraph,footnote_mark_string,0);
+  paragraph_append_text(target_paragraph,footnote_mark_string,0,0);
   paragraph_pop_style(target_paragraph);
 
   footnote_mode=1;
@@ -937,10 +939,10 @@ int render_tokens()
 	body_paragraph.current_line->left_margin=paragraph_indent;
 	break;
       case TT_SPACE:
-	paragraph_append_space(target_paragraph);
+	paragraph_append_space(target_paragraph,0);
 	break;
       case TT_THINSPACE:
-	paragraph_append_thinspace(target_paragraph);
+	paragraph_append_thinspace(target_paragraph,0);
 	break;
       case TT_TAG:
 	if (token_strings[i]) {
@@ -1050,7 +1052,7 @@ int render_tokens()
 	    char *mark=next_footnote_mark();
 	    paragraph_push_style(target_paragraph,target_paragraph->current_line->alignment,set_font("footnotemark"));
 	    fprintf(stderr,"Footnote mark is '%s'\n",mark);
-	    paragraph_append_text(target_paragraph,mark,current_font->baseline_delta);
+	    paragraph_append_text(target_paragraph,mark,current_font->baseline_delta,0);
 	    paragraph_pop_style(target_paragraph);
 
 	    // Select footnote font
@@ -1114,7 +1116,7 @@ int render_tokens()
 	if (!strcmp(token_strings[i],"\r")) {
 	  current_line_flush(target_paragraph);
 	} else
-	  paragraph_append_text(target_paragraph,token_strings[i],0);
+	  paragraph_append_text(target_paragraph,token_strings[i],0,0);
 	break;
       case TT_ENDTAG:
 	paragraph_pop_style(target_paragraph);

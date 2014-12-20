@@ -174,10 +174,10 @@ int tokenise_file(char *filename);
 
 int paragraph_clear_style_stack();
 int paragraph_push_style(struct paragraph *p, int font_alignment,int font_index);
-int paragraph_append_thinspace(struct paragraph *p);
-int paragraph_append_space(struct paragraph *p);
-int paragraph_append_text(struct paragraph *p,char *text,int baseline);
-int paragraph_append_characters(struct paragraph *p,char *text,int size,int baseline);
+int paragraph_append_thinspace(struct paragraph *p,int forceSpaceAtStartOfLine);
+int paragraph_append_space(struct paragraph *p, int forceSpaceAtStartOfLine);
+int paragraph_append_text(struct paragraph *p,char *text,int baseline,int forceSpaceAtStartOfLine);
+int paragraph_append_characters(struct paragraph *p,char *text,int size,int baseline,int forceSpaceAtStartOfLine);
 int paragraph_set_widow_counter(struct paragraph *p,int lines);
 int paragraph_setup_next_line(struct paragraph *p);
 int paragraph_append_line(struct paragraph *p,struct line_pieces *line);
