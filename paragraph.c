@@ -534,6 +534,10 @@ int paragraph_height(struct paragraph *p)
     line_calculate_height(p->paragraph_lines[i]);
     height+=p->paragraph_lines[i]->line_height;
   }
+  if (p->current_line) {
+    line_calculate_height(p->current_line);
+    height+=p->current_line->line_height;
+  }
   
   return height;
 };
