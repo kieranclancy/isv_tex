@@ -217,5 +217,9 @@ int generate_footnote_mark(int footnote_count);
 int begin_footnote();
 int end_footnote();
 int output_accumulated_footnotes();
+int reenumerate_footnotes(int line_uid);
+
+int output_accumulated_cross_references();
+
 
 int set_font(char *nickname);

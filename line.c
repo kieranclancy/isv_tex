@@ -232,7 +232,7 @@ int line_emit(struct paragraph *p,int line_num)
     fprintf(stderr,"x=%.1f (left/justified alignment)\n",x);
 
   }
-  
+
   for(i=0;i<l->piece_count;i++) {
     HPDF_Page_SetFontAndSize(page,l->fonts[i]->font,l->actualsizes[i]);
     HPDF_Page_SetRGBFill(page,l->fonts[i]->red,l->fonts[i]->green,l->fonts[i]->blue);
