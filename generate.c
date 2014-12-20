@@ -60,6 +60,8 @@ struct type_face type_faces[] = {
   {"chapternum","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
   {"footnotemark","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
   {"footnote","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
+  {"footnotebib","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
+  {"footnoteversenum","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
   {NULL,NULL,0,0,0,0,0.00,0.00,0.00,NULL,0}
 };
 
@@ -123,7 +125,7 @@ int set_font(char *nickname);
 int paragraph_append_line(struct paragraph *p,struct line_pieces *line);
 int paragraph_setup_next_line(struct paragraph *p);
 
-
+int footnote_mode=0;
 int begin_footnote()
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
@@ -135,6 +137,7 @@ int begin_footnote()
   fprintf(stderr,"Footnote '%s' is in line #%d (line uid %d). There are %d foot notes.\n",
 	  footnote_mark_string,body_paragraph.line_count,
 	  body_paragraph.current_line->line_uid,footnote_count);
+  footnote_mode=1;
   return 0;
 }
 
@@ -143,6 +146,7 @@ int end_footnote()
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
   current_line_flush(target_paragraph);
   target_paragraph=&body_paragraph;
+  footnote_mode=0;
   return 0;
 }
 
@@ -1009,8 +1013,17 @@ int render_tokens()
 	    target_paragraph->current_line->left_margin=0;
 	  } else if (!strcasecmp(token_strings[i],"v")) {
 	    // Verse number
-	    paragraph_push_style(target_paragraph,AL_LEFT,set_font("versenum"));
+	    if (!footnote_mode) {
+	      // XXX mark line as touching this verse for building cross-reference
+	      // data.
+	      paragraph_push_style(target_paragraph,AL_LEFT,set_font("versenum"));
+	    } else
+	      paragraph_push_style(target_paragraph,AL_LEFT,set_font("footnoteversenum"));
 
+	  } else if (!strcasecmp(token_strings[i],"fbackref")) {
+	    paragraph_push_style(target_paragraph,AL_JUSTIFIED,set_font("footnote"));
+	  } else if (!strcasecmp(token_strings[i],"fbib")) {
+	    paragraph_push_style(target_paragraph,AL_JUSTIFIED,set_font("footnotebib"));
 	  } else if (!strcasecmp(token_strings[i],"fnote")) {
 	    // Foot note.
 	    // 1. Insert a footnote mark here.

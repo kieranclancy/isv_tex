@@ -56,5 +56,9 @@ footnotemark_ydelta -2
 footnotemark_smallcaps 0
 footnote_filename urw-palladio-l-roman.ttf
 footnote_fontsize 8
+footnotebib_filename urw-palladio-l-italic.ttf
+footnotebib_fontsize 8
+footnoteversenum_filename urw-palladio-l-italic.ttf
+footnoteversenum_fontsize 8
 
 line_spacing 1.2
