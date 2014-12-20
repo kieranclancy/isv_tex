@@ -60,7 +60,7 @@ int paragraph_clear(struct paragraph *p)
 
 int paragraph_flush(struct paragraph *p)
 {  
-  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  fprintf(stderr,"%s():\n",__FUNCTION__);
 
   // First flush the current line
   current_line_flush(p);
@@ -122,7 +122,7 @@ int paragraph_flush(struct paragraph *p)
 */
 int paragraph_append_line(struct paragraph *p,struct line_pieces *line)
 {
-  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  fprintf(stderr,"%s()\n",__FUNCTION__);
 
   if (p->line_count>=MAX_LINES_IN_PARAGRAPH) {
     fprintf(stderr,"Too many lines in paragraph.\n");
@@ -171,7 +171,7 @@ int paragraph_set_widow_counter(struct paragraph *p,int lines)
 
 int paragraph_append_characters(struct paragraph *p,char *text,int size,int baseline)
 {
-  fprintf(stderr,"%s(\"%s\",%d): STUB\n",__FUNCTION__,text,size);
+  fprintf(stderr,"%s(\"%s\",%d)\n",__FUNCTION__,text,size);
   
   if (!p->current_line) paragraph_setup_next_line(p);
 
@@ -273,7 +273,7 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
 
 int paragraph_append_text(struct paragraph *p,char *text,int baseline)
 {  
-  fprintf(stderr,"%s(\"%s\"): STUB\n",__FUNCTION__,text);
+  fprintf(stderr,"%s(\"%s\")\n",__FUNCTION__,text);
   
   // Keep track of whether the last character is a full stop so that we can
   // apply double spacing between sentences (if desired).
@@ -337,7 +337,7 @@ int paragraph_append_text(struct paragraph *p,char *text,int baseline)
 */
 int paragraph_append_space(struct paragraph *p)
 {
-  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  fprintf(stderr,"%s()\n",__FUNCTION__);
   if (p->last_char_is_a_full_stop) fprintf(stderr,"  space follows a full-stop.\n");
   paragraph_append_characters(p," ",current_font->font_size,0);
   return 0;
@@ -346,7 +346,7 @@ int paragraph_append_space(struct paragraph *p)
 // Thin space.  Append a normal space, then revise it's width down to 1/2
 int paragraph_append_thinspace(struct paragraph *p)
 {
-  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  fprintf(stderr,"%s()\n",__FUNCTION__);
   paragraph_append_characters(p," ",current_font->font_size,0);
   p->current_line->piece_widths[p->current_line->piece_count-1]/=2;
   return 0;
@@ -430,7 +430,7 @@ int paragraph_clear_style_stack()
 */
 int paragraph_clone(struct paragraph *dst,struct paragraph *src)
 {
-  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  fprintf(stderr,"%s():\n",__FUNCTION__);
 
   int i;
 
@@ -445,13 +445,13 @@ int paragraph_clone(struct paragraph *dst,struct paragraph *src)
 
 int paragraph_append(struct paragraph *dst,struct paragraph *src)
 {
-  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  fprintf(stderr,"%s()\n",__FUNCTION__);
   return 0;
 };
 
 int paragraph_height(struct paragraph *p)
 {
-  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  fprintf(stderr,"%s():\n",__FUNCTION__);
 
   float height=0;
   int i;
