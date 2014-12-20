@@ -424,9 +424,22 @@ int paragraph_clear_style_stack()
   return 0;
 }
 
+/* Clone the lines in one paragraph into the other.
+   The destination paragraph is assumed to be empty.  Memory
+   will be leaked if this is not the case.
+*/
 int paragraph_clone(struct paragraph *dst,struct paragraph *src)
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+
+  int i;
+
+  // Copy main contents
+  bcopy(src,dst,sizeof(struct paragraph));
+  
+  for(i=0;i<src->line_count;i++)
+    dst->paragraph_lines[i]=line_clone(src->paragraph_lines[i]);      
+  
   return 0;
 };
 
@@ -439,5 +452,13 @@ int paragraph_append(struct paragraph *dst,struct paragraph *src)
 int paragraph_height(struct paragraph *p)
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
-  return 0;
+
+  float height=0;
+  int i;
+  
+  for(i=0;i<p->line_count;i++) {    
+    height+=line_calculate_height(p->paragraph_lines[i]);
+  }
+  
+  return height;
 };
