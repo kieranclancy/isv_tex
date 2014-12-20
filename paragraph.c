@@ -373,6 +373,15 @@ int paragraph_append_space(struct paragraph *p,int forceSpaceAtStartOfLine)
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
   if (p->last_char_is_a_full_stop) fprintf(stderr,"  space follows a full-stop.\n");
+
+  // Don't put spaces after dropchars
+  if (p->current_line&&(p->current_line->piece_count==1))
+    {
+      if (!strcasecmp(p->current_line->fonts[p->current_line->piece_count-1]->font_nickname,"chapternum"))
+	return 0;
+
+    }
+    
   // Checkpoint where we are up to, in case we need to split the line
   if (p->current_line) p->current_line->checkpoint=p->current_line->piece_count;
   paragraph_append_characters(p," ",current_font->font_size,0,forceSpaceAtStartOfLine);
