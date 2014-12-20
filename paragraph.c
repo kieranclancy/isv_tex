@@ -292,6 +292,16 @@ int paragraph_append_text(struct paragraph *p,char *text,int baseline,
 			  int forceSpaceAtStartOfLine)
 {  
   fprintf(stderr,"%s(\"%s\")\n",__FUNCTION__,text);
+
+  // Don't put verse number immediately following dropchar
+  if (p->current_line&&(p->current_line->piece_count==1))
+    {
+      if (!strcasecmp(p->current_line->fonts[p->current_line->piece_count-1]->font_nickname,"chapternum"))
+	if (!strcasecmp(current_font->font_nickname,"versenum"))
+	  return 0;
+
+    }
+
   
   // Keep track of whether the last character is a full stop so that we can
   // apply double spacing between sentences (if desired).
