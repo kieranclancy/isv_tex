@@ -59,7 +59,8 @@ footnote_fontsize 8
 footnotebib_filename urw-palladio-l-italic.ttf
 footnotebib_fontsize 8
 footnoteversenum_filename urw-palladio-l-italic.ttf
-footnoteversenum_fontsize 7
+footnoteversenum_fontsize 6
+footnoteversenum_ydelta -3
 footnotemarkinfootnote_filename urw-palladio-l-bold.ttf
 footnotemarkinfootnote_fontsize 6
 footnotemarkinfootnote_ydelta -3
