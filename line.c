@@ -209,8 +209,8 @@ int line_emit(struct paragraph *p,int line_num)
 
   // Add extra spaces to justified lines, except for the last
   // line of a paragraph.
-  if (l->alignment==AL_JUSTIFIED
-      &&(p->line_count>line_num)) {
+  if ((l->alignment==AL_JUSTIFIED)
+      &&(p->line_count>(line_num+1))) {
     float points_to_add=l->max_line_width-l->line_width_so_far;
     fprintf(stderr,"Justification requires sharing of %.1fpts.\n",points_to_add);
     fprintf(stderr,"  used=%.1fpts, max_width=%dpts\n",
