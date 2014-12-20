@@ -617,6 +617,25 @@ int current_line_flush(struct paragraph *para)
 int output_accumulated_footnotes()
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+
+  // Commit any partial last-line in the footnote paragraph.
+  if (rendered_footnote_paragraph.current_line) {
+    current_line_flush(&rendered_footnote_paragraph);
+  }
+  
+  int footnotes_height=paragraph_height(&rendered_footnote_paragraph);
+
+  int footnotes_y=page_height-bottom_margin-footnotes_height;
+
+  int saved_page_y=page_y;
+  page_y=footnotes_y;
+  paragraph_flush(&rendered_footnote_paragraph);
+  // XXX Draw horizontal rule
+  page_y=saved_page_y;
+
+  // Clear footnote block after printing it
+  paragraph_clear(&rendered_footnote_paragraph);
+  
   return 0;
 }
 
