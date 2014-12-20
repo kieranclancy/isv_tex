@@ -480,9 +480,18 @@ int paragraph_append(struct paragraph *dst,struct paragraph *src)
 	  struct type_face *preserved_current_font = current_font;
 	  current_font=src->paragraph_lines[i]->fonts[j];
 
-	  // Checkpoint where we are up to, in case we need to split the line
-	  if (dst->current_line) dst->current_line->checkpoint
-				   =dst->current_line->piece_count;
+	  // Checkpoint where we are up to, in case we need to split the line.
+	  if (dst->current_line) {
+	    dst->current_line->checkpoint=dst->current_line->piece_count;
+	    // XXX - Adjust the checkpoint so that we don't split verse numbers
+	    // from text, or footnote marks from the initial verse.
+	    if (dst->current_line->piece_count>1) {
+	      struct type_face *face
+		=dst->current_line->fonts[dst->current_line->piece_count-1];
+	      if (!strcmp(face->font_nickname,"footnotemarkinfootnote"))
+		dst->current_line->checkpoint--;
+	    }
+	  }
 
 	  // Don't force spaces at start of lines, so that formatting comes out
 	  // right with appended footnotes etc.
