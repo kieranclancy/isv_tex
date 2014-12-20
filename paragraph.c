@@ -446,6 +446,27 @@ int paragraph_clone(struct paragraph *dst,struct paragraph *src)
 int paragraph_append(struct paragraph *dst,struct paragraph *src)
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
+
+  int i,j;
+
+  for(i=0;i<src->line_count;i++) {
+    if (!src->paragraph_lines[i]->piece_count) {
+      // Empty lines are vspace markers, so just re-add the vspace
+      paragraph_insert_vspace(dst,src->paragraph_lines[i]->line_height);
+    } else {
+      for(j=0;j<src->paragraph_lines[i]->piece_count;j++)
+	{
+	  struct type_face *preserved_current_font = current_font;
+	  current_font=src->paragraph_lines[i]->fonts[j];
+	  paragraph_append_characters(dst,
+				      src->paragraph_lines[i]->pieces[j],
+				      src->paragraph_lines[i]->actualsizes[j],
+				      src->paragraph_lines[i]->piece_baseline[j]);
+	  current_font = preserved_current_font;
+	}
+    }
+  }
+  
   return 0;
 };
 
