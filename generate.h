@@ -214,6 +214,7 @@ int line_apply_poetry_margin(struct paragraph *p,struct line_pieces *current_lin
 int dropchar_margin_check(struct paragraph *p,struct line_pieces *l);
 int line_recalculate_width(struct line_pieces *l);
 int line_remove_trailing_space(struct line_pieces *l);
+int line_remove_leading_space(struct line_pieces *l);
 
 int generate_footnote_mark(int footnote_count);
 int begin_footnote();

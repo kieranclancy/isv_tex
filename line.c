@@ -320,3 +320,36 @@ int line_remove_trailing_space(struct line_pieces *l)
   }
   return 0;
 }
+
+int line_remove_leading_space(struct line_pieces *l)
+{
+  // Remove any trailing spaces from the line
+  int i,j;
+  for(i=0;i<l->piece_count;i--) {
+    fprintf(stderr,"Considering piece #%d/%d '%s'\n",i,
+	    l->piece_count,
+	    l->pieces[i]);
+    if ((strcmp(" ",l->pieces[i]))&&(strcmp("",l->pieces[i]))) break;
+    else {
+      free(l->pieces[i]); l->pieces[i]=NULL;
+      l->line_width_so_far-=l->piece_widths[i];
+    }
+  }
+
+  if (i) {
+    // Shuffle remaining pieces down
+    for(j=0;j<l->piece_count-i;j++) {
+      l->pieces[j]=l->pieces[j+i];
+      l->fonts[j]=l->fonts[j+i];
+      l->actualsizes[j]=l->actualsizes[j+i];
+      l->piece_is_elastic[j]=l->piece_is_elastic[j+i];
+      l->piece_baseline[j]=l->piece_baseline[j+i];
+      l->piece_widths[j]=l->piece_widths[j+i];
+    }
+    
+    l->piece_count-=i;
+    
+    fprintf(stderr,"  Removed %d leading spaces from line\n",i);
+  }
+  return 0;
+}
