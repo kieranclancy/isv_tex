@@ -204,6 +204,7 @@ int paragraph_append(struct paragraph *dst,struct paragraph *src);
 int paragraph_insert_vspace(struct paragraph *p,int points);
 int paragraph_pop_style(struct paragraph *p);
 int paragraph_height(struct paragraph *p);
+int paragraph_dump(struct paragraph *p);
 int current_line_flush(struct paragraph *p);
 
 int line_dump(struct line_pieces *l);
