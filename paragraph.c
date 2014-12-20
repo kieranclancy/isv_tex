@@ -216,8 +216,9 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
   else
     p->current_line->piece_is_elastic[p->current_line->piece_count]=1;
   p->current_line->piece_baseline[p->current_line->piece_count]=baseline;  
-  p->current_line->line_width_so_far+=text_width;
+  // p->current_line->line_width_so_far+=text_width;
   p->current_line->piece_count++;
+  line_recalculate_width(p->current_line);
 
   if (p->current_line->line_width_so_far>p->current_line->max_line_width) {
     fprintf(stderr,"Breaking line at %1.f points wide.\n",
@@ -239,8 +240,8 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
       int i;
       for(i=saved_checkpoint;i<saved_piece_count;i++)
 	{
-	  last_line->line_width_so_far-=last_line->piece_widths[i];
-	  p->current_line->line_width_so_far+=last_line->piece_widths[i];
+	  // last_line->line_width_so_far-=last_line->piece_widths[i];
+	  // p->current_line->line_width_so_far+=last_line->piece_widths[i];
 	  p->current_line->pieces[p->current_line->piece_count]=last_line->pieces[i];
 	  p->current_line->fonts[p->current_line->piece_count]=last_line->fonts[i];
 	  p->current_line->actualsizes[p->current_line->piece_count]
@@ -253,6 +254,9 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
 	    =last_line->piece_baseline[i];
 	  p->current_line->piece_count++;	  
 	}
+      line_recalculate_width(p->current_line);
+      line_recalculate_width(last_line);
+      
       // Inherit alignment of previous line
       p->current_line->alignment=last_line->alignment;
       dropchar_margin_check(p,p->current_line);
