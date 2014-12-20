@@ -220,9 +220,10 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
   p->current_line->piece_count++;
   line_recalculate_width(p->current_line);
 
-  if (p->current_line->line_width_so_far>p->current_line->max_line_width) {
-    fprintf(stderr,"Breaking line at %1.f points wide.\n",
-	    p->current_line->line_width_so_far);
+  if (p->current_line->line_width_so_far>=p->current_line->max_line_width) {
+    fprintf(stderr,"Breaking line at %1.f points wide (max width=%dpts).\n",
+	    p->current_line->line_width_so_far,
+	    p->current_line->max_line_width);
     // Line is too long.
     if (p->current_line->checkpoint) {
       // Rewind to checkpoint, add this line
