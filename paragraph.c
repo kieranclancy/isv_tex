@@ -302,9 +302,12 @@ int paragraph_append_text(struct paragraph *p,char *text,int baseline,
   if (p->current_line) {
     // Start with checkpoint at end of current line.
     p->current_line->checkpoint=p->current_line->piece_count;
-    // But move back one if the previous word is a verse number
     if (p->current_line->piece_count) {
+      // But move back one if the previous word is a verse number
       if (!strcasecmp(p->current_line->fonts[p->current_line->piece_count-1]->font_nickname,"versenum"))
+	p->current_line->checkpoint--;
+      // Or if we are drawing a footnote mark
+      else if (!strcasecmp(current_font->font_nickname,"footnotemark"))
 	p->current_line->checkpoint--;
     }
   }
