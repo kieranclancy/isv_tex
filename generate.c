@@ -622,16 +622,23 @@ int output_accumulated_footnotes()
   if (rendered_footnote_paragraph.current_line) {
     current_line_flush(&rendered_footnote_paragraph);
   }
+
+  int saved_page_y=page_y;
+  int saved_bottom_margin=bottom_margin;
   
   int footnotes_height=paragraph_height(&rendered_footnote_paragraph);
 
   int footnotes_y=page_height-bottom_margin-footnotes_height;
 
-  int saved_page_y=page_y;
   page_y=footnotes_y;
+  bottom_margin=0;
+  
   paragraph_flush(&rendered_footnote_paragraph);
   // XXX Draw horizontal rule
+
+  // Restore page settings
   page_y=saved_page_y;
+  bottom_margin=saved_bottom_margin;
 
   // Clear footnote block after printing it
   paragraph_clear(&rendered_footnote_paragraph);
@@ -738,9 +745,13 @@ int line_emit(struct paragraph *p,int line_num)
     int footnotes_height=paragraph_height(&temp);
     baseline_y+=footnotes_height;
     baseline_y+=footnote_sep_vspace;
-    if (baseline_y>(page_height-bottom_margin)) break_page=1;
     fprintf(stderr,"Footnote block is %dpts high (%d lines).\n",
 	    footnotes_height,temp.line_count);
+    if (baseline_y>(page_height-bottom_margin)) {
+      fprintf(stderr,"Breaking page at %.1fpts to make room for footnotes block\n",
+	      page_y);
+      break_page=1;
+    }
   }
 
   // XXX Does the line plus its cross-references require more space than there is?
