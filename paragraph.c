@@ -139,6 +139,9 @@ int paragraph_setup_next_line(struct paragraph *p)
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
 
+  // Append any line in progress before creating fresh line
+  if (p->current_line) paragraph_append_line(p,p->current_line);
+  
   // Allocate structure
   p->current_line=calloc(sizeof(struct line_pieces),1); 
 
@@ -405,7 +408,6 @@ int paragraph_push_style(struct paragraph *p, int font_alignment,int font_index)
 int paragraph_insert_vspace(struct paragraph *p,int points)
 {
   fprintf(stderr,"%s(%dpt)\n",__FUNCTION__,points);
-  current_line_flush(p);
   paragraph_setup_next_line(p);
   p->current_line->line_height=points;
   current_line_flush(p);
@@ -467,8 +469,10 @@ int paragraph_clone(struct paragraph *dst,struct paragraph *src)
 int paragraph_dump(struct paragraph *p)
 {
   int i;
-  for(i=0;i<p->line_count;i++)
+  for(i=0;i<p->line_count;i++) {
+    fprintf(stderr,"  ");
     line_dump(p->paragraph_lines[i]);
+  }
   return 0;
 }
 
