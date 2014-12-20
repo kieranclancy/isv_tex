@@ -215,7 +215,7 @@ int line_emit(struct paragraph *p,int line_num)
 
   int i;
   float linegap=0;
-
+  
   // Add extra spaces to justified lines, except for the last
   // line of a paragraph.
   if ((l->alignment==AL_JUSTIFIED)
@@ -297,5 +297,24 @@ int line_emit(struct paragraph *p,int line_num)
   page_y=page_y+linegap*line_spacing;
   fprintf(stderr,"Added linegap of %.1f to page_y (= %.1fpts). Next line at %.1fpt\n",
 	  linegap*line_spacing,old_page_y,page_y);
+  return 0;
+}
+
+int line_remove_trailing_space(struct line_pieces *l)
+{
+  // Remove any trailing spaces from the line
+  int i;
+  for(i=l->piece_count-1;i>=0;i--) {
+    fprintf(stderr,"Considering piece #%d/%d '%s'\n",i,
+	    l->piece_count,
+	    l->pieces[i]);
+    if ((!strcmp(" ",l->pieces[i]))
+	||(!strcmp("",l->pieces[i]))) {
+      l->piece_count=i;
+      l->line_width_so_far-=l->piece_widths[i];
+      free(l->pieces[i]);
+      fprintf(stderr,"  Removed trailing space from line\n");
+    } else break;
+  }
   return 0;
 }
