@@ -207,6 +207,30 @@ int line_emit(struct paragraph *p,int line_num)
   int i;
   float linegap=0;
 
+  // Add extra spaces to justified lines, except for the last
+  // line of a paragraph.
+  if (l->alignment==AL_JUSTIFIED
+      &&(p->line_count>line_num)) {
+    float points_to_add=l->max_line_width-l->line_width_so_far;
+    fprintf(stderr,"Justification requires sharing of %.1fpts.\n",points_to_add);
+    fprintf(stderr,"  used=%.1fpts, max_width=%dpts\n",
+	    l->line_width_so_far,l->max_line_width);
+    if (points_to_add>0) {
+      int i;
+      int elastic_pieces=0;
+      for(i=0;i<l->piece_count;i++) if (l->piece_is_elastic[i]) elastic_pieces++;
+      if (elastic_pieces) {
+	float slice=points_to_add/elastic_pieces;
+	fprintf(stderr,
+		"  There are %d elastic pieces to share this among (%.1fpts each).\n",
+		elastic_pieces,slice);
+	for(i=0;i<l->piece_count;i++)
+	  if (l->piece_is_elastic[i]) l->piece_widths[i]+=slice;
+	l->line_width_so_far=l->max_line_width;
+      }
+    }
+  }
+  
   // Now draw the pieces
   HPDF_Page_BeginText (page);
   HPDF_Page_SetTextRenderingMode (page, HPDF_FILL);
@@ -231,27 +255,6 @@ int line_emit(struct paragraph *p,int line_num)
   default:
     fprintf(stderr,"x=%.1f (left/justified alignment)\n",x);
 
-  }
-
-  // Add extra spaces to justified lines, except for the last
-  // line of a paragraph.
-  if (l->alignment==AL_JUSTIFIED
-      &&(p->line_count>line_num)) {
-    float points_to_add=l->max_line_width-l->line_width_so_far;
-    fprintf(stderr,"Justification requires sharing of %.1fpts.\n",points_to_add);
-    if (points_to_add>0) {
-      int i;
-      int elastic_pieces=0;
-      for(i=0;i<l->piece_count;i++) if (l->piece_is_elastic[i]) elastic_pieces++;
-      if (elastic_pieces) {
-	float slice=points_to_add/elastic_pieces;
-	fprintf(stderr,
-		"  There are %d elastic pieces to share this among (%.1fpts each).\n",
-		elastic_pieces,slice);
-	for(i=0;i<l->piece_count;i++)
-	  if (l->piece_is_elastic[i]) l->piece_widths[i]+=slice;
-      }
-    }
   }
 
   for(i=0;i<l->piece_count;i++) {
