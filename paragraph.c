@@ -459,6 +459,8 @@ int paragraph_clone(struct paragraph *dst,struct paragraph *src)
 
   // Copy main contents
   bcopy(src,dst,sizeof(struct paragraph));
+
+  if (dst->current_line) dst->current_line=line_clone(src->current_line);
   
   for(i=0;i<src->line_count;i++)
     dst->paragraph_lines[i]=line_clone(src->paragraph_lines[i]);      
@@ -473,13 +475,18 @@ int paragraph_dump(struct paragraph *p)
     fprintf(stderr,"  ");
     line_dump(p->paragraph_lines[i]);
   }
+  if (p->current_line) {
+    fprintf(stderr,"  current line: ");
+    line_dump(p->current_line);
+  }
   return 0;
 }
 
 int paragraph_append(struct paragraph *dst,struct paragraph *src)
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
-
+  paragraph_dump(dst);
+  
   int i,j;
 
   for(i=0;i<src->line_count;i++) {
@@ -519,6 +526,10 @@ int paragraph_append(struct paragraph *dst,struct paragraph *src)
 	}
     }
   }
+
+  fprintf(stderr,"Paragraph after appending is:\n");
+  paragraph_dump(dst);
+
   
   return 0;
 };

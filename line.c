@@ -205,6 +205,8 @@ int line_emit(struct paragraph *p,int line_num)
     for(i=0;i<footnote_count;i++)
       if (l->line_uid==footnote_line_numbers[i])
 	paragraph_append(&rendered_footnote_paragraph,&footnote_paragraphs[i]);
+    fprintf(stderr,"Rendered footnote paragraph is now:\n");
+    paragraph_dump(&rendered_footnote_paragraph);
   }
   
   // convert y to libharu coordinate system (y=0 is at the bottom,

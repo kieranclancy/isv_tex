@@ -632,10 +632,16 @@ int output_accumulated_footnotes()
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
 
+  fprintf(stderr,"Before flushing last line:\n");
+  paragraph_dump(&rendered_footnote_paragraph);
+  
   // Commit any partial last-line in the footnote paragraph.
   if (rendered_footnote_paragraph.current_line) {
     current_line_flush(&rendered_footnote_paragraph);
   }
+
+  fprintf(stderr,"After flushing last line:\n");
+  paragraph_dump(&rendered_footnote_paragraph);
 
   int saved_page_y=page_y;
   int saved_bottom_margin=bottom_margin;
