@@ -226,6 +226,7 @@ int line_emit(struct paragraph *p,int line_num)
       &&(p->line_count>(line_num+1))) {
 
     line_recalculate_width(l);
+    line_remove_leading_space(l);
     
     float points_to_add=l->max_line_width-l->line_width_so_far;
     
