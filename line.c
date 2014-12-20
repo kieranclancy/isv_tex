@@ -215,6 +215,8 @@ int line_emit(struct paragraph *p,int line_num)
 
   int i;
   float linegap=0;
+
+  line_remove_trailing_space(l);
   
   // Add extra spaces to justified lines, except for the last
   // line of a paragraph.
