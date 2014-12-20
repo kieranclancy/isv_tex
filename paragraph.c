@@ -464,6 +464,14 @@ int paragraph_clone(struct paragraph *dst,struct paragraph *src)
   return 0;
 };
 
+int paragraph_dump(struct paragraph *p)
+{
+  int i;
+  for(i=0;i<p->line_count;i++)
+    line_dump(p->paragraph_lines[i]);
+  return 0;
+}
+
 int paragraph_append(struct paragraph *dst,struct paragraph *src)
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
@@ -471,6 +479,9 @@ int paragraph_append(struct paragraph *dst,struct paragraph *src)
   int i,j;
 
   for(i=0;i<src->line_count;i++) {
+    fprintf(stderr,"  Appending ");
+    line_dump(src->paragraph_lines[i]);
+	  
     if (!src->paragraph_lines[i]->piece_count) {
       // Empty lines are vspace markers, so just re-add the vspace
       paragraph_insert_vspace(dst,src->paragraph_lines[i]->line_height);
@@ -479,7 +490,7 @@ int paragraph_append(struct paragraph *dst,struct paragraph *src)
 	{
 	  struct type_face *preserved_current_font = current_font;
 	  current_font=src->paragraph_lines[i]->fonts[j];
-
+	 
 	  // Checkpoint where we are up to, in case we need to split the line.
 	  if (dst->current_line) {
 	    dst->current_line->checkpoint=dst->current_line->piece_count;
