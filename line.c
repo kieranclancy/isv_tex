@@ -126,6 +126,15 @@ int line_free(struct line_pieces *l)
   return 0;
 }
 
+int line_recalculate_width(struct line_pieces *l)
+{
+  // Recalculate line width
+  int i;
+  l->line_width_so_far=0;
+  for(i=0;i<l->piece_count;i++) l->line_width_so_far+=l->piece_widths[i];
+  return 0;
+}
+
 int line_emit(struct paragraph *p,int line_num)
 {
   struct line_pieces *l=p->paragraph_lines[line_num];
@@ -212,9 +221,7 @@ int line_emit(struct paragraph *p,int line_num)
   if ((l->alignment==AL_JUSTIFIED)
       &&(p->line_count>(line_num+1))) {
 
-    // Recalculate line width
-    l->line_width_so_far=0;
-    for(i=0;i<l->piece_count;i++) l->line_width_so_far+=l->piece_widths[i];
+    line_recalculate_width(l);
     
     float points_to_add=l->max_line_width-l->line_width_so_far;
     
