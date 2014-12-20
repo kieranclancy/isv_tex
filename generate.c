@@ -141,6 +141,7 @@ int begin_footnote()
 int end_footnote()
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  current_line_flush(target_paragraph);
   target_paragraph=&body_paragraph;
   return 0;
 }
@@ -714,11 +715,13 @@ int line_emit(struct paragraph *p,int line_num)
     for(i=0;i<footnote_count;i++)
       if (l->line_uid==footnote_line_numbers[i])
 	paragraph_append(&temp,&footnote_paragraphs[i]);
+    current_line_flush(&temp);
     int footnotes_height=paragraph_height(&temp);
     baseline_y+=footnotes_height;
     baseline_y+=footnote_sep_vspace;
     if (baseline_y>(page_height-bottom_margin)) break_page=1;
-    fprintf(stderr,"Footnote block is %dpts high.\n",footnotes_height);
+    fprintf(stderr,"Footnote block is %dpts high (%d lines).\n",
+	    footnotes_height,temp.line_count);
   }
 
   // XXX Does the line plus its cross-references require more space than there is?
