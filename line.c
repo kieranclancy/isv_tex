@@ -325,12 +325,13 @@ int line_remove_leading_space(struct line_pieces *l)
 {
   // Remove any trailing spaces from the line
   int i,j;
-  for(i=0;i<l->piece_count;i--) {
+  for(i=0;i<l->piece_count;i++) {
     fprintf(stderr,"Considering piece #%d/%d '%s'\n",i,
 	    l->piece_count,
 	    l->pieces[i]);
     if ((strcmp(" ",l->pieces[i]))&&(strcmp("",l->pieces[i]))) break;
     else {
+      fprintf(stderr,"  removing space from start of line.\n");
       free(l->pieces[i]); l->pieces[i]=NULL;
       l->line_width_so_far-=l->piece_widths[i];
     }
@@ -338,6 +339,7 @@ int line_remove_leading_space(struct line_pieces *l)
 
   if (i) {
     // Shuffle remaining pieces down
+    fprintf(stderr,"Shuffling remaining pieces down.\n");
     for(j=0;j<l->piece_count-i;j++) {
       l->pieces[j]=l->pieces[j+i];
       l->fonts[j]=l->fonts[j+i];
