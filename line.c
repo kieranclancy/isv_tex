@@ -211,12 +211,17 @@ int line_emit(struct paragraph *p,int line_num)
   // line of a paragraph.
   if ((l->alignment==AL_JUSTIFIED)
       &&(p->line_count>(line_num+1))) {
+
+    // Recalculate line width
+    l->line_width_so_far=0;
+    for(i=0;i<l->piece_count;i++) l->line_width_so_far+=l->piece_widths[i];
+    
     float points_to_add=l->max_line_width-l->line_width_so_far;
+    
     fprintf(stderr,"Justification requires sharing of %.1fpts.\n",points_to_add);
     fprintf(stderr,"  used=%.1fpts, max_width=%dpts\n",
 	    l->line_width_so_far,l->max_line_width);
     if (points_to_add>0) {
-      int i;
       int elastic_pieces=0;
       for(i=0;i<l->piece_count;i++) if (l->piece_is_elastic[i]) elastic_pieces++;
       if (elastic_pieces) {
