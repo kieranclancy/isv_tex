@@ -125,3 +125,141 @@ int line_free(struct line_pieces *l)
   free(l);
   return 0;
 }
+
+int line_emit(struct paragraph *p,int line_num)
+{
+  struct line_pieces *l=p->paragraph_lines[line_num];
+  int break_page=0;
+  
+  // Does the line itself require more space than there is?
+  float baseline_y=page_y+l->line_height*line_spacing;
+  if (baseline_y>(page_height-bottom_margin)) break_page=1;
+
+  // XXX Does the line plus footnotes require more space than there is?
+  // XXX - clone footnote paragraph and then append footnotes referenced in this
+  // line to the clone, then measure its height.
+  // XXX - deduct footnote space from remaining space.
+  if (p==&body_paragraph) {
+    struct paragraph temp;
+    paragraph_init(&temp);
+    paragraph_clone(&temp,&rendered_footnote_paragraph);
+    int i;
+    for(i=0;i<footnote_count;i++)
+      if (l->line_uid==footnote_line_numbers[i])
+	paragraph_append(&temp,&footnote_paragraphs[i]);
+    current_line_flush(&temp);
+    int footnotes_height=paragraph_height(&temp);
+    baseline_y+=footnotes_height;
+    baseline_y+=footnote_sep_vspace;
+    fprintf(stderr,"Footnote block is %dpts high (%d lines).\n",
+	    footnotes_height,temp.line_count);
+    if (baseline_y>(page_height-bottom_margin)) {
+      fprintf(stderr,"Breaking page at %.1fpts to make room for footnotes block\n",
+	      page_y);
+      break_page=1;
+    }
+  }
+
+  // XXX Does the line plus its cross-references require more space than there is?
+  // XXX - add height of cross-references for any verses in this line to height of
+  // all cross-references and make sure that it can fit above the cross-references.
+  if (p==&body_paragraph) {
+  }
+  
+  if (break_page) {
+    // No room on this page. Start a new page.
+
+    // The footnotes that have been collected so far need to be output, then
+    // freed.  Then any remaining footnotes need to be shuffled up the list
+    // and references to them re-enumerated.
+
+    // Cross-references also need to be output.
+    
+    leftRight=-leftRight;
+
+    // Reenumerate footnotes 
+
+    if (p==&body_paragraph) {
+      output_accumulated_footnotes();
+      output_accumulated_cross_references();
+      reenumerate_footnotes(p->paragraph_lines[line_num]->line_uid);
+      new_empty_page(leftRight);
+    }
+    
+    page_y=top_margin;
+    baseline_y=page_y+l->line_height*line_spacing;
+  }
+
+  // Add footnotes to footnote paragraph
+  if (p==&body_paragraph) {
+    int i;
+    for(i=0;i<footnote_count;i++)
+      if (l->line_uid==footnote_line_numbers[i])
+	paragraph_append(&rendered_footnote_paragraph,&footnote_paragraphs[i]);
+  }
+  
+  // convert y to libharu coordinate system (y=0 is at the bottom,
+  // and the y position is the base-line of the text to render).
+  // Don't apply line_spacing to adjustment, so that extra line spacing
+  // appears below the line, rather than above it.
+  float y=(page_height-page_y)-l->line_height;
+
+  int i;
+  float linegap=0;
+
+  // Now draw the pieces
+  HPDF_Page_BeginText (page);
+  HPDF_Page_SetTextRenderingMode (page, HPDF_FILL);
+  float x=0;
+  switch(l->alignment) {
+  case AL_LEFT: case AL_JUSTIFIED: case AL_NONE:
+    // Finally apply any left margin that has been set
+    x+=l->left_margin;
+    if (l->left_margin) {
+      fprintf(stderr,"Applying left margin of %dpts\n",l->left_margin);
+    }
+    break;
+  case AL_CENTRED:
+    x=(l->max_line_width-l->line_width_so_far)/2;
+    fprintf(stderr,"x=%.1f (centre alignment, w=%.1fpt, max w=%d)\n",
+	    x,l->line_width_so_far,l->max_line_width);
+    break;
+  case AL_RIGHT:
+    x=l->max_line_width-l->line_width_so_far;
+    fprintf(stderr,"x=%.1f (right alignment)\n",x);
+    break;
+  default:
+    fprintf(stderr,"x=%.1f (left/justified alignment)\n",x);
+
+  }
+  
+  for(i=0;i<l->piece_count;i++) {
+    HPDF_Page_SetFontAndSize(page,l->fonts[i]->font,l->actualsizes[i]);
+    HPDF_Page_SetRGBFill(page,l->fonts[i]->red,l->fonts[i]->green,l->fonts[i]->blue);
+    HPDF_Page_TextOut(page,left_margin+x,y-l->piece_baseline[i],
+		      l->pieces[i]);
+    x=x+l->piece_widths[i];
+    // Don't adjust line gap for dropchars
+    if (l->fonts[i]->line_count==1) {
+      if (l->fonts[i]->linegap>linegap) linegap=l->fonts[i]->linegap;
+    }
+  }
+  HPDF_Page_EndText (page);
+  if (!l->piece_count) linegap=l->line_height;
+
+  // Indicate the height of each line
+  if (debug_vspace) {
+    debug_vspace_x^=8;
+    HPDF_Page_SetRGBFill (page, 0.0,0.0,0.0);
+    HPDF_Page_Rectangle(page,
+			32+debug_vspace_x, y,
+			8,linegap*line_spacing);
+    HPDF_Page_Fill(page);
+  }
+
+  float old_page_y=page_y;
+  page_y=page_y+linegap*line_spacing;
+  fprintf(stderr,"Added linegap of %.1f to page_y (= %.1fpts). Next line at %.1fpt\n",
+	  linegap*line_spacing,old_page_y,page_y);
+  return 0;
+}

@@ -168,9 +168,24 @@ extern int poetry_level_indent;
 extern int poetry_wrap_indent;
 extern int poetry_vspace;
 
+extern float page_y;
+extern struct paragraph body_paragraph;
+extern struct paragraph rendered_footnote_paragraph;
+
+#define MAX_FOOTNOTES_ON_PAGE 256
+extern int footnote_line_numbers[MAX_FOOTNOTES_ON_PAGE];
+extern struct paragraph footnote_paragraphs[MAX_FOOTNOTES_ON_PAGE];
+#define MAX_VERSES_ON_PAGE 256
+extern struct paragraph cross_reference_paragraphs[MAX_VERSES_ON_PAGE];
+extern struct paragraph *target_paragraph;
+
+extern int leftRight;
+
 
 int include_show_stack();
 int tokenise_file(char *filename);
+
+int new_empty_page(int page_face);
 
 int paragraph_clear_style_stack();
 int paragraph_push_style(struct paragraph *p, int font_alignment,int font_index);
@@ -201,5 +216,6 @@ int dropchar_margin_check(struct paragraph *p,struct line_pieces *l);
 int generate_footnote_mark(int footnote_count);
 int begin_footnote();
 int end_footnote();
+int output_accumulated_footnotes();
 
 int set_font(char *nickname);
