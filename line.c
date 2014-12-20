@@ -233,6 +233,15 @@ int line_emit(struct paragraph *p,int line_num)
 
   }
 
+  // Add extra spaces to justified lines, except for the last
+  // line of a paragraph.
+  if (l->alignment==AL_JUSTIFIED
+      &&(p->line_count>line_num)) {
+    int points_to_add=l->max_line_width-l->line_width_so_far;
+    fprintf(stderr,"Justification requires sharing of %dpts.\n",points_to_add);
+
+  }
+
   for(i=0;i<l->piece_count;i++) {
     HPDF_Page_SetFontAndSize(page,l->fonts[i]->font,l->actualsizes[i]);
     HPDF_Page_SetRGBFill(page,l->fonts[i]->red,l->fonts[i]->green,l->fonts[i]->blue);

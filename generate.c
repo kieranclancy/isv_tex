@@ -649,6 +649,11 @@ int output_accumulated_footnotes()
 
   page_y=footnotes_y;
   bottom_margin=0;
+
+  // Mark all footnote block lines as justified.
+  int i;
+  for(i=0;i<rendered_footnote_paragraph.line_count;i++)
+    rendered_footnote_paragraph.paragraph_lines[i]->alignment=AL_JUSTIFIED;
   
   paragraph_flush(&rendered_footnote_paragraph);
   // XXX Draw horizontal rule
