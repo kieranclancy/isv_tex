@@ -887,7 +887,7 @@ int render_tokens()
 	    // Chapter big number (dropchar)
 	    current_line_flush(target_paragraph);
 	    int index=set_font("chapternum");
-	    paragraph_push_style(target_paragraph,AL_LEFT,index);
+	    paragraph_push_style(target_paragraph,AL_JUSTIFIED,index);
 	    // Require sufficient lines after this one so that the
 	    // drop character can fit.
 	    if (type_faces[index].line_count>1)
@@ -900,9 +900,9 @@ int render_tokens()
 	    if (!footnote_mode) {
 	      // XXX mark line as touching this verse for building cross-reference
 	      // data.
-	      paragraph_push_style(target_paragraph,AL_LEFT,set_font("versenum"));
+	      paragraph_push_style(target_paragraph,AL_JUSTIFIED,set_font("versenum"));
 	    } else
-	      paragraph_push_style(target_paragraph,AL_LEFT,set_font("footnoteversenum"));
+	      paragraph_push_style(target_paragraph,AL_JUSTIFIED,set_font("footnoteversenum"));
 
 	  } else if (!strcasecmp(token_strings[i],"fbackref")) {
 	    paragraph_push_style(target_paragraph,AL_JUSTIFIED,set_font("footnote"));
