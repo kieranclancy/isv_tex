@@ -641,12 +641,16 @@ int output_accumulated_footnotes()
   page_y=footnotes_y;
   bottom_margin=0;
 
-  // Mark all footnote block lines as justified.
+  // Mark all footnote block lines as justified, and strip leading space from
+  // lines
   int i;
-  for(i=0;i<rendered_footnote_paragraph.line_count;i++)
+  for(i=0;i<rendered_footnote_paragraph.line_count;i++) {
     rendered_footnote_paragraph.paragraph_lines[i]->alignment=AL_JUSTIFIED;
+    line_remove_leading_space(rendered_footnote_paragraph.paragraph_lines[i]);
+  }
   
   paragraph_flush(&rendered_footnote_paragraph);
+
   // XXX Draw horizontal rule
 
   // Restore page settings
