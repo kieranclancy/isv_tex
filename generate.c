@@ -806,6 +806,7 @@ int render_tokens()
 	// Indent the paragraph.  
 	paragraph_setup_next_line(target_paragraph);
 	body_paragraph.current_line->left_margin=paragraph_indent;
+	body_paragraph.current_line->max_line_width-=paragraph_indent;
 	break;
       case TT_SPACE:
 	paragraph_append_space(target_paragraph,0);
