@@ -466,10 +466,13 @@ int paragraph_append(struct paragraph *dst,struct paragraph *src)
 	{
 	  struct type_face *preserved_current_font = current_font;
 	  current_font=src->paragraph_lines[i]->fonts[j];
+	  // Don't force spaces at start of lines, so that formatting comes out
+	  // right with appended footnotes etc.
 	  paragraph_append_characters(dst,
 				      src->paragraph_lines[i]->pieces[j],
 				      src->paragraph_lines[i]->actualsizes[j],
-				      src->paragraph_lines[i]->piece_baseline[j],1);
+				      src->paragraph_lines[i]->piece_baseline[j],
+				      0);
 	  current_font = preserved_current_font;
 	}
     }
