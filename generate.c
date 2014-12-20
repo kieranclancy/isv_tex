@@ -614,11 +614,13 @@ int current_line_flush(struct paragraph *para)
       fprintf(stderr,"Considering piece #%d/%d '%s'\n",i,
 	      para->current_line->piece_count,
 	      para->current_line->pieces[i]);
-      if (!strcmp(" ",para->current_line->pieces[i])) {
+      if ((!strcmp(" ",para->current_line->pieces[i]))
+	  ||(!strcmp("",para->current_line->pieces[i]))) {
 	para->current_line->piece_count=i;
 	para->current_line->line_width_so_far-=para->current_line->piece_widths[i];
 	free(para->current_line->pieces[i]);
-      } else break;      
+	fprintf(stderr,"  Removed trailing space from line\n");
+      } else break;
     }
     if (para->current_line->piece_count||para->current_line->line_height) {
       fprintf(stderr,"%d pieces left in %p.\n",
