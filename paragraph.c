@@ -206,7 +206,7 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
     p->current_line->left_margin-=text_width;
     p->current_line->max_line_width+=text_width;
   }
-  
+
   p->current_line->pieces[p->current_line->piece_count]=strdup(text);
   p->current_line->fonts[p->current_line->piece_count]=current_font;
   p->current_line->actualsizes[p->current_line->piece_count]=size;
@@ -257,6 +257,10 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
 	}
       line_recalculate_width(p->current_line);
       line_recalculate_width(last_line);
+      fprintf(stderr,"  after breaking, the old line is %1.fpts wide\n",
+	      last_line->line_width_so_far);
+      fprintf(stderr,"  after breaking, the new line is %1.fpts wide\n",
+	      p->current_line->line_width_so_far);
       
       // Inherit alignment of previous line
       p->current_line->alignment=last_line->alignment;
@@ -352,6 +356,8 @@ int paragraph_append_space(struct paragraph *p,int forceSpaceAtStartOfLine)
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
   if (p->last_char_is_a_full_stop) fprintf(stderr,"  space follows a full-stop.\n");
+  // Checkpoint where we are up to, in case we need to split the line
+  if (p->current_line) p->current_line->checkpoint=p->current_line->piece_count;
   paragraph_append_characters(p," ",current_font->font_size,0,forceSpaceAtStartOfLine);
   return 0;
 }
@@ -360,6 +366,8 @@ int paragraph_append_space(struct paragraph *p,int forceSpaceAtStartOfLine)
 int paragraph_append_thinspace(struct paragraph *p,int forceSpaceAtStartOfLine)
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
+  // Checkpoint where we are up to, in case we need to split the line
+  if (p->current_line) p->current_line->checkpoint=p->current_line->piece_count;
   paragraph_append_characters(p," ",current_font->font_size,0,forceSpaceAtStartOfLine);
   p->current_line->piece_widths[p->current_line->piece_count-1]/=2;
   return 0;
@@ -471,6 +479,11 @@ int paragraph_append(struct paragraph *dst,struct paragraph *src)
 	{
 	  struct type_face *preserved_current_font = current_font;
 	  current_font=src->paragraph_lines[i]->fonts[j];
+
+	  // Checkpoint where we are up to, in case we need to split the line
+	  if (dst->current_line) dst->current_line->checkpoint
+				   =dst->current_line->piece_count;
+
 	  // Don't force spaces at start of lines, so that formatting comes out
 	  // right with appended footnotes etc.
 	  paragraph_append_characters(dst,
