@@ -299,7 +299,15 @@ int paragraph_append_text(struct paragraph *p,char *text,int baseline,
   else p->last_char_is_a_full_stop=0;
 
   // Checkpoint where we are up to, in case we need to split the line
-  if (p->current_line) p->current_line->checkpoint=p->current_line->piece_count;
+  if (p->current_line) {
+    // Start with checkpoint at end of current line.
+    p->current_line->checkpoint=p->current_line->piece_count;
+    // But move back one if the previous word is a verse number
+    if (p->current_line->piece_count) {
+      if (!strcasecmp(p->current_line->fonts[p->current_line->piece_count-1]->font_nickname,"versenum"))
+	p->current_line->checkpoint--;
+    }
+  }
   
   if (current_font->smallcaps) {
     // This font uses emulated small caps, so break the word down into
