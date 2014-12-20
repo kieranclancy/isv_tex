@@ -160,6 +160,14 @@ extern int footnote_stack_depth;
 extern char footnote_mark_string[4];
 extern int footnote_count;
 
+extern int debug_vspace;
+extern int debug_vspace_x;
+
+extern int poetry_left_margin;
+extern int poetry_level_indent;
+extern int poetry_wrap_indent;
+extern int poetry_vspace;
+
 
 int include_show_stack();
 int tokenise_file(char *filename);
@@ -186,9 +194,9 @@ int current_line_flush(struct paragraph *p);
 int line_emit(struct paragraph *p, int n);
 int line_free(struct line_pieces *l);
 int line_calculate_height(struct line_pieces *l);
+struct line_pieces *line_clone(struct line_pieces *l);
 int line_apply_poetry_margin(struct paragraph *p,struct line_pieces *current_line);
 int dropchar_margin_check(struct paragraph *p,struct line_pieces *l);
-
 
 int generate_footnote_mark(int footnote_count);
 int begin_footnote();
