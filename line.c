@@ -228,7 +228,7 @@ int line_emit(struct paragraph *p,int line_num)
     line_recalculate_width(l);
     line_remove_leading_space(l);
     
-    float points_to_add=l->max_line_width-l->line_width_so_far-l->left_margin;
+    float points_to_add=l->max_line_width-l->line_width_so_far; // -l->left_margin;
     
     fprintf(stderr,"Justification requires sharing of %.1fpts.\n",points_to_add);
     fprintf(stderr,"  used=%.1fpts, max_width=%dpts\n",

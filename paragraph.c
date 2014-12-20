@@ -162,6 +162,8 @@ int paragraph_setup_next_line(struct paragraph *p)
   }
 
   line_apply_poetry_margin(p,p->current_line);
+  fprintf(stderr,"New line left margin=%dpts, max_width=%dpts\n",
+	  p->current_line->left_margin,p->current_line->max_line_width);
   
   return 0;
 }
@@ -238,6 +240,7 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
       struct line_pieces *last_line=p->current_line;
       paragraph_append_line(p,p->current_line);
       paragraph_setup_next_line(p);
+      p->current_line->alignment=last_line->alignment;
       fprintf(stderr,"  new line is indented %dpts\n",
 	      p->current_line->left_margin);
       // Now populate new line with the left overs from the old line
