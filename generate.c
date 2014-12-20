@@ -59,6 +59,7 @@ struct type_face type_faces[] = {
   {"versenum","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
   {"chapternum","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
   {"footnotemark","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
+  {"footnotemarkinfootnote","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
   {"footnote","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
   {"footnotebib","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
   {"footnoteversenum","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
@@ -137,6 +138,18 @@ int begin_footnote()
   fprintf(stderr,"Footnote '%s' is in line #%d (line uid %d). There are %d foot notes.\n",
 	  footnote_mark_string,body_paragraph.line_count,
 	  body_paragraph.current_line->line_uid,footnote_count);
+
+  // Put space before each footnote
+  paragraph_append_space(target_paragraph);
+  paragraph_append_space(target_paragraph);
+
+  // Draw footnote mark at start of footnote
+  paragraph_push_style(target_paragraph,AL_JUSTIFIED,
+		       set_font("footnotemarkinfootnote"));
+  generate_footnote_mark(footnote_count-1);
+  paragraph_append_text(target_paragraph,footnote_mark_string,0);
+  paragraph_pop_style(target_paragraph);
+
   footnote_mode=1;
   return 0;
 }

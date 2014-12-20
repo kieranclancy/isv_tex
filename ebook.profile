@@ -60,5 +60,9 @@ footnotebib_filename urw-palladio-l-italic.ttf
 footnotebib_fontsize 8
 footnoteversenum_filename urw-palladio-l-italic.ttf
 footnoteversenum_fontsize 8
+footnotemarkinfootnote_filename urw-palladio-l-bold.ttf
+footnotemarkinfootnote_fontsize 6
+footnotemarkinfootnote_ydelta -3
+footnotemarkinfootnote_smallcaps 0
 
 line_spacing 1.2
