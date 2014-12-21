@@ -67,6 +67,8 @@ footnotemarkinfootnote_ydelta -3
 footnotemarkinfootnote_smallcaps 0
 crossref_filename urw-palladio-l-roman.ttf
 crossref_fontsize 7
+crossrefmarker_filename urw-palladio-l-bold.ttf
+crossrefmarker_fontsize 7
 
 line_spacing 1.2
 

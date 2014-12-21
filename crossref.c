@@ -65,7 +65,19 @@ int crossreference_start()
   target_paragraph=calloc(sizeof(struct paragraph),1);
   paragraph_clear(target_paragraph);
 
+  paragraph_push_style(target_paragraph,AL_JUSTIFIED,set_font("crossrefmarker"));
+
+  // Begin cross-reference paragraph with marker
+  if (crossreference_chapter>0) {
+    paragraph_append_text(target_paragraph,crossreference_chapter,0,0); 
+    paragraph_append_text(target_paragraph,":",0,0); 
+  }
+  paragraph_append_text(target_paragraph,crossreference_verse,0,0); 
+  paragraph_append_text(target_paragraph," ",0,0); 
+
+  paragraph_pop_style(target_paragraph);
   paragraph_push_style(target_paragraph,AL_JUSTIFIED,set_font("crossref"));
+
   
   crossreference_mode=1;
 
