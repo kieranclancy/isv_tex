@@ -189,6 +189,7 @@ extern int leftRight;
 
 int include_show_stack();
 int tokenise_file(char *filename);
+int clear_tokens();
 
 int new_empty_page(int page_face);
 
@@ -232,6 +233,5 @@ int footnotes_reset();
 char *next_footnote_mark();
 
 int output_accumulated_cross_references();
-
 
 int set_font(char *nickname);

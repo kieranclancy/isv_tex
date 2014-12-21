@@ -51,6 +51,16 @@ int token_count=0;
 int token_types[MAX_TOKENS];
 char *token_strings[MAX_TOKENS];
 
+int clear_tokens()
+{
+  int i;
+  for(i=0;i<token_count;i++) {
+    if (token_strings[i]) { free(token_strings[i]); token_strings[i]=NULL; }
+  }
+  token_count=0;
+  return 0;
+}
+
 int next_file_token(struct parsed_text *p,
 		    int token_type,int token_len,char *token_text)
 {

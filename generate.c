@@ -839,9 +839,15 @@ int main(int argc,char **argv)
   // Start with a right page so that we don't insert a blank one
   leftRight=LR_RIGHT;
 
+  fprintf(stderr,"Loading cross-reference library.\n");
+  tokenise_file("crossrefs.tex");
+  render_tokens();
+  clear_tokens();
+  
   tokenise_file("books/01_Genesis.tex");
   fprintf(stderr,"Parsed Genesis.tex\n");
   render_tokens();
+  clear_tokens();
   fprintf(stderr,"Rendered Genesis.tex\n");
   
   // Write PDF to disk
