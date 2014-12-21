@@ -56,12 +56,8 @@ int crossreference_end()
   free(crossreference_chapter); crossreference_chapter=NULL;
   free(crossreference_verse); crossreference_verse=NULL;
 
-  if (crossreference_paragraph.current_line)
-    fprintf(stderr,"%d pieces in cross-reference line\n",
-	    crossreference_paragraph.current_line->piece_count);
   current_line_flush(&crossreference_paragraph);
   paragraph_clear(&crossreference_paragraph);
-  crossreference_paragraph.current_line=NULL;
   
   target_paragraph=&body_paragraph;
 
