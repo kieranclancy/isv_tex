@@ -200,7 +200,6 @@ int reenumerate_footnotes(int first_remaining_line_uid)
   return 0;
 }
 
-
 int output_accumulated_footnotes()
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
@@ -235,16 +234,18 @@ int output_accumulated_footnotes()
   }
   
   paragraph_flush(&rendered_footnote_paragraph);
-
-  // Draw horizontal rule
-  int rule_y=footnotes_y+footnote_rule_ydelta;
-  int y=page_height-rule_y;
-  HPDF_Page_SetRGBStroke(page, 0.0, 0.0, 0.0);
-  HPDF_Page_SetLineWidth(page,footnote_rule_width);
-
-  HPDF_Page_MoveTo(page,left_margin,y);
-  HPDF_Page_LineTo(page,left_margin+footnote_rule_length,y);
-  HPDF_Page_Stroke(page);
+  
+  if (footnotes_height) {
+    // Draw horizontal rule
+    int rule_y=footnotes_y+footnote_rule_ydelta;
+    int y=page_height-rule_y;
+    HPDF_Page_SetRGBStroke(page, 0.0, 0.0, 0.0);
+    HPDF_Page_SetLineWidth(page,footnote_rule_width);
+    
+    HPDF_Page_MoveTo(page,left_margin,y);
+    HPDF_Page_LineTo(page,left_margin+footnote_rule_length,y);
+    HPDF_Page_Stroke(page);
+  }
   
   // Restore page settings
   page_y=saved_page_y;
