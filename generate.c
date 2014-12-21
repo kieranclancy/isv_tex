@@ -56,6 +56,7 @@ struct type_face type_faces[] = {
   {"booktitle","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
   {"header","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
   {"passageheader","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
+  {"passageinfo","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
   {"booktab","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
   {"versenum","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
   {"chapternum","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
@@ -710,6 +711,13 @@ int render_tokens()
 	  } else if (!strcasecmp(token_strings[i],"passage")) {
 	    // Passage header line	    
 	    int index=set_font("passageheader");
+	    paragraph_insert_vspace(target_paragraph,passageheader_vspace);
+	    paragraph_push_style(target_paragraph,AL_LEFT,index);
+	    // Require at least one more line after this before page breaking
+	    paragraph_set_widow_counter(target_paragraph,1);
+	  } else if (!strcasecmp(token_strings[i],"passageinfo")) {
+	    // Passage info line	    
+	    int index=set_font("passageinfo");
 	    paragraph_insert_vspace(target_paragraph,passageheader_vspace);
 	    paragraph_push_style(target_paragraph,AL_LEFT,index);
 	    // Require at least one more line after this before page breaking
