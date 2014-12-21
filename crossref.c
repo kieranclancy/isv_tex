@@ -49,16 +49,21 @@ int crossref_column_width=36;
 int crossreference_start()
 {
   // There is actually nothing that needs to be done here.
-  if (0) fprintf(stderr,"Starting to collect cross-references for %s %s:%s\n",
-		 crossreference_book,
-		 crossreference_chapter,
-		 crossreference_verse);
+  fprintf(stderr,"Starting to collect cross-references for %s %s:%s\n",
+	  crossreference_book,
+	  crossreference_chapter,
+	  crossreference_verse);
 
   saved_left_margin=left_margin;
   saved_right_margin=right_margin;
 
   left_margin=0;
-  right_margin=crossref_column_width;
+  right_margin=(page_width-crossref_column_width);
+
+  target_paragraph=&crossreference_paragraph;
+  paragraph_clear(target_paragraph);
+  
+  crossreference_mode=1;
 
   return 0;
 }
@@ -101,6 +106,7 @@ int crossreference_end()
   crossref_hash_bins[bin]=c;
   fprintf(stderr,"Crossrefs for %s %d:%d in bin %d\n",
 	  c->src_book,c->src_chapter,c->src_verse,bin);
+  paragraph_dump(c);
   
   // Clear crossreference paragraph ready for the next one.
   paragraph_clear(&crossreference_paragraph);
