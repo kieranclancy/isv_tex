@@ -178,7 +178,8 @@ int tokenise_file(char *filename)
 	    // \allowbreak - implemented by emitting nothing -- the presence
 	    // of the tag has introduced the break.
 	    token_type=TT_TEXT;
-	    token_len=0;
+	    token_len=1;
+	    token_text[0]=file[i];
 	  }
 	else {
 	  if (file[i]=='%'&&(token_len==0)) {
