@@ -63,6 +63,7 @@ struct type_face type_faces[] = {
   {"footnote","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
   {"footnotebib","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
   {"footnoteversenum","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
+  {"crossref","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
   {NULL,NULL,0,0,0,0,0.00,0.00,0.00,NULL,0}
 };
 

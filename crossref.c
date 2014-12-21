@@ -62,6 +62,8 @@ int crossreference_start()
 
   target_paragraph=&crossreference_paragraph;
   paragraph_clear(target_paragraph);
+
+  paragraph_push_style(target_paragraph,AL_JUSTIFIED,set_font("crossref"));
   
   crossreference_mode=1;
 
@@ -107,7 +109,9 @@ int crossreference_end()
   fprintf(stderr,"Crossrefs for %s %d:%d in bin %d\n",
 	  c->src_book,c->src_chapter,c->src_verse,bin);
   paragraph_dump(c);
-  
+
+  paragraph_pop_style(target_paragraph);
+
   // Clear crossreference paragraph ready for the next one.
   paragraph_clear(&crossreference_paragraph);
   
@@ -116,7 +120,7 @@ int crossreference_end()
   free(crossreference_verse); crossreference_verse=NULL;
 
   target_paragraph=&body_paragraph;
-
+  
   crossreference_mode=0;
   left_margin=saved_left_margin;
   right_margin=saved_right_margin;
