@@ -176,6 +176,9 @@ int output_accumulated_cross_references(struct paragraph *p,
       struct paragraph *cr=p->paragraph_lines[n]->crossrefs[i];
       if (cr)
 	{
+	  fprintf(stderr,"Drawing cross-references for %s %d:%d\n",
+		  cr->src_book,cr->src_chapter,cr->src_verse);
+	  paragraph_dump(cr);
 	  for(l=0;l<cr->line_count;l++)
 	    {
 	      line_emit(cr,l);
