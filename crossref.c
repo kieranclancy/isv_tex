@@ -79,13 +79,6 @@ int crossref_calc_hash(char *book,int chapter,int verse)
   return hash;
 }
 
-int crossreference_register_verse(struct paragraph *p,
-				  char *book,int chapter, int verse)
-{
-  fprintf(stderr,"Saw %s %d:%d\n",book,chapter,verse);
-  return 0;
-}
-
 int crossreference_end()
 {
   current_line_flush(&crossreference_paragraph);
@@ -124,3 +117,28 @@ int crossreference_end()
 
   return 0;
 }
+
+struct paragraph *crossreference_find(char *book,int chapter, int verse)
+{
+  struct paragraph *p=crossref_hash_bins[crossref_calc_hash(book,chapter,verse)];
+  while(p) {
+    if ((!strcasecmp(p->src_book,book))
+	&&(chapter==p->src_chapter)
+	&&(verse==p->src_verse)) {
+      fprintf(stderr,"Found crossref passage for %s %d:%d (%dpts high)\n",
+	      book,chapter,verse,p->total_height);
+      return p;
+    }
+    p=p->next;
+  }
+  return NULL;
+}
+
+int crossreference_register_verse(struct paragraph *p,
+				  char *book,int chapter, int verse)
+{
+  fprintf(stderr,"Saw %s %d:%d\n",book,chapter,verse);
+  struct paragraph *c=crossreference_find(book,chapter,verse);
+  return 0;
+}
+
