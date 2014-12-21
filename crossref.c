@@ -64,6 +64,8 @@ int crossreference_end()
   crossreference_paragraph.current_line=NULL;
   
   target_paragraph=&body_paragraph;
+
+  crossreference_mode=0;
   
   return 0;
 }
