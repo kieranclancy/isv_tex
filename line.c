@@ -35,9 +35,6 @@
 #include "hpdf.h"
 #include "generate.h"
 
-// Minimum vertical space between crossreference paragraphs
-int crossref_min_vspace=4;
-
 /* Clone a line */
 struct line_pieces *line_clone(struct line_pieces *l)
 {

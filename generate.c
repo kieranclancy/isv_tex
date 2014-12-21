@@ -377,10 +377,6 @@ HPDF_Doc pdf;
 
 HPDF_Page page;
 
-// Are we drawing a left or right face, or neither
-#define LR_LEFT -1
-#define LR_RIGHT 1
-#define LR_NEITHER 0
 int leftRight=LR_NEITHER;
 
 // Current booktab text

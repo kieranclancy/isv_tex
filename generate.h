@@ -197,7 +197,13 @@ extern char *crossreference_book;
 extern char *crossreference_chapter;
 extern char *crossreference_verse;
 extern int crossreference_mode;
+extern int crossref_min_vspace;
+extern int crossref_column_width;
 
+// Are we drawing a left or right face, or neither
+#define LR_LEFT -1
+#define LR_RIGHT 1
+#define LR_NEITHER 0
 extern int leftRight;
 
 int include_show_stack();
