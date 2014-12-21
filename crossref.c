@@ -164,10 +164,27 @@ int crossreference_register_verse(struct paragraph *p,
   return 0;
 }
 
+#define MAX_VERSES_ON_PAGE 256
+struct paragraph *crossrefs_queue[MAX_VERSES_ON_PAGE];
+int crossrefs_y[MAX_VERSES_ON_PAGE];
+int crossref_count=0;
+
+int crossref_queue(struct paragraph *p, int y)
+{
+  if (crossref_count<MAX_VERSES_ON_PAGE) {
+    crossrefs_queue[crossref_count]=p;
+    crossrefs_y[crossref_count++]=y;
+  } else {
+    fprintf(stderr,"Too many verses with cross-references on the same page.\n");
+    exit(-1);
+  }
+  return 0;
+}
+
 int output_accumulated_cross_references(struct paragraph *p,
 					int max_line_to_render)
 {
-  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  fprintf(stderr,"%s()\n",__FUNCTION__);
 
   int saved_page_y=page_y;
   int saved_bottom_margin=bottom_margin;
@@ -183,27 +200,24 @@ int output_accumulated_cross_references(struct paragraph *p,
     right_margin=page_width-crossref_column_width-2;
   }
   
-  int n,i,l;
-  for(n=0;n<=max_line_to_render;n++) {
+  int n,l;
+  for(n=0;n<crossref_count;n++) {
     // XXX - Doesn't resolve positional conflicts yet
     // Advance to next to the relevant verse
-    page_y=p->paragraph_lines[n]->on_page_y;
+    page_y=crossrefs_y[n];
 
-    for(i=0;i<p->paragraph_lines[n]->piece_count;i++) {
-      struct paragraph *cr=p->paragraph_lines[n]->crossrefs[i];
-      if (cr)
+    struct paragraph *cr=crossrefs_queue[n];
+    {
+      fprintf(stderr,"Drawing cross-references for %s %d:%d\n",
+	      cr->src_book,cr->src_chapter,cr->src_verse);
+      paragraph_dump(cr);
+      for(l=0;l<cr->line_count;l++)
 	{
-	  fprintf(stderr,"Drawing cross-references for %s %d:%d\n",
-		  cr->src_book,cr->src_chapter,cr->src_verse);
-	  paragraph_dump(cr);
-	  for(l=0;l<cr->line_count;l++)
-	    {
-	      line_emit(cr,l);
-	    }
+	  line_emit(cr,l);
 	}
-      page_y+=crossref_min_vspace;
-    }
+    } 
   }
+  crossref_count=0;
 
   page_y=saved_page_y;
   left_margin=saved_left_margin;

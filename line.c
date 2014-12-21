@@ -303,6 +303,9 @@ int line_emit(struct paragraph *p,int line_num)
     if (l->fonts[i]->line_count==1) {
       if (l->fonts[i]->linegap>linegap) linegap=l->fonts[i]->linegap;
     }
+
+    if (l->crossrefs[i]) crossref_queue(l->crossrefs[i],page_y);
+    
   }
   HPDF_Page_EndText (page);
   if (!l->piece_count) linegap=l->line_height;
