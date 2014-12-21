@@ -170,7 +170,8 @@ int output_accumulated_cross_references(struct paragraph *p,
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
 
   int saved_page_y=page_y;
-  page_y=top_margin;
+  int saved_bottom_margin=bottom_margin;
+  bottom_margin=0;
 
   // Place cross-reference column in space on opposite side to the
   // booktab
@@ -183,7 +184,11 @@ int output_accumulated_cross_references(struct paragraph *p,
   }
   
   int n,i,l;
-  for(n=0;n<=max_line_to_render;n++)
+  for(n=0;n<=max_line_to_render;n++) {
+    // XXX - Doesn't resolve positional conflicts yet
+    // Advance to next to the relevant verse
+    page_y=p->paragraph_lines[n]->on_page_y;
+
     for(i=0;i<p->paragraph_lines[n]->piece_count;i++) {
       struct paragraph *cr=p->paragraph_lines[n]->crossrefs[i];
       if (cr)
@@ -198,10 +203,12 @@ int output_accumulated_cross_references(struct paragraph *p,
 	}
       page_y+=crossref_min_vspace;
     }
+  }
 
   page_y=saved_page_y;
   left_margin=saved_left_margin;
   right_margin=saved_right_margin;
+  bottom_margin=saved_bottom_margin;
   
   return 0;
 }
