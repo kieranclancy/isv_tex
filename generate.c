@@ -392,9 +392,10 @@ float page_y=0;
 
 // Short name of book used for finding cross-references
 char *short_book_name=NULL;
-
-// For page headers
-char *chapter_label=NULL;
+// For page headers and cross-references
+int chapter_label=0;
+int verse_label=0;
+int next_token_is_verse_number=0;
 
 // Create a new empty page
 // Empty of main content, that is, a booktab will be added
@@ -684,12 +685,11 @@ int render_tokens()
 	  } else if (!strcasecmp(token_strings[i],"labelchapt")) {
 	    // Remember short name of book for inserting entries from the
 	    // cross-reference database.
-	    if (chapter_label) free(chapter_label); chapter_label=NULL;
 	    i++; if (token_types[i]!=TT_TEXT) {
 	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
 	      exit(-1);
 	    }
-	    chapter_label=strdup(token_strings[i]);
+	    chapter_label=atoi(token_strings[i]);
 	    i++; if (token_types[i]!=TT_ENDTAG) {
 	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
 	      exit(-1);
@@ -700,6 +700,7 @@ int render_tokens()
 	    
 	  } else if (!strcasecmp(token_strings[i],"booktitle")) {
 	    // Book title header line
+	    chapter_label=0; verse_label=0;
 	    current_line_flush(target_paragraph);
 	    paragraph_push_style(target_paragraph,AL_CENTRED,set_font("booktitle"));
 	    
@@ -712,6 +713,7 @@ int render_tokens()
 	    paragraph_set_widow_counter(target_paragraph,1);
 	  } else if (!strcasecmp(token_strings[i],"chapt")) {
 	    // Chapter big number (dropchar)
+	    verse_label=0;
 	    current_line_flush(target_paragraph);
 	    int index=set_font("chapternum");
 	    paragraph_push_style(target_paragraph,AL_JUSTIFIED,index);
@@ -727,6 +729,7 @@ int render_tokens()
 	    if (!footnote_mode) {
 	      // XXX mark line as touching this verse for building cross-reference
 	      // data.
+	      next_token_is_verse_number=1;
 	      paragraph_push_style(target_paragraph,AL_JUSTIFIED,set_font("versenum"));
 	    } else
 	      paragraph_push_style(target_paragraph,AL_JUSTIFIED,set_font("footnoteversenum"));
@@ -809,6 +812,13 @@ int render_tokens()
 	break;
       case TT_TEXT:
 	// Append to paragraph
+	if (next_token_is_verse_number) {
+	  next_token_is_verse_number=0;
+	  verse_label=atoi(token_strings[i]);
+	  if (target_paragraph==&body_paragraph)
+	  crossreference_register_verse(&body_paragraph,
+					short_book_name,chapter_label,verse_label);
+	}
 	if (!strcmp(token_strings[i],"\r")) {
 	  current_line_flush(target_paragraph);
 	} else

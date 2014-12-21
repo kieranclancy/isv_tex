@@ -43,10 +43,11 @@ struct paragraph crossreference_paragraph;
 
 int crossreference_start()
 {
-  fprintf(stderr,"Starting to collect cross-references for %s %s:%s\n",
-	  crossreference_book,
-	  crossreference_chapter,
-	  crossreference_verse);
+  // There is actually nothing that needs to be done here.
+  if (0) fprintf(stderr,"Starting to collect cross-references for %s %s:%s\n",
+		 crossreference_book,
+		 crossreference_chapter,
+		 crossreference_verse);
   return 0;
 }
 
@@ -56,6 +57,8 @@ int crossreference_end()
   free(crossreference_chapter); crossreference_chapter=NULL;
   free(crossreference_verse); crossreference_verse=NULL;
 
+  // XXX Clone paragraph into list of paragraphs for cross-references
+  
   current_line_flush(&crossreference_paragraph);
   paragraph_clear(&crossreference_paragraph);
   
@@ -63,5 +66,12 @@ int crossreference_end()
 
   crossreference_mode=0;
   
+  return 0;
+}
+
+int crossreference_register_verse(struct paragraph *p,
+				  char *book,int chapter, int verse)
+{
+  fprintf(stderr,"Saw %s %d:%d\n",book,chapter,verse);
   return 0;
 }
