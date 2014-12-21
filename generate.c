@@ -819,6 +819,7 @@ int main(int argc,char **argv)
   if (!pdf) {
     fprintf(stderr,"Call to HPDF_New() failed.\n"); exit(-1); 
   }
+  HPDF_SetCompressionMode (pdf, HPDF_COMP_ALL);
   HPDF_SetPageLayout(pdf,HPDF_PAGE_LAYOUT_TWO_COLUMN_LEFT);
 
   fprintf(stderr,"About to load fonts\n");
