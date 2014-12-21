@@ -184,8 +184,13 @@ extern float footnote_rule_width;
 extern int footnote_rule_length;
 extern int footnote_rule_ydelta;
 
-extern int leftRight;
+extern char *crossreference_book;
+extern char *crossreference_chapter;
+extern char *crossreference_verse;
+extern int crossreference_mode;
+extern struct paragraph crossreference_paragraph;
 
+extern int leftRight;
 
 int include_show_stack();
 int tokenise_file(char *filename);

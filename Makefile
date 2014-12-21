@@ -1,4 +1,4 @@
-SRCS=generate.c parse_tex.c paragraph.c line.c footnotes.c
+SRCS=generate.c parse_tex.c paragraph.c line.c footnotes.c crossref.c
 HEADERS=generate.h
 
 TTFFILES=	urw-palladio-l-roman.ttf \

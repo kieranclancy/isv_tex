@@ -610,7 +610,38 @@ int render_tokens()
 	break;
       case TT_TAG:
 	if (token_strings[i]) {
-	  if (!strcasecmp(token_strings[i],"bookheader")) {
+	  if (!strcasecmp(token_strings[i],"crossref")) {
+	    // Crossreferences look like:
+	    // \crossref{book}{chapter}{verse}{cross-references}
+	    // The token stream doesn't have the {'s, so we need to
+	    // parse out a TT_TEXT, TT_ENDTAG, TT_TEXT, TT_ENDTAG
+	    // and then the cross-reference text follows normally.
+	    // cross-reference text is not permitted to have any tags inside
+	    // to simplify the state control machinery
+	    i++; if (token_types[i]!=TT_TEXT) {
+	      fprintf(stderr,"\\crossref must be followed by {book}{chapter}{verse}{cross-reference list} (step %d, saw token type %d)\n",__LINE__,token_types[i]); exit(-1); }
+	    crossreference_book=strdup(token_strings[i]);
+	    i++; if (token_types[i]!=TT_ENDTAG) {
+	      fprintf(stderr,"\\crossref must be followed by {book}{chapter}{verse}{cross-reference list} (step %d, saw token type %d)\n",__LINE__,token_types[i]); exit(-1); }
+	    i++; if (token_types[i]!=TT_TAG||token_strings[i]) {
+	      fprintf(stderr,"\\crossref must be followed by {book}{chapter}{verse}{cross-reference list} (step %d, saw token type %d)\n",__LINE__,token_types[i]); exit(-1); }
+	    i++; if (token_types[i]!=TT_TEXT) {
+	      fprintf(stderr,"\\crossref must be followed by {book}{chapter}{verse}{cross-reference list} (step %d, saw token type %d)\n",__LINE__,token_types[i]); exit(-1); }
+	    crossreference_chapter=strdup(token_strings[i]);
+	    i++; if (token_types[i]!=TT_ENDTAG) {
+	      fprintf(stderr,"\\crossref must be followed by {book}{chapter}{verse}{cross-reference list} (step %d, saw token type %d)\n",__LINE__,token_types[i]); exit(-1); }
+	    i++; if (token_types[i]!=TT_TAG||token_strings[i]) {
+	      fprintf(stderr,"\\crossref must be followed by {book}{chapter}{verse}{cross-reference list} (step %d, saw token type %d)\n",__LINE__,token_types[i]); exit(-1); }
+	    i++; if (token_types[i]!=TT_TEXT) {
+	      fprintf(stderr,"\\crossref must be followed by {book}{chapter}{verse}{cross-reference list} (step %d, saw token type %d)\n",__LINE__,token_types[i]); exit(-1); }
+	    crossreference_verse=strdup(token_strings[i]);
+	    i++; if (token_types[i]!=TT_ENDTAG) {
+	      fprintf(stderr,"\\crossref must be followed by {book}{chapter}{verse}{cross-reference list} (step %d, saw token type %d)\n",__LINE__,token_types[i]); exit(-1); }
+	    i++; if (token_types[i]!=TT_TAG||token_strings[i]) {
+	      fprintf(stderr,"\\crossref must be followed by {book}{chapter}{verse}{cross-reference list} (step %d, saw token type %d)\n",__LINE__,token_types[i]); exit(-1); }
+	    crossreference_mode=1;
+	    target_paragraph=&crossreference_paragraph;
+	  } else if (!strcasecmp(token_strings[i],"bookheader")) {
 	    // Set booktab text to upper case version of this tag and
 	    // begin a new page
 	    paragraph_flush(target_paragraph);
