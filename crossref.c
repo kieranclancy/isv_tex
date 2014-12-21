@@ -230,17 +230,17 @@ int crossrefs_reposition()
       >crossref_y_limit)
     {
       crossrefs_y[crossref_count-1]
-	-=(crossref_y_limit-(crossrefs_y[crossref_count-1]
-			     +crossrefs_queue[crossref_count-1]->total_height));
+	=crossref_y_limit-crossrefs_queue[crossref_count-1]->total_height;
     }
   
-  for(i=crossref_count-1;i>=0;i--)
+  for(i=crossref_count-2;i>=0;i--)
     {
       int this_bottom=crossrefs_y[i]+crossrefs_queue[i]->total_height;
       int next_top=crossrefs_y[i+1];
-      int overlap=next_top-this_bottom+crossref_min_vspace;
+      int overlap=this_bottom-next_top+crossref_min_vspace;
       if (overlap>0) {
-	fprintf(stderr,"Moving crossref %d up %dpts\n",i,overlap);
+	fprintf(stderr,"Moving crossref %d up %dpts (this_bottom=%d, next_top=%d)\n",
+		i,overlap,this_bottom,next_top);
 	crossrefs_y[i]-=overlap;
       }
     }
