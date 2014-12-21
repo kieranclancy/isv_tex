@@ -171,10 +171,8 @@ int tokenise_file(char *filename)
 	// and also report the end of tag
 	next_file_token(p,TT_ENDTAG,0,token_text);
 	break;
-      case 'k':
-	token_text[token_len]=0;
-	// FALL THROUGH
       default:
+	token_text[token_len]=0;
 	if (token_type==TT_TAG&&(!strcmp(token_text,"allowbreak")))
 	  {
 	    // \allowbreak - implemented by emitting nothing -- the presence
