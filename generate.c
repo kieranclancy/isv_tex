@@ -812,17 +812,20 @@ int render_tokens()
 	break;
       case TT_TEXT:
 	// Append to paragraph
-	if (next_token_is_verse_number) {
-	  next_token_is_verse_number=0;
-	  verse_label=atoi(token_strings[i]);
-	  if (target_paragraph==&body_paragraph)
-	  crossreference_register_verse(&body_paragraph,
-					short_book_name,chapter_label,verse_label);
-	}
 	if (!strcmp(token_strings[i],"\r")) {
 	  current_line_flush(target_paragraph);
-	} else
+	} else {
 	  paragraph_append_text(target_paragraph,token_strings[i],0,0);
+	  // Attach verse number to this line if necessary.
+	  if (next_token_is_verse_number) {
+	    next_token_is_verse_number=0;
+	    verse_label=atoi(token_strings[i]);
+	    if (target_paragraph==&body_paragraph)
+	      crossreference_register_verse(&body_paragraph,
+					    short_book_name,chapter_label,verse_label);
+	  }
+
+	}
 	break;
       case TT_ENDTAG:
 	if (crossreference_mode) {
