@@ -398,18 +398,22 @@ int chapter_label=0;
 int verse_label=0;
 int next_token_is_verse_number=0;
 
+int on_first_page=0;
+
 // Create a new empty page
 // Empty of main content, that is, a booktab will be added
 int new_empty_page(int leftRight)
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
 
-  // Create the page
-  page = HPDF_AddPage(pdf);
-
-  // Set its dimensions
-  HPDF_Page_SetWidth(page,page_width);
-  HPDF_Page_SetHeight(page,page_height);
+  if (on_first_page) on_first_page=0; else {
+    // Create the page
+    page = HPDF_AddPage(pdf);
+    
+    // Set its dimensions
+    HPDF_Page_SetWidth(page,page_width);
+    HPDF_Page_SetHeight(page,page_height);
+  }
 
   // XXX Draw booktab
   if (booktab_text) {
@@ -887,7 +891,10 @@ int main(int argc,char **argv)
   leftRight=LR_RIGHT;
 
   // Create first page so that text widths get calculated.
-  page = HPDF_AddPage(pdf);
+  page = HPDF_AddPage(pdf); 
+  HPDF_Page_SetWidth(page,page_width);
+  HPDF_Page_SetHeight(page,page_height);
+  on_first_page=1;
   
   fprintf(stderr,"Loading cross-reference library.\n");
   crossref_hashtable_init();
