@@ -144,6 +144,8 @@ int crossreference_register_verse(struct paragraph *p,
 {
   fprintf(stderr,"Saw %s %d:%d\n",book,chapter,verse);
   struct paragraph *c=crossreference_find(book,chapter,verse);
+  p->current_line->crossrefs[p->current_line->piece_count-1]=c;
+  
   return 0;
 }
 
