@@ -544,12 +544,6 @@ int current_line_flush(struct paragraph *para)
   return 0;
 }
 
-int output_accumulated_cross_references()
-{
-  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
-  return 0;
-}
-
 int dropchar_margin_check(struct paragraph *p,struct line_pieces *l)
 {
   // If the current font has drop chars (i.e, line_count > 1),
@@ -651,7 +645,8 @@ int render_tokens()
 	    // begin a new page
 	    paragraph_flush(target_paragraph);
 	    output_accumulated_footnotes();
-	    output_accumulated_cross_references();
+	    output_accumulated_cross_references(target_paragraph,
+						target_paragraph->line_count-1);
 	    footnotes_reset();
 	    paragraph_clear_style_stack();
 	    // If we are on a left page, add a blank right page so that

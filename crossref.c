@@ -149,3 +149,10 @@ int crossreference_register_verse(struct paragraph *p,
   return 0;
 }
 
+int output_accumulated_cross_references(struct paragraph *p,
+					int max_line_to_render)
+{
+  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  return 0;
+}
+

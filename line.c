@@ -35,6 +35,9 @@
 #include "hpdf.h"
 #include "generate.h"
 
+// Minimum vertical space between crossreference paragraphs
+int crossref_min_vspace=4;
+
 /* Clone a line */
 struct line_pieces *line_clone(struct line_pieces *l)
 {
@@ -144,10 +147,11 @@ int line_emit(struct paragraph *p,int line_num)
   float baseline_y=page_y+l->line_height*line_spacing;
   if (baseline_y>(page_height-bottom_margin)) break_page=1;
 
-  // XXX Does the line plus footnotes require more space than there is?
-  // XXX - clone footnote paragraph and then append footnotes referenced in this
+  // Does the line plus footnotes require more space than there is?
+  // - clone footnote paragraph and then append footnotes referenced in this
   // line to the clone, then measure its height.
-  // XXX - deduct footnote space from remaining space.
+  // - deduct footnote space from remaining space.
+  int footnotes_total_height=0;
   if (p==&body_paragraph) {
     struct paragraph temp;
     paragraph_init(&temp);
@@ -160,6 +164,7 @@ int line_emit(struct paragraph *p,int line_num)
     int footnotes_height=paragraph_height(&temp);
     baseline_y+=footnotes_height;
     baseline_y+=footnote_sep_vspace;
+    footnotes_total_height=footnotes_height+footnote_sep_vspace;
     fprintf(stderr,"Footnote block is %dpts high (%d lines).\n",
 	    footnotes_height,temp.line_count);
     if (baseline_y>(page_height-bottom_margin)) {
@@ -169,10 +174,26 @@ int line_emit(struct paragraph *p,int line_num)
     }
   }
 
-  // XXX Does the line plus its cross-references require more space than there is?
-  // XXX - add height of cross-references for any verses in this line to height of
+  // Does the line plus its cross-references require more space than there is?
+  // - add height of cross-references for any verses in this line to height of
   // all cross-references and make sure that it can fit above the cross-references.
   if (p==&body_paragraph) {
+    int crossref_height=0;
+    int crossref_para_count=0;
+    int i,n;
+    for(n=0;n<=line_num;n++) {
+      struct line_pieces *line=p->paragraph_lines[n];
+      for(i=0;i<line->piece_count;i++)
+	if (line->crossrefs[i]) {
+	  crossref_para_count++;
+	  crossref_height+=line->crossrefs[i]->total_height;
+	}
+    }
+    if ((crossref_height+(crossref_para_count*crossref_min_vspace))
+	>(page_height-footnotes_total_height-bottom_margin)) {
+      fprintf(stderr,"Breaking page due to cross-references\n");
+      break_page=1;
+    }
   }
   
   if (break_page) {
@@ -190,7 +211,7 @@ int line_emit(struct paragraph *p,int line_num)
 
     if (p==&body_paragraph) {
       output_accumulated_footnotes();
-      output_accumulated_cross_references();
+      output_accumulated_cross_references(p,line_num-1);
       reenumerate_footnotes(p->paragraph_lines[line_num]->line_uid);
       new_empty_page(leftRight);
     }

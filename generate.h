@@ -245,7 +245,8 @@ int reenumerate_footnotes(int line_uid);
 int footnotes_reset();
 char *next_footnote_mark();
 
-int output_accumulated_cross_references();
+int output_accumulated_cross_references(struct paragraph *p,
+					int last_line_to_render);
 int crossreference_start();
 int crossreference_end();
 int crossreference_register_verse(struct paragraph *p,
