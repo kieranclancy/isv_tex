@@ -886,6 +886,9 @@ int main(int argc,char **argv)
   // Start with a right page so that we don't insert a blank one
   leftRight=LR_RIGHT;
 
+  // Create first page so that text widths get calculated.
+  page = HPDF_AddPage(pdf);
+  
   fprintf(stderr,"Loading cross-reference library.\n");
   crossref_hashtable_init();
   tokenise_file("crossrefs.tex");
@@ -897,7 +900,7 @@ int main(int argc,char **argv)
   render_tokens();
   clear_tokens();
   fprintf(stderr,"Rendered Genesis.tex\n");
-  
+
   // Write PDF to disk
   HPDF_SaveToFile(pdf,output_file);
   
