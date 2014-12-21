@@ -888,6 +888,7 @@ int main(int argc,char **argv)
   leftRight=LR_RIGHT;
 
   fprintf(stderr,"Loading cross-reference library.\n");
+  crossref_hashtable_init();
   tokenise_file("crossrefs.tex");
   render_tokens();
   clear_tokens();

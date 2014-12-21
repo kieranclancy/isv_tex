@@ -123,6 +123,15 @@ struct paragraph {
   int poem_subsequent_line;
 
   int last_char_is_a_full_stop;
+
+  // Pointer to next paragraph in hash bin
+  // (used for fast searching for cross-reference paragraphs)  
+  struct paragraph *next;
+  // Source info (used for identifying crossreference paragraphs)
+  char *src_book;
+  int src_chapter;
+  int src_verse;
+  int total_height;
 };
 
 #define MAX_INCLUDE_DEPTH 32
@@ -242,5 +251,6 @@ int crossreference_start();
 int crossreference_end();
 int crossreference_register_verse(struct paragraph *p,
 				  char *book,int chapter, int verse);
+int crossref_hashtable_init();
 
 int set_font(char *nickname);
