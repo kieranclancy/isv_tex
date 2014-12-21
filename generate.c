@@ -208,6 +208,12 @@ int read_profile(char *file)
 	    // Margin between marginpar and edge of page
 	    else if (!strcasecmp(key,"marginpar_margin")) marginpar_margin=atoi(value);
 
+	    // Footnote horizontal rule settings
+	    else if (!strcasecmp(key,"footnoterule_width")) footnote_rule_width=atof(value);
+	    else if (!strcasecmp(key,"footnoterule_length")) footnote_rule_length=atoi(value);
+	    else if (!strcasecmp(key,"footnoterule_ydelta")) footnote_rule_ydelta=atoi(value);
+
+
 	    // Font selection
 	    else if (!strcasecmp(&key[strlen(key)-strlen("_fontsize")],"_fontsize")) {
 	      for(i=0;type_faces[i].font_nickname;i++)

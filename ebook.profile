@@ -67,3 +67,7 @@ footnotemarkinfootnote_ydelta -3
 footnotemarkinfootnote_smallcaps 0
 
 line_spacing 1.2
+
+footnoterule_width 0.5
+footnoterule_length 100
+footnoterule_ydelta 0

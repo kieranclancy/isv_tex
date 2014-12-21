@@ -40,10 +40,13 @@ struct paragraph rendered_footnote_paragraph;
 struct paragraph footnote_paragraphs[MAX_FOOTNOTES_ON_PAGE];
 int footnote_line_numbers[MAX_FOOTNOTES_ON_PAGE];
 
-
 int footnote_stack_depth=-1;
 char footnote_mark_string[4]={'a'-1,0,0,0};
 int footnote_count=0;
+
+float footnote_rule_width=0.5;
+int footnote_rule_length=100;
+int footnote_rule_ydelta=0;
 
 int footnotes_reset()
 {
@@ -233,8 +236,16 @@ int output_accumulated_footnotes()
   
   paragraph_flush(&rendered_footnote_paragraph);
 
-  // XXX Draw horizontal rule
+  // Draw horizontal rule
+  int rule_y=footnotes_y+footnote_rule_ydelta;
+  int y=page_height-rule_y;
+  HPDF_Page_SetRGBStroke(page, 0.0, 0.0, 0.0);
+  HPDF_Page_SetLineWidth(page,footnote_rule_width);
 
+  HPDF_Page_MoveTo(page,left_margin,y);
+  HPDF_Page_LineTo(page,left_margin+footnote_rule_length,y);
+  HPDF_Page_Stroke(page);
+  
   // Restore page settings
   page_y=saved_page_y;
   bottom_margin=saved_bottom_margin;

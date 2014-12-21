@@ -180,6 +180,10 @@ extern struct paragraph footnote_paragraphs[MAX_FOOTNOTES_ON_PAGE];
 extern struct paragraph cross_reference_paragraphs[MAX_VERSES_ON_PAGE];
 extern struct paragraph *target_paragraph;
 
+extern float footnote_rule_width;
+extern int footnote_rule_length;
+extern int footnote_rule_ydelta;
+
 extern int leftRight;
 
 
