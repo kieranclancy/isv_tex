@@ -51,6 +51,7 @@ struct type_face *current_font = NULL;
 struct type_face type_faces[] = {
   {"blackletter","blackletter.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
   {"redletter","redletter.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
+  {"divine","blackletter.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
   {"bookpretitle","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
   {"booktitle","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
   {"header","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
@@ -732,6 +733,8 @@ int render_tokens()
 	    } else
 	      paragraph_push_style(target_paragraph,AL_JUSTIFIED,set_font("footnoteversenum"));
 
+	  } else if (!strcasecmp(token_strings[i],"divine")) {
+	    paragraph_push_style(target_paragraph,AL_JUSTIFIED,set_font("divine"));
 	  } else if (!strcasecmp(token_strings[i],"fbackref")) {
 	    paragraph_push_style(target_paragraph,AL_JUSTIFIED,set_font("footnote"));
 	  } else if (!strcasecmp(token_strings[i],"fbib")) {

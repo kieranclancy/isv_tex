@@ -41,6 +41,9 @@ booktitle_smallcaps 15
 redletter_filename urw-palladio-l-roman.ttf
 blackletter_filename urw-palladio-l-roman.ttf
 blackletter_fontsize 12
+divine_filename urw-palladio-l-roman.ttf
+divine_fontsize 12
+divine_smallcaps 9
 redletter_filename urw-palladio-l-roman.ttf
 redletter_fontsize 12
 versenum_filename urw-palladio-l-roman.ttf
@@ -75,3 +78,6 @@ line_spacing 1.2
 footnoterule_width 0.5
 footnoterule_length 100
 footnoterule_ydelta 0
+
+crossref_min_vspace 6
+crossref_column_width 36
