@@ -181,6 +181,75 @@ int crossref_queue(struct paragraph *p, int y)
   return 0;
 }
 
+int crossref_queue_dump(char *msg)
+{
+  fprintf(stderr,"Cross-ref paragraph list (%s):\n",msg);
+  int i;
+  for(i=0;i<crossref_count;i++)
+    {
+      fprintf(stderr,"  %-2d @ %d -- %d\n",
+	      i,crossrefs_y[i],crossrefs_y[i]+crossrefs_queue[i]->total_height);
+    }
+  return 0;
+}
+
+/* Spread out crossreference paragraphs so that they don't overlap.
+   We will use a simple approach for now:
+   1. From the top to bottom of page, if a cross-ref paragraph will 
+   overlap with the one above it, then shift it down so that it doesn't.
+   2. Do the same from the bottom to the top.
+*/
+int crossref_y_limit=0;
+int crossref_set_ylimit(int y)
+{
+  crossref_y_limit=y;
+  return 0;
+}
+
+int crossrefs_reposition()
+{
+  int i;
+
+  if (!crossref_count) return 0;
+  
+  crossref_queue_dump("initial");
+  for(i=1;i<crossref_count;i++)
+    {
+      int prev_bottom=crossrefs_y[i-1]+crossrefs_queue[i-1]->total_height;
+      int this_top=crossrefs_y[i];
+      int overlap=prev_bottom-this_top+crossref_min_vspace;
+      if (overlap>0) {
+	fprintf(stderr,"Moving crossref %d down %dpts\n",i,overlap);
+	crossrefs_y[i]+=overlap;
+      }      
+    }
+  crossref_queue_dump("after top down");
+
+  // Make sure that cross-refs don't appear beside the footnote paragraph
+  if (crossrefs_y[crossref_count-1]+crossrefs_queue[crossref_count-1]->total_height
+      >crossref_y_limit)
+    {
+      crossrefs_y[crossref_count-1]
+	-=(crossref_y_limit-(crossrefs_y[crossref_count-1]
+			     +crossrefs_queue[crossref_count-1]->total_height));
+    }
+  
+  for(i=crossref_count-1;i>=0;i--)
+    {
+      int this_bottom=crossrefs_y[i]+crossrefs_queue[i]->total_height;
+      int next_top=crossrefs_y[i+1];
+      int overlap=next_top-this_bottom+crossref_min_vspace;
+      if (overlap>0) {
+	fprintf(stderr,"Moving crossref %d up %dpts\n",i,overlap);
+	crossrefs_y[i]-=overlap;
+      }
+    }
+
+  crossref_queue_dump("after bottom up");
+  
+  return 0;
+}
+
 int output_accumulated_cross_references(struct paragraph *p,
 					int max_line_to_render)
 {
@@ -199,11 +268,11 @@ int output_accumulated_cross_references(struct paragraph *p,
     left_margin=2;
     right_margin=page_width-crossref_column_width-2;
   }
+
+  crossrefs_reposition();
   
   int n,l;
   for(n=0;n<crossref_count;n++) {
-    // XXX - Doesn't resolve positional conflicts yet
-    // Advance to next to the relevant verse
     page_y=crossrefs_y[n];
 
     struct paragraph *cr=crossrefs_queue[n];

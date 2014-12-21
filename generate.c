@@ -215,6 +215,9 @@ int read_profile(char *file)
 	    else if (!strcasecmp(key,"footnoterule_length")) footnote_rule_length=atoi(value);
 	    else if (!strcasecmp(key,"footnoterule_ydelta")) footnote_rule_ydelta=atoi(value);
 
+	    // Cross-reference settings
+	    else if (!strcasecmp(key,"crossref_min_vspace")) crossref_min_vspace=atoi(value);
+	    else if (!strcasecmp(key,"crossref_column_width")) crossref_column_width=atoi(value);
 
 	    // Font selection
 	    else if (!strcasecmp(&key[strlen(key)-strlen("_fontsize")],"_fontsize")) {

@@ -263,5 +263,6 @@ int crossreference_register_verse(struct paragraph *p,
 				  char *book,int chapter, int verse);
 int crossref_hashtable_init();
 int crossref_queue(struct paragraph *p, int y);
+int crossref_set_ylimit(int y);
 
 int set_font(char *nickname);

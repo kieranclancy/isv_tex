@@ -238,6 +238,7 @@ int output_accumulated_footnotes()
   if (footnotes_height) {
     // Draw horizontal rule
     int rule_y=footnotes_y+footnote_rule_ydelta;
+    crossref_set_ylimit(rule_y);
     int y=page_height-rule_y;
     HPDF_Page_SetRGBStroke(page, 0.0, 0.0, 0.0);
     HPDF_Page_SetLineWidth(page,footnote_rule_width);
@@ -245,7 +246,7 @@ int output_accumulated_footnotes()
     HPDF_Page_MoveTo(page,left_margin,y);
     HPDF_Page_LineTo(page,left_margin+footnote_rule_length,y);
     HPDF_Page_Stroke(page);
-  }
+  } else crossref_set_ylimit(page_height-bottom_margin);
   
   // Restore page settings
   page_y=saved_page_y;
