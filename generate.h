@@ -159,6 +159,7 @@ extern struct type_face type_faces[];
 extern int footnote_stack_depth;
 extern char footnote_mark_string[4];
 extern int footnote_count;
+extern int footnote_mode;
 
 extern int debug_vspace;
 extern int debug_vspace_x;
@@ -223,6 +224,8 @@ int begin_footnote();
 int end_footnote();
 int output_accumulated_footnotes();
 int reenumerate_footnotes(int line_uid);
+int footnotes_reset();
+char *next_footnote_mark();
 
 int output_accumulated_cross_references();
 
