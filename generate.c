@@ -614,8 +614,8 @@ int render_tokens()
 	  if (!strcasecmp(token_strings[i],"crossref")) {
 	    // Crossreferences look like:
 	    // \crossref{book}{chapter}{verse}{cross-references}
-	    // The token stream doesn't have the {'s, so we need to
-	    // parse out a TT_TEXT, TT_ENDTAG, TT_TEXT, TT_ENDTAG
+	    // We need to parse out a TT_TAG, TT_TEXT, TT_ENDTAG, TT_TAG,
+	    // TT_TEXT, TT_ENDTAG
 	    // and then the cross-reference text follows normally.
 	    // cross-reference text is not permitted to have any tags inside
 	    // to simplify the state control machinery
@@ -809,8 +809,21 @@ int render_tokens()
 	      exit(-1);
 	    }
 	  } else {	    
-	    fprintf(stderr,"Warning: unknown tag \%s (%d styles on the stack.)\n",
+	    fprintf(stderr,"Warning: unknown tag \"\\%s\" (%d styles on the stack.)\n",
 		    token_strings[i],type_face_stack_pointer);
+	    int j=i-10;
+	    fprintf(stderr,"  Context: ");
+	    if (j<0) j=0;
+	    for(;(j<i+10)&&(j<token_count);j++) {
+	      char *s=token_strings[j]?token_strings[j]:"";
+	      switch(token_types[j]) {
+	      case TT_TEXT: fprintf(stderr,"%s",s); break;
+	      case TT_TAG: fprintf(stderr,"\\%s",s); break;
+	      case TT_SPACE: fprintf(stderr," "); break;
+	      case TT_PARAGRAPH: fprintf(stderr,"\n\n    "); break;
+	      }
+	    }
+	    fprintf(stderr,"\n");
 	    paragraph_push_style(target_paragraph,AL_LEFT,set_font("blackletter"));
 	  }	  
 	}

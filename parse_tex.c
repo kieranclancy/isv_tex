@@ -154,16 +154,22 @@ int tokenise_file(char *filename)
 
 	break;
       case '{':
-	// start of tag token
-	token_type=TT_TAG;
-	next_file_token(p,token_type,token_len,token_text);
+	// start of tag token: output accumulated text, and then
+	// an empty-named tag
+	token_text[token_len]=0;
+	if (token_len) {
+	  next_file_token(p,token_type,token_len,token_text);
+	}
+	if (token_type!=TT_TAG) next_file_token(p,TT_TAG,0,token_text);
 	token_len=0;
 	token_type=TT_TEXT;
+	token_text[0]=0;
 	break;
       case '}':
 	// end of tag token
 	if (token_len) {
 	  // Got a token, so pass it up, and reset token status
+	  token_text[token_len]=0;
 	  next_file_token(p,token_type,token_len,token_text);
 	  token_len=0;
 	  token_type=TT_TEXT;
