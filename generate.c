@@ -747,7 +747,9 @@ int render_tokens()
 
 	  } else if (!strcasecmp(token_strings[i],"ldots")) {
 	    // Insert an elipsis
-	    paragraph_push_style(target_paragraph,AL_LEFT,set_font(current_font->font_nickname));
+	    paragraph_push_style(target_paragraph,
+				 target_paragraph->current_line->alignment,
+				 set_font(current_font->font_nickname));
 	    paragraph_append_text(target_paragraph,"...",0,0);
 	  } else if (!strcasecmp(token_strings[i],"divine")) {
 	    paragraph_push_style(target_paragraph,AL_JUSTIFIED,set_font("divine"));
