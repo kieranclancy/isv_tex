@@ -106,6 +106,7 @@ int tokenise_file(char *filename)
   int i;
 #define PS_NORMAL 0
 #define PS_SLASH 1
+#define PS_COMMENT 2
   int parse_state=PS_NORMAL;
 
   int token_len=0;
@@ -117,6 +118,12 @@ int tokenise_file(char *filename)
   for(i=0;i<fileLength;i++) {
     if (file[i]=='\n'||file[i]=='\r') line_num++;
     switch(parse_state) {
+    case PS_COMMENT:
+      switch(file[i]) {
+      case '\r': case '\n':
+	parse_state=PS_NORMAL;
+      }
+      break;
     case PS_NORMAL:
       switch(file[i]) {
       case '\\':
@@ -164,13 +171,29 @@ int tokenise_file(char *filename)
 	// and also report the end of tag
 	next_file_token(p,TT_ENDTAG,0,token_text);
 	break;
+      case 'k':
+	token_text[token_len]=0;
+	// FALL THROUGH
       default:
-	if (token_len<1023) token_text[token_len++]=file[i];
+	if (token_type==TT_TAG&&(!strcmp(token_text,"allowbreak")))
+	  {
+	    // \allowbreak - implemented by emitting nothing -- the presence
+	    // of the tag has introduced the break.
+	    token_type=TT_TEXT;
+	    token_len=0;
+	  }
 	else {
-	  include_show_stack();
-	  fprintf(stderr,"%s:%d:Token or line too long.\n",
-		  file,line_num);
-	  exit(-1);
+	  if (file[i]=='%'&&(token_len==0)) {
+	    // Start of a comment
+	    parse_state=PS_COMMENT;
+	  }
+	  else if (token_len<1023) token_text[token_len++]=file[i];
+	  else {
+	    include_show_stack();
+	    fprintf(stderr,"%s:%d:Token or line too long.\n",
+		    file,line_num);
+	    exit(-1);
+	  }
 	}
 	break;
       }
@@ -178,7 +201,7 @@ int tokenise_file(char *filename)
     case PS_SLASH:
       switch(file[i]) {
 	// Check for latex escape characters (literals)
-      case '@': case '&':
+      case '@': case '&': case '%':
 	parse_state = PS_NORMAL;
 	token_text[token_len++]=file[i];
 	break;
