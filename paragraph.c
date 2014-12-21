@@ -216,6 +216,7 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
   p->current_line->fonts[p->current_line->piece_count]=current_font;
   p->current_line->actualsizes[p->current_line->piece_count]=size;
   p->current_line->piece_widths[p->current_line->piece_count]=text_width;
+  p->current_line->crossrefs[p->current_line->piece_count]=NULL;
   if (strcmp(text," "))
     p->current_line->piece_is_elastic[p->current_line->piece_count]=0;
   else
@@ -259,6 +260,8 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
 	    =last_line->piece_is_elastic[i];
 	  p->current_line->piece_baseline[p->current_line->piece_count]
 	    =last_line->piece_baseline[i];
+	  p->current_line->crossrefs[p->current_line->piece_count]
+	    =last_line->crossrefs[i];
 	  p->current_line->piece_count++;	  
 	}
       line_recalculate_width(p->current_line);

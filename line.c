@@ -350,6 +350,7 @@ int line_remove_leading_space(struct line_pieces *l)
       l->piece_is_elastic[j]=l->piece_is_elastic[j+i];
       l->piece_baseline[j]=l->piece_baseline[j+i];
       l->piece_widths[j]=l->piece_widths[j+i];
+      l->crossrefs[j]=l->crossrefs[j+i];
     }
     
     l->piece_count-=i;

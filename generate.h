@@ -92,7 +92,7 @@ struct line_pieces {
   // Where the piece sits with respect to the nominal baseline
   // (used for placing super- and sub-scripts).
   int piece_baseline[MAX_LINE_PIECES];
-  
+  struct paragraph *crossrefs[MAX_LINE_PIECES];
  
   // We try adding a word first, and if it doesn't fit,
   // then we re-wind to the last checkpoint, flush that
