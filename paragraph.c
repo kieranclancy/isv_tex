@@ -46,8 +46,8 @@ int paragraph_clear(struct paragraph *p)
 
   // Free any line structures in this paragraph
   int i;
-  fprintf(stderr,"Freeing %d lines in paragraph %p\n",
-	  p->line_count,p);
+  if (0) fprintf(stderr,"Freeing %d lines in paragraph %p\n",
+		 p->line_count,p);
   for(i=0;i<p->line_count;i++) {
     line_free(p->paragraph_lines[i]);
     p->paragraph_lines[i]=NULL;
@@ -60,7 +60,7 @@ int paragraph_clear(struct paragraph *p)
 
 int paragraph_flush(struct paragraph *p)
 {  
-  fprintf(stderr,"%s():\n",__FUNCTION__);
+  //  fprintf(stderr,"%s():\n",__FUNCTION__);
 
   // First flush the current line
   current_line_flush(p);
@@ -122,7 +122,7 @@ int paragraph_flush(struct paragraph *p)
 */
 int paragraph_append_line(struct paragraph *p,struct line_pieces *line)
 {
-  fprintf(stderr,"%s()\n",__FUNCTION__);
+  // fprintf(stderr,"%s()\n",__FUNCTION__);
 
   if (p->line_count>=MAX_LINES_IN_PARAGRAPH) {
     fprintf(stderr,"Too many lines in paragraph.\n");
@@ -137,7 +137,7 @@ int paragraph_append_line(struct paragraph *p,struct line_pieces *line)
 int line_uid_counter=0;
 int paragraph_setup_next_line(struct paragraph *p)
 {
-  fprintf(stderr,"%s()\n",__FUNCTION__);
+  //  fprintf(stderr,"%s()\n",__FUNCTION__);
 
   // Append any line in progress before creating fresh line
   if (p->current_line) paragraph_append_line(p,p->current_line);
@@ -152,9 +152,9 @@ int paragraph_setup_next_line(struct paragraph *p)
 
   // If there is a dropchar margin in effect, then apply it.
   if (p->drop_char_margin_line_count>0) {
-    fprintf(stderr,
-	    "Applying dropchar margin of %dpt (%d more lines, including this one)\n",
-	    p->drop_char_left_margin,p->drop_char_margin_line_count);
+    if (0) fprintf(stderr,
+		   "Applying dropchar margin of %dpt (%d more lines, including this one)\n",
+		   p->drop_char_left_margin,p->drop_char_margin_line_count);
     p->current_line->max_line_width
       =page_width-left_margin-right_margin-p->drop_char_left_margin;
     p->current_line->left_margin=p->drop_char_left_margin;
@@ -162,8 +162,8 @@ int paragraph_setup_next_line(struct paragraph *p)
   }
 
   line_apply_poetry_margin(p,p->current_line);
-  fprintf(stderr,"New line left margin=%dpts, max_width=%dpts\n",
-	  p->current_line->left_margin,p->current_line->max_line_width);
+  if (0) fprintf(stderr,"New line left margin=%dpts, max_width=%dpts\n",
+		 p->current_line->left_margin,p->current_line->max_line_width);
   
   return 0;
 }
@@ -177,7 +177,7 @@ int paragraph_set_widow_counter(struct paragraph *p,int lines)
 int paragraph_append_characters(struct paragraph *p,char *text,int size,int baseline,
 				int forceSpaceAtStartOfLine)
 {
-  fprintf(stderr,"%s(\"%s\",%d)\n",__FUNCTION__,text,size);
+  // fprintf(stderr,"%s(\"%s\",%d)\n",__FUNCTION__,text,size);
   
   if (!p->current_line) paragraph_setup_next_line(p);
 
@@ -190,7 +190,7 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
   if (p->poem_level&&(!p->current_line->piece_count)
       &&!strcmp("versenum",current_font->font_nickname)) {
     is_poetry_leading_verse=1;
-    fprintf(stderr,"Placing verse number in margin at start of poem line\n");
+    // fprintf(stderr,"Placing verse number in margin at start of poem line\n");
   } else {  
     // Make sure the line has enough space
     if (p->current_line->piece_count>=MAX_LINE_PIECES) {
@@ -206,9 +206,9 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
   HPDF_Page_SetFontAndSize (page, current_font->font, size);
   text_height = HPDF_Font_GetCapHeight(current_font->font) * size/1000;
   text_width = HPDF_Page_TextWidth(page,text);
-  fprintf(stderr,"  text_width=%.1f, height=%.1f, font=%p('%s'), size=%d, text='%s'\n",
-	  text_width,text_height,current_font->font,
-	  current_font->font_nickname,size,text);
+  if (0) fprintf(stderr,"  text_width=%.1f, height=%.1f, font=%p('%s'), size=%d, text='%s'\n",
+		 text_width,text_height,current_font->font,
+		 current_font->font_nickname,size,text);
   
   // Place initial verse number in margin for poetry.
   if (is_poetry_leading_verse) {
@@ -231,9 +231,9 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
   line_recalculate_width(p->current_line);
 
   if (p->current_line->line_width_so_far>=p->current_line->max_line_width) {
-    fprintf(stderr,"Breaking line at %1.f points wide (max width=%dpts).\n",
-	    p->current_line->line_width_so_far,
-	    p->current_line->max_line_width);
+    if (0) fprintf(stderr,"Breaking line at %1.f points wide (max width=%dpts).\n",
+		   p->current_line->line_width_so_far,
+		   p->current_line->max_line_width);
     // Line is too long.
     if (p->current_line->checkpoint) {
       // Rewind to checkpoint, add this line
@@ -246,8 +246,8 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
       paragraph_append_line(p,p->current_line);
       paragraph_setup_next_line(p);
       p->current_line->alignment=last_line->alignment;
-      fprintf(stderr,"  new line is indented %dpts\n",
-	      p->current_line->left_margin);
+      if (0) fprintf(stderr,"  new line is indented %dpts\n",
+		     p->current_line->left_margin);
       // Now populate new line with the left overs from the old line
       int i;
       for(i=saved_checkpoint;i<saved_piece_count;i++)
@@ -270,10 +270,10 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
 	}
       line_recalculate_width(p->current_line);
       line_recalculate_width(last_line);
-      fprintf(stderr,"  after breaking, the old line is %1.fpts wide\n",
-	      last_line->line_width_so_far);
-      fprintf(stderr,"  after breaking, the new line is %1.fpts wide\n",
-	      p->current_line->line_width_so_far);
+      // fprintf(stderr,"  after breaking, the old line is %1.fpts wide\n",
+      //         last_line->line_width_so_far);
+      // fprintf(stderr,"  after breaking, the new line is %1.fpts wide\n",
+      //         p->current_line->line_width_so_far);
       
       // Inherit alignment of previous line
       p->current_line->alignment=last_line->alignment;
@@ -532,8 +532,8 @@ int paragraph_dump(struct paragraph *p)
 
 int paragraph_append(struct paragraph *dst,struct paragraph *src)
 {
-  fprintf(stderr,"%s()\n",__FUNCTION__);
-  paragraph_dump(dst);
+  // fprintf(stderr,"%s()\n",__FUNCTION__);
+  // paragraph_dump(dst);
   
   int i,j;
 
@@ -575,8 +575,8 @@ int paragraph_append(struct paragraph *dst,struct paragraph *src)
     }
   }
 
-  fprintf(stderr,"Paragraph after appending is:\n");
-  paragraph_dump(dst);
+  // fprintf(stderr,"Paragraph after appending is:\n");
+  // paragraph_dump(dst);
 
   
   return 0;
@@ -584,7 +584,7 @@ int paragraph_append(struct paragraph *dst,struct paragraph *src)
 
 int paragraph_height(struct paragraph *p)
 {
-  fprintf(stderr,"%s():\n",__FUNCTION__);
+  // fprintf(stderr,"%s():\n",__FUNCTION__);
 
   float height=0;
   int i;
