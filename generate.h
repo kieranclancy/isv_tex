@@ -197,7 +197,6 @@ extern char *crossreference_book;
 extern char *crossreference_chapter;
 extern char *crossreference_verse;
 extern int crossreference_mode;
-extern struct paragraph crossreference_paragraph;
 
 extern int leftRight;
 

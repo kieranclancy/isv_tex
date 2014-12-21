@@ -39,7 +39,6 @@ char *crossreference_book=NULL;
 char *crossreference_chapter=NULL;
 char *crossreference_verse=NULL;
 int crossreference_mode=0;
-struct paragraph crossreference_paragraph;
 
 int saved_left_margin;
 int saved_right_margin;
@@ -60,7 +59,7 @@ int crossreference_start()
   left_margin=0;
   right_margin=(page_width-crossref_column_width);
 
-  target_paragraph=&crossreference_paragraph;
+  target_paragraph=calloc(sizeof(struct paragraph),1);
   paragraph_clear(target_paragraph);
 
   paragraph_push_style(target_paragraph,AL_JUSTIFIED,set_font("crossref"));
@@ -88,12 +87,11 @@ int crossref_calc_hash(char *book,int chapter,int verse)
 
 int crossreference_end()
 {
-  current_line_flush(&crossreference_paragraph);
-
   // Clone paragraph, set info, and add into hash table of
   // cross-reference paragraphs
-  struct paragraph *c=calloc(sizeof(struct paragraph),1);
-  paragraph_clone(c,&crossreference_paragraph);
+  struct paragraph *c=target_paragraph;
+
+  current_line_flush(c);
 
   c->src_book=strdup(crossreference_book);
   c->src_chapter=atoi(crossreference_chapter);
@@ -110,10 +108,7 @@ int crossreference_end()
 	  c->src_book,c->src_chapter,c->src_verse,bin);
   paragraph_dump(c);
 
-  paragraph_pop_style(target_paragraph);
-
-  // Clear crossreference paragraph ready for the next one.
-  paragraph_clear(&crossreference_paragraph);
+  paragraph_pop_style(c);
   
   free(crossreference_book); crossreference_book=NULL;
   free(crossreference_chapter); crossreference_chapter=NULL;

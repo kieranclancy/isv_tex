@@ -200,14 +200,15 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
   }
 
   // Get width of piece
-  float text_width, text_height;
+  float text_width;
+  float text_height;
   
   HPDF_Page_SetFontAndSize (page, current_font->font, size);
-  text_width = HPDF_Page_TextWidth(page,text);
   text_height = HPDF_Font_GetCapHeight(current_font->font) * size/1000;
-  fprintf(stderr,"  text_width=%.1f, font=%p('%s'), size=%d\n",
-	  text_width,current_font->font,
-	  current_font->font_nickname,size);
+  text_width = HPDF_Page_TextWidth(page,text);
+  fprintf(stderr,"  text_width=%.1f, height=%.1f, font=%p('%s'), size=%d, text='%s'\n",
+	  text_width,text_height,current_font->font,
+	  current_font->font_nickname,size,text);
   
   // Place initial verse number in margin for poetry.
   if (is_poetry_leading_verse) {

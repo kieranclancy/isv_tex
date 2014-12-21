@@ -641,9 +641,7 @@ int render_tokens()
 	      fprintf(stderr,"\\crossref must be followed by {book}{chapter}{verse}{cross-reference list} (step %d, saw token type %d)\n",__LINE__,token_types[i]); exit(-1); }
 	    i++; if (token_types[i]!=TT_TAG||token_strings[i]) {
 	      fprintf(stderr,"\\crossref must be followed by {book}{chapter}{verse}{cross-reference list} (step %d, saw token type %d)\n",__LINE__,token_types[i]); exit(-1); }
-	    crossreference_mode=1;
 	    crossreference_start();
-	    target_paragraph=&crossreference_paragraph;
 	  } else if (!strcasecmp(token_strings[i],"bookheader")) {
 	    // Set booktab text to upper case version of this tag and
 	    // begin a new page
