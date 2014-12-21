@@ -430,7 +430,15 @@ int paragraph_push_style(struct paragraph *p, int font_alignment,int font_index)
   if (type_face_stack_pointer<TYPE_FACE_STACK_DEPTH)
     type_face_stack[type_face_stack_pointer++]=current_font;
   else {
-    fprintf(stderr,"Typeface stack overflowed.\n"); exit(-1);
+    fprintf(stderr,"Typeface stack overflowed.\n");
+    fprintf(stderr,"Typeface stack contents:\n");
+    int i;
+    for(i=0;i<type_face_stack_pointer;i++) {
+      fprintf(stderr,"  %-2d: '%s'\n",
+	      i,type_face_stack[i]->font_nickname);
+    }
+    
+    exit(-1);
   }
 
   current_font=&type_faces[font_index];
