@@ -105,6 +105,10 @@ struct line_pieces {
   float line_height;
   int ascent;
   int descent;
+
+  // The position on the page where the line has been rendered.
+  // (used to try to match position of cross-references)
+  int on_page_y;
 };
 
 // Current paragraph

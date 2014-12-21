@@ -267,6 +267,7 @@ int line_emit(struct paragraph *p,int line_num)
   }
   
   // Now draw the pieces
+  l->on_page_y=page_y;
   HPDF_Page_BeginText (page);
   HPDF_Page_SetTextRenderingMode (page, HPDF_FILL);
   float x=0;
