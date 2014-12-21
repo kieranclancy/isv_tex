@@ -40,3 +40,21 @@ char *crossreference_chapter=NULL;
 char *crossreference_verse=NULL;
 int crossreference_mode=0;
 struct paragraph crossreference_paragraph;
+
+int crossreference_start()
+{
+  fprintf(stderr,"Starting to collect cross-references for %s %s:%s\n",
+	  crossreference_book,
+	  crossreference_chapter,
+	  crossreference_verse);
+  return 0;
+}
+
+int crossreference_end()
+{
+  free(crossreference_book); crossreference_book=NULL;
+  free(crossreference_chapter); crossreference_chapter=NULL;
+  free(crossreference_verse); crossreference_verse=NULL;
+  
+  return 0;
+}

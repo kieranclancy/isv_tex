@@ -238,5 +238,7 @@ int footnotes_reset();
 char *next_footnote_mark();
 
 int output_accumulated_cross_references();
+int crossreference_start();
+int crossreference_end();
 
 int set_font(char *nickname);
