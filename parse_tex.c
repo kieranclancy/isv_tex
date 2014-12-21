@@ -173,15 +173,21 @@ int tokenise_file(char *filename)
 	break;
       default:
 	token_text[token_len]=0;
-	if (token_type==TT_TAG&&(!strcmp(token_text,"allowbreak")))
+	if (token_type==TT_TAG&&(!strcmp(token_text,"allowbrea"))&&(file[i]=='k'))
 	  {
 	    // \allowbreak - implemented by emitting nothing -- the presence
 	    // of the tag has introduced the break.
 	    token_type=TT_TEXT;
-	    token_len=1;
-	    token_text[0]=file[i];
+	    token_len=0;
 	  }
-	else {
+	else if (file[i]==',') {
+	  // Break text AFTER each comma to allow line wrapping
+	  token_text[token_len++]=',';
+	  token_text[token_len]=0;
+	  next_file_token(p,token_type,token_len,token_text);
+	  token_type=TT_TEXT;
+	  token_len=0;
+	} else {
 	  if (file[i]=='%'&&(token_len==0)) {
 	    // Start of a comment
 	    parse_state=PS_COMMENT;
