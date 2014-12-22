@@ -73,8 +73,8 @@ int line_calculate_height(struct line_pieces *l)
       int ascender_height=HPDF_Font_GetAscent(l->fonts[i]->font)*l->fonts[i]->font_size/1000;
       // Get descender depth of font
       int descender_depth=HPDF_Font_GetDescent(l->fonts[i]->font)*l->fonts[i]->font_size/1000;
-      fprintf(stderr,"  '%s' is %.1fpt wide.\n",
-	      l->pieces[i],l->piece_widths[i]);
+      if (0) fprintf(stderr,"  '%s' is %.1fpt wide.\n",
+		     l->pieces[i],l->piece_widths[i]);
       if (descender_depth<0) descender_depth=-descender_depth;
       // Don't count the space used by dropchars, since it gets covered by
       // the extra line(s) of the dropchar.
@@ -120,7 +120,7 @@ int line_free(struct line_pieces *l)
 {
   int i;
   if (!l) return 0;
-  fprintf(stderr,"Freeing line with uid = %d\n",l->line_uid);
+  if (0) fprintf(stderr,"Freeing line with uid = %d\n",l->line_uid);
   for(i=0;i<l->piece_count;i++) free(l->pieces[i]);
   free(l);
   return 0;
