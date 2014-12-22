@@ -204,6 +204,9 @@ extern int crossreference_mode;
 extern int crossref_min_vspace;
 extern int crossref_column_width;
 
+extern int page_to_record;
+extern char *recording_filename;
+
 // Are we drawing a left or right face, or neither
 #define LR_LEFT -1
 #define LR_RIGHT 1

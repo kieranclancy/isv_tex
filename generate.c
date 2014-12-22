@@ -187,6 +187,10 @@ int read_profile(char *file)
 	      include_pop();
 	    }
 
+	    else if (!strcasecmp(key,"recording_filename")) recording_filename=strdup(value);
+	    else if (!strcasecmp(key,"recording_pagenumber")) page_to_record=atoi(value);
+
+
 	    else if (!strcasecmp(key,"output_file")) output_file=strdup(value);
 
 	    // Does the output have left and right faces?

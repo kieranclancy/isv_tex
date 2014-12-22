@@ -35,18 +35,53 @@
 #include "hpdf.h"
 #include "generate.h"
 
+char *recording_filename=NULL;
+int page_to_record=-1;
+int current_page=0;
+
+FILE *r=NULL;
+int record_begin_recording()
+{
+  if (recording_filename) r=fopen(recording_filename,"w+");
+  return 0;
+}
+
+int record_end_recording()
+{
+  fclose(r);
+  r=NULL;
+  return 0;
+}
+
+int record_write_item(char *item)
+{
+  if (r) fprintf(r,"%s",item);
+  return 0;
+}
+
+char item[1024];
+
 int record_newpage()
 {
+  if (current_page==page_to_record) record_end_recording();
+  current_page++;
+  if (current_page==page_to_record) record_begin_recording();
   return 0;
 }
 
 int record_text(struct type_face *font,char *text,int x,int y,int radians)
 {
+  if (current_page==page_to_record) {
+    snprintf(item,1024,"text:%d:%d:%d:%s\n",x,y,radians,text);
+    record_write_item(item);
+  }
   return 0;
 }
 
 int record_fillcolour(float red,float green,float blue)
 {
+  snprintf(item,1024,"fillcolour:%f:%f:%f\n",red,green,blue);
+  record_write_item(item);
   return 0;
 }
 
@@ -57,5 +92,7 @@ int record_text_end()
 
 int record_rectangle(int x,int y,int width,int height)
 {
+  snprintf(item,1024,"rectangle:%d:%d:%d:%d\n",x,y,width,height);
+  record_write_item(item);
   return 0;
 }
