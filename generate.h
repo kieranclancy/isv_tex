@@ -275,4 +275,9 @@ int record_fillcolour(float red,float green,float blue);
 int record_text_end();
 int record_newpage();
 int record_rectangle(int x,int y,int width,int height);
+
 int run_tests(char *testdir);
+int run_test();
+int finish_job();
+int setup_job();
+int typeset_file(char *file);

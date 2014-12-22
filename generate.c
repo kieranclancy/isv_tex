@@ -891,13 +891,28 @@ int main(int argc,char **argv)
 {
   if ((argc<2)||(strcasecmp(argv[1],"typeset")&&strcasecmp(argv[1],"test")))
     {
-      fprintf(stderr,"usage: generate typeset <profile>\n");
+      fprintf(stderr,"usage: generate typeset <profile> [<file.tex> ...>\n");
       fprintf(stderr,"    or generate test <testdir>\n");
       exit(-1);
     }
 
   if (!strcasecmp(argv[1],"test")) return(run_tests(argv[2]));
 
+  read_profile(argv[2]);
+
+  setup_job();
+
+  int i;
+  for(i=3;i<argc;i++)
+    {
+      typeset_file(argv[i]);
+    }
+
+  finish_job();
+}
+
+int setup_job()
+{
   int error = FT_Init_FreeType( &library );
   if ( error )
     {
@@ -943,15 +958,26 @@ int main(int argc,char **argv)
   tokenise_file("crossrefs.tex");
   render_tokens();
   clear_tokens();
-  
-  tokenise_file("books/01_Genesis.tex");
-  fprintf(stderr,"Parsed Genesis.tex\n");
+
+  return 0;
+}
+
+int typeset_file(char *file)
+{
+  tokenise_file(file);
+  fprintf(stderr,"Parsed %s\n",file);
   render_tokens();
   clear_tokens();
-  fprintf(stderr,"Rendered Genesis.tex\n");
+  fprintf(stderr,"Rendered %s\n",file);
+  return 0;
+}
 
+int finish_job()
+{
   // Write PDF to disk
   HPDF_SaveToFile(pdf,output_file);
+  HPDF_Free(pdf);
+  pdf=NULL;
   
   return 0;
 }
