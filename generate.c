@@ -889,13 +889,14 @@ int render_tokens()
 
 int main(int argc,char **argv)
 {
-  if (argc==2) 
-    read_profile(argv[1]);
-  else
+  if ((argc<2)||(strcasecmp(argv[1],"typeset")&&strcasecmp(argv[1],"test")))
     {
-      fprintf(stderr,"usage: generate <profile>\n");
+      fprintf(stderr,"usage: generate typeset <profile>\n");
+      fprintf(stderr,"    or generate test <testdir>\n");
       exit(-1);
     }
+
+  if (!strcasecmp(argv[1],"test")) return(run_test(argv[2]));
 
   int error = FT_Init_FreeType( &library );
   if ( error )

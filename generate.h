@@ -275,3 +275,4 @@ int record_fillcolour(float red,float green,float blue);
 int record_text_end();
 int record_newpage();
 int record_rectangle(int x,int y,int width,int height);
+int run_test(char *testdir);
