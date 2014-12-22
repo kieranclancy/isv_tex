@@ -23,7 +23,26 @@
 
 */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <strings.h>
+#include <string.h>
+#include <unistd.h>
+#include <math.h>
+#include <ctype.h>
+#include <dirent.h>
+#include "ft2build.h"
+#include FT_FREETYPE_H
+#include "hpdf.h"
+#include "generate.h"
+
 int run_tests(char *testdir)
 {
+  DIR *d=opendir(testdir);
+  if (!d) {
+    perror("Could not open test directory");
+    exit(-1);
+  }
+  
   return 0;
 }
