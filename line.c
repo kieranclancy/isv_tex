@@ -298,7 +298,8 @@ int line_emit(struct paragraph *p,int line_num)
     HPDF_Page_SetRGBFill(page,l->fonts[i]->red,l->fonts[i]->green,l->fonts[i]->blue);
     HPDF_Page_TextOut(page,left_margin+x,y-l->piece_baseline[i],
 		      l->pieces[i]);
-    record_text(l->fonts[i],l->pieces[i],left_margin+x,y-l->piece_baseline[i],0);
+    record_text(l->fonts[i],l->actualsizes[i],
+		l->pieces[i],left_margin+x,y-l->piece_baseline[i],0);
     x=x+l->piece_widths[i];
     // Don't adjust line gap for dropchars
     if (l->fonts[i]->line_count==1) {

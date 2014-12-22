@@ -468,7 +468,8 @@ int new_empty_page(int leftRight)
 			     cos(radians), sin(radians),
 			     -sin(radians), cos(radians),
                 x, y);
-    record_text(&type_faces[index],booktab_text,x,y,radians);
+    record_text(&type_faces[index],type_faces[index].font_size,
+		booktab_text,x,y,radians);
     HPDF_Page_ShowText (page, booktab_text);
     HPDF_Page_EndText (page);
     record_text_end();

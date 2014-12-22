@@ -69,10 +69,13 @@ int record_newpage()
   return 0;
 }
 
-int record_text(struct type_face *font,char *text,int x,int y,int radians)
+int record_text(struct type_face *font,int text_size,char *text,
+		int x,int y,int radians)
 {
   if (current_page==page_to_record) {
-    snprintf(item,1024,"text:%d:%d:%d:%s\n",x,y,radians,text);
+    snprintf(item,1024,"text:%s:%d:%d:%d:%d:%s\n",
+	     font->font_nickname,text_size,
+	     x,y,radians,text);
     record_write_item(item);
   }
   return 0;
