@@ -36,6 +36,11 @@
 #include "hpdf.h"
 #include "generate.h"
 
+int run_test()
+{
+  return 0;
+}
+
 int run_tests(char *testdir)
 {
   DIR *d=opendir(testdir);
@@ -54,7 +59,7 @@ int run_tests(char *testdir)
 
       // Enter individual test dir
       if (chdir(de->d_name)==0) {
-      
+	run_test();
       
 	// step back out to directory containing list of tests
 	chdir("..");
