@@ -267,28 +267,30 @@ int line_emit(struct paragraph *p,int line_num)
   
   // Add extra spaces to justified lines, except for the last
   // line of a paragraph.
-  if ((l->alignment==AL_JUSTIFIED)
-      &&(p->line_count>(line_num+1))) {
+  if (l->alignment==AL_JUSTIFIED) {
 
     line_recalculate_width(l);
     line_remove_leading_space(l);
-    
-    float points_to_add=l->max_line_width-l->line_width_so_far; // -l->left_margin;
-    
-    fprintf(stderr,"Justification requires sharing of %.1fpts.\n",points_to_add);
-    fprintf(stderr,"  used=%.1fpts, max_width=%dpts\n",
-	    l->line_width_so_far,l->max_line_width);
-    if (points_to_add>0) {
-      int elastic_pieces=0;
-      for(i=0;i<l->piece_count;i++) if (l->piece_is_elastic[i]) elastic_pieces++;
-      if (elastic_pieces) {
-	float slice=points_to_add/elastic_pieces;
-	fprintf(stderr,
-		"  There are %d elastic pieces to share this among (%.1fpts each).\n",
-		elastic_pieces,slice);
-	for(i=0;i<l->piece_count;i++)
-	  if (l->piece_is_elastic[i]) l->piece_widths[i]+=slice;
-	l->line_width_so_far=l->max_line_width;
+
+    if (p->line_count>(line_num+1)) {
+
+      float points_to_add=l->max_line_width-l->line_width_so_far; // -l->left_margin;
+      
+      fprintf(stderr,"Justification requires sharing of %.1fpts.\n",points_to_add);
+      fprintf(stderr,"  used=%.1fpts, max_width=%dpts\n",
+	      l->line_width_so_far,l->max_line_width);
+      if (points_to_add>0) {
+	int elastic_pieces=0;
+	for(i=0;i<l->piece_count;i++) if (l->piece_is_elastic[i]) elastic_pieces++;
+	if (elastic_pieces) {
+	  float slice=points_to_add/elastic_pieces;
+	  fprintf(stderr,
+		  "  There are %d elastic pieces to share this among (%.1fpts each).\n",
+		  elastic_pieces,slice);
+	  for(i=0;i<l->piece_count;i++)
+	    if (l->piece_is_elastic[i]) l->piece_widths[i]+=slice;
+	  l->line_width_so_far=l->max_line_width;
+	}
       }
     }
   }
