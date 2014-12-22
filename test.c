@@ -44,8 +44,16 @@ int do_files_differ(char *path1,char *path2)
  if (!f2) {  return -1;  };
  int samefile = 1;
  int c1, c2;
- while ((samefile!=0) && (((c1 = getc(f1)) != EOF) || ((c2 = getc(f2)) != EOF)))
-   if (c1 != c2) samefile = 0;
+ int offset=0;
+ while (samefile) {
+   c1 = getc(f1);
+   c2 = getc(f2);
+   if (c1 != c2) {
+     samefile = 0;
+   }
+   if (c1==EOF) break;
+   offset++;
+ }
  fclose (f1), fclose (f2);
 
  if (samefile) return 0; else return 1;
