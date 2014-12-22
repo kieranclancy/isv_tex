@@ -66,7 +66,10 @@ int footnotes_reset()
 
 int generate_footnote_mark(int n)
 {
-  if (n<27) footnote_mark_string[0]='a'+(n);
+  if (n<27) {
+    footnote_mark_string[0]='a'+(n);
+    footnote_mark_string[1]=0;
+  }
   else {
     n-=26;
     footnote_mark_string[0]='a'+(n/26);
