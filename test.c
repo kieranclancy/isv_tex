@@ -43,6 +43,23 @@ int run_tests(char *testdir)
     perror("Could not open test directory");
     exit(-1);
   }
+  struct dirent *de=NULL;
+
+  chdir(testdir);
+  
+  de=readdir(d);
+  while(de) {
+    if (de->d_name[0]!='.') {
+      // Enter individual test dir
+      chdir(de->d_name);
+
+      fprintf(stderr,"TEST: %s\n",de->d_name);
+      
+      // step back out to directory containing list of tests
+      chdir("..");
+    }
+    de=readdir(d);    
+  }
   
   return 0;
 }
