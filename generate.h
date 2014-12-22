@@ -266,3 +266,9 @@ int crossref_queue(struct paragraph *p, int y);
 int crossref_set_ylimit(int y);
 
 int set_font(char *nickname);
+
+int record_text(struct type_face *font, char *text,int x,int y,int radians);
+int record_fillcolour(float red,float green,float blue);
+int record_text_end();
+int record_newpage();
+int record_rectangle(int x,int y,int width,int height);

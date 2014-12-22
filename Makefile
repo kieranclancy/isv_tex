@@ -1,4 +1,4 @@
-SRCS=generate.c parse_tex.c paragraph.c line.c footnotes.c crossref.c
+SRCS=generate.c parse_tex.c paragraph.c line.c footnotes.c crossref.c record.c
 HEADERS=generate.h Makefile
 
 COPT=-fsanitize=bounds -fsanitize-undefined-trap-on-error

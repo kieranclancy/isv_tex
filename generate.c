@@ -411,6 +411,7 @@ int new_empty_page(int leftRight)
   if (on_first_page) on_first_page=0; else {
     // Create the page
     page = HPDF_AddPage(pdf);
+    record_newpage();
     
     // Set its dimensions
     HPDF_Page_SetWidth(page,page_width);
@@ -427,6 +428,9 @@ int new_empty_page(int leftRight)
     HPDF_Page_Rectangle(page, x, page_height-booktab_y-booktab_height+1,
 			booktab_width, booktab_height);
     HPDF_Page_Fill(page);
+    record_fillcolour(0.25,0.25,0.25);
+    record_rectangle(x, page_height-booktab_y-booktab_height+1,
+		     booktab_width, booktab_height);
 
     // Now draw sideways text
     float text_width, text_height;
@@ -455,12 +459,15 @@ int new_empty_page(int leftRight)
     HPDF_Page_BeginText (page);
     HPDF_Page_SetTextRenderingMode (page, HPDF_FILL);
     HPDF_Page_SetRGBFill (page, 1.00, 1.00, 1.00);
+    record_fillcolour(1.00,1.00,1.00);
     HPDF_Page_SetTextMatrix (page,
 			     cos(radians), sin(radians),
 			     -sin(radians), cos(radians),
                 x, y);
+    record_text(&type_faces[index],booktab_text,x,y,radians);
     HPDF_Page_ShowText (page, booktab_text);
     HPDF_Page_EndText (page);
+    record_text_end();
 
   }
 
@@ -921,6 +928,7 @@ int main(int argc,char **argv)
 
   // Create first page so that text widths get calculated.
   page = HPDF_AddPage(pdf); 
+  record_newpage();
   HPDF_Page_SetWidth(page,page_width);
   HPDF_Page_SetHeight(page,page_height);
   on_first_page=1;
