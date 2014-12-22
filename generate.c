@@ -896,7 +896,7 @@ int main(int argc,char **argv)
       exit(-1);
     }
 
-  if (!strcasecmp(argv[1],"test")) return(run_test(argv[2]));
+  if (!strcasecmp(argv[1],"test")) return(run_tests(argv[2]));
 
   int error = FT_Init_FreeType( &library );
   if ( error )

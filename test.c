@@ -23,7 +23,7 @@
 
 */
 
-int run_test(char *testdir)
+int run_tests(char *testdir)
 {
   return 0;
 }
