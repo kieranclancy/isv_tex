@@ -278,6 +278,7 @@ int record_rectangle(int x,int y,int width,int height);
 
 int run_tests(char *testdir);
 int run_test();
+int read_profile(char *file);
 int finish_job();
 int setup_job();
 int typeset_file(char *file);
