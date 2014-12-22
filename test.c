@@ -50,13 +50,18 @@ int run_tests(char *testdir)
   de=readdir(d);
   while(de) {
     if (de->d_name[0]!='.') {
-      // Enter individual test dir
-      chdir(de->d_name);
-
       fprintf(stderr,"TEST: %s\n",de->d_name);
+
+      // Enter individual test dir
+      if (chdir(de->d_name)==0) {
       
-      // step back out to directory containing list of tests
-      chdir("..");
+      
+	// step back out to directory containing list of tests
+	chdir("..");
+      } else {
+	fprintf(stderr,"FAIL: %s: Could not enter directory\n",
+		de->d_name);
+      }
     }
     de=readdir(d);    
   }
