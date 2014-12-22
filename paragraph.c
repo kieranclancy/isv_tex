@@ -171,7 +171,8 @@ int paragraph_setup_next_line(struct paragraph *p)
 
 int paragraph_set_widow_counter(struct paragraph *p,int lines)
 {
-  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  fprintf(stderr,"%s()\n",__FUNCTION__);
+  if (!p->current_line) paragraph_setup_next_line(p);
   p->current_line->tied_to_next_line=1;
   return 0;
 }
@@ -504,7 +505,7 @@ int paragraph_clear_style_stack()
 int paragraph_clone(struct paragraph *dst,struct paragraph *src)
 {
   fprintf(stderr,"%s():\n",__FUNCTION__);
-
+  
   int i;
 
   // Copy main contents
@@ -522,7 +523,8 @@ int paragraph_dump(struct paragraph *p)
 {
   int i;
   for(i=0;i<p->line_count;i++) {
-    fprintf(stderr,"  ");
+    fprintf(stderr,"  %c ",
+	    p->paragraph_lines[i]->tied_to_next_line?'*':' ');
     line_dump(p->paragraph_lines[i]);
   }
   if (p->current_line) {

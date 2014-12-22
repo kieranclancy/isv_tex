@@ -55,15 +55,16 @@ int line_calculate_height(struct line_pieces *l)
   int max=-1; int min=0;
   int linegap=0;
   int i;
-  fprintf(stderr,"Calculating height of line %p (%d pieces, %.1fpts wide, align=%d, left margin=%d)\n",
-	  l,l->piece_count,l->line_width_so_far,l->alignment,l->left_margin);
+  if (0)
+    fprintf(stderr,"Calculating height of line %p (%d pieces, %.1fpts wide, align=%d, left margin=%d)\n",
+	    l,l->piece_count,l->line_width_so_far,l->alignment,l->left_margin);
 
   // insert_vspace() works by making a line with zero pieces, and the space to skip
   // is set in l->line_height, so we don't need to do anything in that case.
   if (l->piece_count==0) {
     l->ascent=l->line_height;
     l->descent=0;
-    fprintf(stderr,"  Line is vspace(%.1fpt)\n",l->line_height);
+    // fprintf(stderr,"  Line is vspace(%.1fpt)\n",l->line_height);
     return 0;
   }
   
@@ -93,7 +94,7 @@ int line_calculate_height(struct line_pieces *l)
   // l->line_height=max-min+1;
   l->line_height=linegap*line_spacing;
   l->ascent=max; l->descent=-min;
-  fprintf(stderr,"  line ascends %dpts and descends %d points.\n",max,-min);
+  // fprintf(stderr,"  line ascends %dpts and descends %d points.\n",max,-min);
   return 0;
 }
 
@@ -109,8 +110,9 @@ int line_apply_poetry_margin(struct paragraph *p,struct line_pieces *current_lin
       +p->poem_subsequent_line*poetry_wrap_indent;
     current_line->max_line_width
       =page_width-left_margin-right_margin-current_line->left_margin;
-    fprintf(stderr,"Applying indent of %dpts in poetry mode (level=%d, subs=%d).\n",
-	    current_line->left_margin,p->poem_level,p->poem_subsequent_line);
+    if (0)
+      fprintf(stderr,"Applying indent of %dpts in poetry mode (level=%d, subs=%d).\n",
+	      current_line->left_margin,p->poem_level,p->poem_subsequent_line);
     p->poem_subsequent_line=1;
   }
   return 0;
@@ -147,10 +149,16 @@ int line_emit(struct paragraph *p,int line_num)
   while ((max_line_num<(p->line_count-1))
 	 &&p->paragraph_lines[max_line_num]->tied_to_next_line)
     combined_line_height+=p->paragraph_lines[++max_line_num]->line_height;
+  fprintf(stderr,"Treating lines %d -- %d as a unit\n",
+	  line_num,max_line_num);
   
   // Does the line(s) require more space than there is?    
   float baseline_y=page_y+combined_line_height*line_spacing;
-  if (baseline_y>(page_height-bottom_margin)) break_page=1;
+  if (baseline_y>(page_height-bottom_margin)) {
+    fprintf(stderr,"Breaking page at %.1fpts to make room for body text\n",
+	    page_y);
+    break_page=1;
+  }
 
   // Does the line plus footnotes require more space than there is?
   // - clone footnote paragraph and then append footnotes referenced in this
@@ -339,8 +347,9 @@ int line_emit(struct paragraph *p,int line_num)
 
   float old_page_y=page_y;
   page_y=page_y+linegap*line_spacing;
-  fprintf(stderr,"Added linegap of %.1f to page_y (= %.1fpts). Next line at %.1fpt\n",
-	  linegap*line_spacing,old_page_y,page_y);
+  if (0)
+    fprintf(stderr,"Added linegap of %.1f to page_y (= %.1fpts). Next line at %.1fpt\n",
+	    linegap*line_spacing,old_page_y,page_y);
   return 0;
 }
 
@@ -349,9 +358,9 @@ int line_remove_trailing_space(struct line_pieces *l)
   // Remove any trailing spaces from the line
   int i;
   for(i=l->piece_count-1;i>=0;i--) {
-    fprintf(stderr,"Considering piece #%d/%d '%s'\n",i,
-	    l->piece_count,
-	    l->pieces[i]);
+    if (0) fprintf(stderr,"Considering piece #%d/%d '%s'\n",i,
+		   l->piece_count,
+		   l->pieces[i]);
     if ((!strcmp(" ",l->pieces[i]))
 	||(!strcmp("",l->pieces[i]))) {
       l->piece_count=i;

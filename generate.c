@@ -540,21 +540,22 @@ const char *resolve_font(char *font_filename)
 
 int current_line_flush(struct paragraph *para)
 {
-  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
-
+  fprintf(stderr,"%s()\n",__FUNCTION__);
 
   if (para->current_line) {
     line_remove_trailing_space(para->current_line);
 
     if (para->current_line->piece_count||para->current_line->line_height) {
-      fprintf(stderr,"%d pieces left in %p.\n",
-	      para->current_line->piece_count,para->current_line);
+      if (0) fprintf(stderr,"%d pieces left in %p.\n",
+		     para->current_line->piece_count,para->current_line);
       paragraph_append_line(para,para->current_line);
       paragraph_setup_next_line(para);
     }
   }
  
   para->current_line=NULL;
+
+  paragraph_dump(para);
   return 0;
 }
 
@@ -609,12 +610,25 @@ int render_tokens()
     {
       switch(token_types[i]) {
       case TT_PARAGRAPH:
-	// Flush the previous paragraph.
-	paragraph_flush(target_paragraph);
-	// Indent the paragraph.  
-	paragraph_setup_next_line(target_paragraph);
-	body_paragraph.current_line->left_margin=paragraph_indent;
-	body_paragraph.current_line->max_line_width-=paragraph_indent;
+	{
+	  int break_paragraph=1;
+	  if (target_paragraph->current_line) {
+	    if (target_paragraph->current_line->tied_to_next_line)
+	      break_paragraph=0;
+	  } else if (target_paragraph->line_count) {
+	    if (target_paragraph->paragraph_lines[target_paragraph->line_count-1]
+		->tied_to_next_line)
+	      break_paragraph=0;
+	  }
+	  if (break_paragraph) {
+	    // Flush the previous paragraph.
+	    paragraph_flush(target_paragraph);
+	    // Indent the paragraph.
+	  }
+	  paragraph_setup_next_line(target_paragraph);
+	  body_paragraph.current_line->left_margin=paragraph_indent;
+	  body_paragraph.current_line->max_line_width-=paragraph_indent;
+	}
 	break;
       case TT_SPACE:
 	paragraph_append_space(target_paragraph,0);
