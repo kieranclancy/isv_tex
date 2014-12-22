@@ -288,6 +288,8 @@ int output_accumulated_cross_references(struct paragraph *p,
   }
   crossref_count=0;
 
+  p->first_crossref_line=max_line_to_render+1;
+
   page_y=saved_page_y;
   left_margin=saved_left_margin;
   right_margin=saved_right_margin;

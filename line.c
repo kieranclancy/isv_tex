@@ -155,8 +155,8 @@ int line_emit(struct paragraph *p,int line_num)
   // Does the line(s) require more space than there is?    
   float baseline_y=page_y+combined_line_height*line_spacing;
   if (baseline_y>(page_height-bottom_margin)) {
-    fprintf(stderr,"Breaking page at %.1fpts to make room for body text\n",
-	    page_y);
+    fprintf(stderr,"Breaking page %d at %.1fpts to make room for body text\n",
+	    current_page,page_y);
     break_page=1;
   }
 
@@ -188,8 +188,8 @@ int line_emit(struct paragraph *p,int line_num)
     fprintf(stderr,"Footnote block is %dpts high (%d lines).\n",
 	    footnotes_height,temp.line_count);
     if (baseline_y>(page_height-bottom_margin)) {
-      fprintf(stderr,"Breaking page at %.1fpts to make room for footnotes block\n",
-	      page_y);
+      fprintf(stderr,"Breaking page at %.1fpts to make room for %dpt footnotes block\n",
+	      page_y,footnotes_height);
       break_page=1;
     }
   }
@@ -201,7 +201,7 @@ int line_emit(struct paragraph *p,int line_num)
     int crossref_height=0;
     int crossref_para_count=0;
     int i,n;
-    for(n=0;n<=max_line_num;n++) {
+    for(n=p->first_crossref_line;n<=max_line_num;n++) {
       struct line_pieces *line=p->paragraph_lines[n];
       for(i=0;i<line->piece_count;i++)
 	if (line->crossrefs[i]) {
@@ -211,7 +211,11 @@ int line_emit(struct paragraph *p,int line_num)
     }
     if ((crossref_height+(crossref_para_count*crossref_min_vspace))
 	>(page_height-footnotes_total_height-bottom_margin)) {
-      fprintf(stderr,"Breaking page due to cross-references\n");
+      fprintf(stderr,"Breaking page at %.1fpts to avoid %dpts of cross references for %d verses\n",
+	      page_y,
+	      crossref_height+(crossref_para_count*crossref_min_vspace),
+	      crossref_para_count);
+      paragraph_dump(p);
       break_page=1;
     }
   }

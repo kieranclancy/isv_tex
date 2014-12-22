@@ -130,6 +130,8 @@ struct paragraph {
 
   int last_char_is_a_full_stop;
 
+  int first_crossref_line;
+
   // Pointer to next paragraph in hash bin
   // (used for fast searching for cross-reference paragraphs)  
   struct paragraph *next;
@@ -208,6 +210,7 @@ extern int crossref_column_width;
 
 extern int page_to_record;
 extern char *recording_filename;
+extern int current_page;
 
 // Are we drawing a left or right face, or neither
 #define LR_LEFT -1

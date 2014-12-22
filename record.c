@@ -43,6 +43,7 @@ FILE *r=NULL;
 int record_begin_recording()
 {
   if (recording_filename) r=fopen(recording_filename,"w+");
+  current_page=0;
   return 0;
 }
 
