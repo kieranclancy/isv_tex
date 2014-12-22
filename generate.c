@@ -782,6 +782,10 @@ int render_tokens()
 	    paragraph_push_style(target_paragraph,
 				 target_paragraph->current_line->alignment,
 				 set_font("divine"));
+	  } else if (!strcasecmp(token_strings[i],"red")) {
+	    paragraph_push_style(target_paragraph,
+				 target_paragraph->current_line->alignment,
+				 set_font("redletter"));
 	  } else if (!strcasecmp(token_strings[i],"fbackref")) {
 	    paragraph_push_style(target_paragraph,AL_JUSTIFIED,set_font("footnote"));
 	  } else if (!strcasecmp(token_strings[i],"fbib")) {
