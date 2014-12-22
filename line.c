@@ -210,7 +210,7 @@ int line_emit(struct paragraph *p,int line_num)
 	}
     }
     if ((crossref_height+(crossref_para_count*crossref_min_vspace))
-	>(page_height-footnotes_total_height-bottom_margin)) {
+	>(page_height-footnotes_total_height-bottom_margin-top_margin)) {
       fprintf(stderr,"Breaking page at %.1fpts to avoid %dpts of cross references for %d verses\n",
 	      page_y,
 	      crossref_height+(crossref_para_count*crossref_min_vspace),
