@@ -737,6 +737,7 @@ int render_tokens()
 	  } else if (!strcasecmp(token_strings[i],"passage")) {
 	    // Passage header line	    
 	    int index=set_font("passageheader");
+	    paragraph_flush(target_paragraph);
 	    paragraph_insert_vspace(target_paragraph,passageheader_vspace);
 	    paragraph_push_style(target_paragraph,AL_LEFT,index);
 	    // Require at least one more line after this before page breaking
