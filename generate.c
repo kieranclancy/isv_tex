@@ -764,7 +764,9 @@ int render_tokens()
 				 set_font(current_font->font_nickname));
 	    paragraph_append_text(target_paragraph,"...",0,0);
 	  } else if (!strcasecmp(token_strings[i],"divine")) {
-	    paragraph_push_style(target_paragraph,AL_JUSTIFIED,set_font("divine"));
+	    paragraph_push_style(target_paragraph,
+				 target_paragraph->current_line->alignment,
+				 set_font("divine"));
 	  } else if (!strcasecmp(token_strings[i],"fbackref")) {
 	    paragraph_push_style(target_paragraph,AL_JUSTIFIED,set_font("footnote"));
 	  } else if (!strcasecmp(token_strings[i],"fbib")) {
