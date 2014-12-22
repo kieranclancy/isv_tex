@@ -159,6 +159,7 @@ int paragraph_setup_next_line(struct paragraph *p)
       =page_width-left_margin-right_margin-p->drop_char_left_margin;
     p->current_line->left_margin=p->drop_char_left_margin;
     p->drop_char_margin_line_count--;
+    p->current_line->tied_to_next_line=1;
   }
 
   line_apply_poetry_margin(p,p->current_line);
@@ -171,6 +172,7 @@ int paragraph_setup_next_line(struct paragraph *p)
 int paragraph_set_widow_counter(struct paragraph *p,int lines)
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  p->current_line->tied_to_next_line=1;
   return 0;
 }
 

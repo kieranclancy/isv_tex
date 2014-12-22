@@ -73,6 +73,8 @@ extern char *token_strings[MAX_TOKENS];
 struct line_pieces {
 #define MAX_LINE_PIECES 256
   int line_uid;
+
+  int tied_to_next_line;
   
   // Horizontal space available to the line
   int max_line_width;

@@ -139,9 +139,17 @@ int line_emit(struct paragraph *p,int line_num)
 {
   struct line_pieces *l=p->paragraph_lines[line_num];
   int break_page=0;
+
+  // Work out maximum line number that we have to take into account for
+  // page fitting, i.e., to prevent orphaned heading lines.
+  int max_line_num=line_num;
+  int combined_line_height=l->line_height;
+  while ((max_line_num<(p->line_count-1))
+	 &&p->paragraph_lines[max_line_num]->tied_to_next_line)
+    combined_line_height+=p->paragraph_lines[++max_line_num]->line_height;
   
-  // Does the line itself require more space than there is?
-  float baseline_y=page_y+l->line_height*line_spacing;
+  // Does the line(s) require more space than there is?    
+  float baseline_y=page_y+combined_line_height*line_spacing;
   if (baseline_y>(page_height-bottom_margin)) break_page=1;
 
   // Does the line plus footnotes require more space than there is?
@@ -153,10 +161,17 @@ int line_emit(struct paragraph *p,int line_num)
     struct paragraph temp;
     paragraph_init(&temp);
     paragraph_clone(&temp,&rendered_footnote_paragraph);
-    int i;
-    for(i=0;i<footnote_count;i++)
-      if (l->line_uid==footnote_line_numbers[i])
-	paragraph_append(&temp,&footnote_paragraphs[i]);
+
+    // Include footnote height of this line, and any lines tied to it.
+    int n;
+    for(n=line_num;n<=max_line_num;n++) {
+      struct line_pieces *ll=p->paragraph_lines[n];
+      int i;
+      for(i=0;i<footnote_count;i++)
+	if (ll->line_uid==footnote_line_numbers[i])
+	  paragraph_append(&temp,&footnote_paragraphs[i]);      
+    }
+    
     current_line_flush(&temp);
     int footnotes_height=paragraph_height(&temp);
     baseline_y+=footnotes_height;
@@ -178,7 +193,7 @@ int line_emit(struct paragraph *p,int line_num)
     int crossref_height=0;
     int crossref_para_count=0;
     int i,n;
-    for(n=0;n<=line_num;n++) {
+    for(n=0;n<=max_line_num;n++) {
       struct line_pieces *line=p->paragraph_lines[n];
       for(i=0;i<line->piece_count;i++)
 	if (line->crossrefs[i]) {
