@@ -444,8 +444,13 @@ int line_emit(struct paragraph *p,int line_num)
       if (l->fonts[i]->linegap>linegap) linegap=l->fonts[i]->linegap;
     }
 
+    // Queue cross-references
     if (l->crossrefs[i]) crossref_queue(l->crossrefs[i],page_y);
-    
+
+    if (!strcmp(l->fonts[i]->font_nickname,"versenum"))
+      last_verse_on_page=atoi(l->pieces[i]);
+    if (!strcmp(l->fonts[i]->font_nickname,"chapternum"))
+      last_chapter_on_page=atoi(l->pieces[i]);
   }
   HPDF_Page_EndText (page);
   if (!l->piece_count) linegap=l->line_height;

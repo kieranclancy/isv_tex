@@ -792,7 +792,6 @@ int render_tokens()
 	      exit(-1);
 	    }
 	    chapter_label=atoi(token_strings[i]);
-	    last_chapter_on_page=chapter_label;
 	    i++; if (token_types[i]!=TT_ENDTAG) {
 	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
 	      exit(-1);
@@ -964,7 +963,6 @@ int render_tokens()
 	  if (next_token_is_verse_number) {
 	    next_token_is_verse_number=0;
 	    verse_label=atoi(token_strings[i]);
-	    last_verse_on_page=verse_label;
 	    if (target_paragraph==&body_paragraph)
 	      crossreference_register_verse(&body_paragraph,
 					    short_book_name,chapter_label,verse_label);

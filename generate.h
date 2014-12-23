@@ -190,6 +190,9 @@ extern int poetry_level_indent;
 extern int poetry_wrap_indent;
 extern int poetry_vspace;
 
+extern int last_verse_on_page;
+extern int last_chapter_on_page;
+
 extern float page_y;
 extern struct paragraph body_paragraph;
 extern struct paragraph rendered_footnote_paragraph;
