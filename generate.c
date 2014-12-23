@@ -406,12 +406,27 @@ int next_token_is_verse_number=0;
 
 int on_first_page=0;
 
+int suppress_page_header=0;
+
+int finalise_page()
+{
+  if (!suppress_page_header) {
+    // Draw page header.
+    // Largely this is book chap:verse on the same side as the booktab
+    
+  }
+  suppress_page_header=0;
+  return 0;
+}
+
 // Create a new empty page
 // Empty of main content, that is, a booktab will be added
 int new_empty_page(int leftRight)
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
 
+  finalise_page();
+  
   if (on_first_page) on_first_page=0; else {
     // Create the page
     page = HPDF_AddPage(pdf);
@@ -699,6 +714,7 @@ int render_tokens()
 	    }
 	    // Start new empty page
 	    new_empty_page(leftRight);
+	    suppress_page_header=1;
 	  } else if (!strcasecmp(token_strings[i],"labelbook")) {
 	    // Remember short name of book for inserting entries from the
 	    // cross-reference database.
@@ -1002,6 +1018,8 @@ int typeset_file(char *file)
 
 int finish_job()
 {
+  finalise_page();
+  
   // Write PDF to disk
   HPDF_SaveToFile(pdf,output_file);
   HPDF_Free(pdf);
