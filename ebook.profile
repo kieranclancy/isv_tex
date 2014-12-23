@@ -14,8 +14,8 @@ bottom_margin 36
 heading_y 497
 
 # for marginal cross-references
-marginpar_width 43
-marginpar_margin 4
+crossref_column_width 34
+crossref_margin_width 4
 
 # dimensions of solid book tabs
 booktab_width 27

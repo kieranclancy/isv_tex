@@ -159,8 +159,6 @@ extern int left_margin;
 extern int right_margin;
 extern int top_margin;
 extern int bottom_margin;
-extern int marginpar_width;
-extern int marginpar_margin;
 extern int booktab_width;
 extern int booktab_height;
 extern int booktab_upperlimit;
@@ -214,6 +212,7 @@ extern char *crossreference_verse;
 extern int crossreference_mode;
 extern int crossref_min_vspace;
 extern int crossref_column_width;
+extern int crossref_margin_width;
 #define MAX_VERSES_ON_PAGE 256
 extern struct paragraph *crossrefs_queue[MAX_VERSES_ON_PAGE];
 extern int crossrefs_y[MAX_VERSES_ON_PAGE];

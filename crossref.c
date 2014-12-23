@@ -47,6 +47,7 @@ int saved_right_margin;
 int crossref_min_vspace=4;
 // Width of crossref column
 int crossref_column_width=36;
+int crossref_margin_width=4;
 
 int crossreference_start()
 {
@@ -60,7 +61,7 @@ int crossreference_start()
   saved_right_margin=right_margin;
 
   left_margin=0;
-  right_margin=(page_width-crossref_column_width);
+  right_margin=page_width-crossref_column_width;
 
   target_paragraph=calloc(sizeof(struct paragraph),1);
   paragraph_clear(target_paragraph);
@@ -262,11 +263,11 @@ int output_accumulated_cross_references(struct paragraph *p,
   // Place cross-reference column in space on opposite side to the
   // booktab
   if (leftRight==LR_RIGHT) {
-    left_margin=page_width-crossref_column_width-2;
-    right_margin=2;
+    left_margin=page_width-crossref_column_width-crossref_margin_width;
+    right_margin=crossref_margin_width;
   } else {
-    left_margin=2;
-    right_margin=page_width-crossref_column_width-2;
+    left_margin=crossref_margin_width;
+    right_margin=page_width-crossref_column_width-crossref_margin_width;
   }
 
   crossrefs_reposition();

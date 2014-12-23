@@ -98,8 +98,6 @@ int left_margin=72;
 int right_margin=72;
 int top_margin=72;
 int bottom_margin=72;
-int marginpar_width=50;
-int marginpar_margin=8;
 int booktab_width=27;
 int booktab_height=115;
 int booktab_upperlimit=36;
@@ -215,9 +213,11 @@ int read_profile(char *file)
 	    else if (!strcasecmp(key,"line_spacing")) line_spacing=atof(value);
 	    
 	    // Width of marginpar for holding cross-references
-	    else if (!strcasecmp(key,"marginpar_width")) marginpar_width=atoi(value);
+	    else if (!strcasecmp(key,"crossref_column_width"))
+	      crossref_column_width=atoi(value);
 	    // Margin between marginpar and edge of page
-	    else if (!strcasecmp(key,"marginpar_margin")) marginpar_margin=atoi(value);
+	    else if (!strcasecmp(key,"crossref_margin_width"))
+	      crossref_margin_width=atoi(value);
 
 	    // Footnote horizontal rule settings
 	    else if (!strcasecmp(key,"footnoterule_width")) footnote_rule_width=atof(value);
