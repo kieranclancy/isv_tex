@@ -215,11 +215,11 @@ int line_emit(struct paragraph *p,int line_num)
 	}
     }
 
-    if ((crossref_height+(crossref_para_count*crossref_min_vspace))
+    if ((crossref_height+((crossref_para_count+1)*crossref_min_vspace))
 	>(page_height-footnotes_total_height-bottom_margin-top_margin)) {
       fprintf(stderr,"Breaking page %d at %.1fpts to avoid %dpts of cross references for %d verses (only %dpts available for crossrefs)\n",
 	      current_page,page_y,
-	      crossref_height+(crossref_para_count*crossref_min_vspace),
+	      crossref_height+((crossref_para_count+1)*crossref_min_vspace),
 	      crossref_para_count,
 	      (page_height-footnotes_total_height-bottom_margin-top_margin));
       paragraph_dump(p);
@@ -227,7 +227,7 @@ int line_emit(struct paragraph *p,int line_num)
     } else {
       fprintf(stderr,"%d cross reference blocks, totalling %dpts high (lines %d..%d)\n",
 	      crossref_para_count,
-	      crossref_height+(crossref_para_count*crossref_min_vspace),
+	      crossref_height+((crossref_para_count+1)*crossref_min_vspace),
 	      p->first_crossref_line,max_line_num);
     }
   }

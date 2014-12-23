@@ -225,11 +225,12 @@ int crossrefs_reposition()
   crossref_queue_dump("after top down");
 
   // Make sure that cross-refs don't appear beside the footnote paragraph
-  if (crossrefs_y[crossref_count-1]+crossrefs_queue[crossref_count-1]->total_height
-      >crossref_y_limit)
+  if (crossrefs_y[crossref_count-1]+crossrefs_queue[crossref_count-1]->total_height    
+      >crossref_y_limit-crossref_min_vspace)
     {
       crossrefs_y[crossref_count-1]
-	=crossref_y_limit-crossrefs_queue[crossref_count-1]->total_height;
+	=crossref_y_limit-crossrefs_queue[crossref_count-1]->total_height
+	-crossref_min_vspace;
     }
   
   for(i=crossref_count-2;i>=0;i--)
