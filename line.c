@@ -176,6 +176,13 @@ int line_recalculate_width(struct line_pieces *l)
     hang_text=NULL;
     int right_hang_piece=l->piece_count-1;
 
+    // Ignore white-space at the end of lines when working out hanging.
+    while ((right_hang_piece>=0)
+	   &&l->pieces[right_hang_piece]
+	   &&strlen(l->pieces[right_hang_piece])
+	   &&(l->pieces[right_hang_piece][0]==' '))
+      right_hang_piece--;
+    
     if (right_hang_piece>=0) {
       // Footnotes always hang 
       if (!(strcmp(l->fonts[right_hang_piece]->font_nickname,"footnotemark")))
@@ -198,6 +205,18 @@ int line_recalculate_width(struct line_pieces *l)
 	else if ((textlen>=1)&&(!strcmp(&text[textlen-1],",")))
 	  hang_text=&text[textlen-1];
 	else if ((textlen>=1)&&(!strcmp(&text[textlen-1],".")))
+	  hang_text=&text[textlen-1];
+	else if ((textlen>=1)&&(!strcmp(&text[textlen-1],";")))
+	  hang_text=&text[textlen-1];
+	else if ((textlen>=1)&&(!strcmp(&text[textlen-1],"\"")))
+	  hang_text=&text[textlen-1];
+	else if ((textlen>=3)&&(!strcmp(&text[textlen-3],".''")))
+	  hang_text=&text[textlen-3];
+	else if ((textlen>=3)&&(!strcmp(&text[textlen-3],",''")))
+	  hang_text=&text[textlen-3];
+	else if ((textlen>=2)&&(!strcmp(&text[textlen-2],"''")))
+	  hang_text=&text[textlen-2];
+	else if ((textlen>=1)&&(!strcmp(&text[textlen-1],"'")))
 	  hang_text=&text[textlen-1];
 	if (hang_text) {
 	  set_font(l->fonts[right_hang_piece]->font_nickname);
