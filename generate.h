@@ -226,7 +226,7 @@ extern int current_page;
 extern int leftRight;
 
 int include_show_stack();
-int tokenise_file(char *filename);
+int tokenise_file(char *filename, int crossreference_parsing);
 int clear_tokens();
 
 int new_empty_page(int page_face);

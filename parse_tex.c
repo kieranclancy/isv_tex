@@ -31,6 +31,7 @@
 #include <string.h>
 #include <strings.h>
 #include <sys/mman.h>
+#include <ctype.h>
 #include "hpdf.h"
 #include "generate.h"
 
@@ -81,7 +82,7 @@ int next_file_token(struct parsed_text *p,
   return 0;
 }
 
-int tokenise_file(char *filename)
+int tokenise_file(char *filename, int crossreference_parsing)
 {
   FILE *f=fopen(filename,"r");
   if (!f) {
@@ -128,10 +129,27 @@ int tokenise_file(char *filename)
       switch(file[i]) {
       case '\\':
 	parse_state=PS_SLASH; break;
-      case ' ': case '\r': case '\n': case '\t':
+      case ' ':
+	// - don't break "book chap:verse" into separate tokens when parsing
+	//   the cross-reference database
+	if (token_len&&(crossreference_parsing)&&(isalpha(token_text[token_len-1])))
+	  {
+	    token_text[token_len]=0;
+	    if (token_len<1023) token_text[token_len++]=file[i];
+	    else {
+	      include_show_stack();
+	      fprintf(stderr,"%s:%d:Token or line too long.\n",
+		      file,line_num);
+	      exit(-1);
+	    }
+	    break;
+	  }
+	// FALL THROUGH
+      case '\r': case '\n': case '\t':
 	// white space, so end token
-	// XXX - skip any number of space and tab as a single token.
-	if (token_len) {
+	if (
+	    // - skip any number of space and tab as a single token.
+	    token_len) {
 	  // Got a token, so pass it up, and reset token status
 	  next_file_token(p,token_type,token_len,token_text);
 	  token_len=0;

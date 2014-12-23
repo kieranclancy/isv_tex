@@ -144,9 +144,12 @@ int line_recalculate_width(struct line_pieces *l)
   int left_hang_piece=0;
   if (l->piece_count) {
     if (!(strcmp(l->fonts[0]->font_nickname,"versenum"))) {
-      // Verse number on the left
-      l->left_hang=l->piece_widths[0];
-      left_hang_piece=1;
+      // Verse number on the left.
+      // Only hang single-digit verse numbers
+      if (atoi(l->pieces[0])<10) {
+	l->left_hang=l->piece_widths[0];
+	left_hang_piece=1;
+      }
     }
 
     char *text=NULL;

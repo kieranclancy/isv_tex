@@ -983,7 +983,7 @@ int setup_job()
   
   fprintf(stderr,"Loading cross-reference library.\n");
   crossref_hashtable_init();
-  tokenise_file("crossrefs.tex");
+  tokenise_file("crossrefs.tex",1);
   render_tokens();
   clear_tokens();
 
@@ -992,7 +992,7 @@ int setup_job()
 
 int typeset_file(char *file)
 {
-  tokenise_file(file);
+  tokenise_file(file,0);
   fprintf(stderr,"Parsed %s\n",file);
   render_tokens();
   clear_tokens();
