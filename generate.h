@@ -207,6 +207,10 @@ extern char *crossreference_verse;
 extern int crossreference_mode;
 extern int crossref_min_vspace;
 extern int crossref_column_width;
+#define MAX_VERSES_ON_PAGE 256
+extern struct paragraph *crossrefs_queue[MAX_VERSES_ON_PAGE];
+extern int crossrefs_y[MAX_VERSES_ON_PAGE];
+extern int crossref_count;
 
 extern int page_to_record;
 extern char *recording_filename;

@@ -199,24 +199,23 @@ int line_emit(struct paragraph *p,int line_num)
   // all cross-references and make sure that it can fit above the cross-references.
   if (p==&body_paragraph) {
     int crossref_height=0;
-    int crossref_para_count=0;
-    int i,n;
-    for(n=p->first_crossref_line;n<=max_line_num;n++) {
-      struct line_pieces *line=p->paragraph_lines[n];
-      for(i=0;i<line->piece_count;i++)
-	if (line->crossrefs[i]) {
-	  crossref_para_count++;
-	  crossref_height+=line->crossrefs[i]->total_height;
-	}
-    }
-    if ((crossref_height+(crossref_para_count*crossref_min_vspace))
+    int n;
+    for(n=0;n<crossref_count;n++)
+      crossref_height+=crossrefs_queue[n]->total_height;
+
+    if ((crossref_height+(crossref_count*crossref_min_vspace))
 	>(page_height-footnotes_total_height-bottom_margin-top_margin)) {
       fprintf(stderr,"Breaking page at %.1fpts to avoid %dpts of cross references for %d verses\n",
 	      page_y,
-	      crossref_height+(crossref_para_count*crossref_min_vspace),
-	      crossref_para_count);
+	      crossref_height+(crossref_count*crossref_min_vspace),
+	      crossref_count);
       paragraph_dump(p);
       break_page=1;
+    } else {
+      fprintf(stderr,"%d cross reference blocks, totalling %dpts high (lines %d..%d)\n",
+	      crossref_count,
+	      crossref_height+(crossref_count*crossref_min_vspace),
+	      p->first_crossref_line,max_line_num);
     }
   }
   

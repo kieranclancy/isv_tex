@@ -164,7 +164,6 @@ int crossreference_register_verse(struct paragraph *p,
   return 0;
 }
 
-#define MAX_VERSES_ON_PAGE 256
 struct paragraph *crossrefs_queue[MAX_VERSES_ON_PAGE];
 int crossrefs_y[MAX_VERSES_ON_PAGE];
 int crossref_count=0;
@@ -289,6 +288,7 @@ int output_accumulated_cross_references(struct paragraph *p,
   crossref_count=0;
 
   p->first_crossref_line=max_line_to_render+1;
+  fprintf(stderr,"first_crossref_line=%d\n",p->first_crossref_line);
 
   page_y=saved_page_y;
   left_margin=saved_left_margin;
