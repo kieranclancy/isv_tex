@@ -146,6 +146,14 @@ int paragraph_setup_next_line(struct paragraph *p)
   p->current_line=calloc(sizeof(struct line_pieces),1); 
 
   p->current_line->line_uid=line_uid_counter++;
+
+  if (p->line_count)
+    p->current_line->alignment
+      =p->paragraph_lines[p->line_count-1]->alignment;
+  else {
+    // XXX - Make default alignment configurable
+    p->current_line->alignment=AL_JUSTIFIED;
+  }
   
   // Set maximum line width
   p->current_line->max_line_width=page_width-left_margin-right_margin;
