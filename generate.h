@@ -233,7 +233,7 @@ int include_show_stack();
 int tokenise_file(char *filename, int crossreference_parsing);
 int clear_tokens();
 
-int new_empty_page(int page_face);
+int new_empty_page(int page_face, int noHeading);
 
 int paragraph_clear_style_stack();
 int paragraph_push_style(struct paragraph *p, int font_alignment,int font_index);

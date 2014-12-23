@@ -462,7 +462,6 @@ int finalise_page()
     HPDF_Page_EndText (page);
 
   }
-  suppress_page_header=0;
   
   first_chapter_on_page=last_chapter_on_page;
   first_verse_on_page=last_verse_on_page;
@@ -472,11 +471,11 @@ int finalise_page()
 
 // Create a new empty page
 // Empty of main content, that is, a booktab will be added
-int new_empty_page(int leftRight)
+int new_empty_page(int leftRight, int noHeading)
 {
-  fprintf(stderr,"%s()\n",__FUNCTION__);
+  fprintf(stderr,"%s(%d,%d)\n",__FUNCTION__,leftRight,noHeading);
 
-  finalise_page();
+  if (!on_first_page) finalise_page();
 
   page_leftRight=leftRight;
   
@@ -545,6 +544,7 @@ int new_empty_page(int leftRight)
   }
 
   page_y=top_margin;
+  suppress_page_header=noHeading;
   
   return 0;
 }
@@ -756,7 +756,7 @@ int render_tokens()
 	    // the book starts on a left page
 	    if (leftRight==LR_LEFT) {
 	      fprintf(stderr,"Inserting blank page so that book starts on left.\n");
-	      new_empty_page(LR_RIGHT);	      
+	      new_empty_page(LR_RIGHT,1);
 	    }
 	    leftRight=LR_LEFT;
 	    i++; if (token_types[i]!=TT_TEXT) {
@@ -768,9 +768,8 @@ int render_tokens()
 	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
 	      exit(-1);
 	    }
-	    // Start new empty page
-	    new_empty_page(leftRight);
-	    suppress_page_header=1;
+	    // Start new empty page without heading since we are a book title page
+	    new_empty_page(leftRight,1);
 	  } else if (!strcasecmp(token_strings[i],"labelbook")) {
 	    // Remember short name of book for inserting entries from the
 	    // cross-reference database.
