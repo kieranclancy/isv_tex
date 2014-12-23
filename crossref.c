@@ -282,6 +282,10 @@ int output_accumulated_cross_references(struct paragraph *p,
       paragraph_dump(cr);
       for(l=0;l<cr->line_count;l++)
 	{
+	  if (leftRight==LR_RIGHT)
+	    cr->paragraph_lines[l]->alignment=AL_LEFT;
+	  else
+	    cr->paragraph_lines[l]->alignment=AL_RIGHT;	    
 	  line_emit(cr,l);
 	}
     } 
