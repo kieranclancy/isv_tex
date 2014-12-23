@@ -280,6 +280,7 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
 	    =last_line->crossrefs[i];
 	  p->current_line->piece_count++;	  
 	}
+      line_remove_leading_space(p->current_line);
       line_recalculate_width(p->current_line);
       line_recalculate_width(last_line);
       // fprintf(stderr,"  after breaking, the old line is %1.fpts wide\n",
