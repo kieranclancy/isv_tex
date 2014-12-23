@@ -193,6 +193,9 @@ int read_profile(char *file)
 
 	    else if (!strcasecmp(key,"output_file")) output_file=strdup(value);
 
+
+	    else if (!strcasecmp(key,"heading_y")) heading_y=atoi(value);
+	    
 	    // Does the output have left and right faces?
 	    else if (!strcasecmp(key,"left_and_right"))
 	      leftRightAlternates=atoi(value);
@@ -399,6 +402,7 @@ float page_y=0;
 
 // Short name of book used for finding cross-references
 char *short_book_name=NULL;
+char *long_book_name=NULL;
 // For page headers and cross-references
 int chapter_label=0;
 int verse_label=0;
@@ -407,15 +411,62 @@ int next_token_is_verse_number=0;
 int on_first_page=0;
 
 int suppress_page_header=0;
+int page_leftRight;
+
+int heading_y=400;
+
+int first_verse_on_page=0;
+int first_chapter_on_page=0;
+int last_verse_on_page=0;
+int last_chapter_on_page=0;
 
 int finalise_page()
 {
+  char heading[1024];
+  int y,x;
+  
   if (!suppress_page_header) {
     // Draw page header.
     // Largely this is book chap:verse on the same side as the booktab
+
+    int index=set_font("header");
     
+    y=heading_y;
+
+    if (page_leftRight==LR_LEFT) {
+      if (first_chapter_on_page)
+	sprintf(heading,"%s %d:%d",
+		long_book_name,first_chapter_on_page,first_verse_on_page);
+      else
+	// Largely for Jude which has only one chapter
+	sprintf(heading,"%s %d",long_book_name,first_verse_on_page);
+      x=left_margin;
+    } else {
+      if (last_chapter_on_page)
+	sprintf(heading,"%s %d:%d",
+		long_book_name,last_chapter_on_page,last_verse_on_page);
+      else
+	// Largely for Jude which has only one chapter
+	sprintf(heading,"%s %d",long_book_name,last_verse_on_page);
+      int text_width = HPDF_Page_TextWidth(page,heading);
+      x=page_width-right_margin-text_width;
+    }
+    
+    HPDF_Page_BeginText (page);
+    HPDF_Page_SetTextRenderingMode (page, HPDF_FILL);
+    HPDF_Page_SetRGBFill (page, 0.00, 0.00, 0.00);
+    record_text(&type_faces[index],type_faces[index].font_size,
+		heading,x,y,0);
+    
+    HPDF_Page_TextOut (page, x, y, heading);
+    HPDF_Page_EndText (page);
+
   }
   suppress_page_header=0;
+  
+  first_chapter_on_page=last_chapter_on_page;
+  first_verse_on_page=last_verse_on_page;
+  
   return 0;
 }
 
@@ -426,6 +477,8 @@ int new_empty_page(int leftRight)
   fprintf(stderr,"%s()\n",__FUNCTION__);
 
   finalise_page();
+
+  page_leftRight=leftRight;
   
   if (on_first_page) on_first_page=0; else {
     // Create the page
@@ -599,6 +652,9 @@ int set_booktab_text(char *text)
     booktab_y=booktab_upperlimit;
   else
     booktab_y=booktab_y+booktab_height;
+
+  if (long_book_name) free(long_book_name);
+  long_book_name=strdup(text);
 
   if (booktab_text) free(booktab_text);
   booktab_text=strdup(text);
