@@ -132,8 +132,81 @@ int line_recalculate_width(struct line_pieces *l)
 {
   // Recalculate line width
   int i;
+
+  // Work out basic width
   l->line_width_so_far=0;
   for(i=0;i<l->piece_count;i++) l->line_width_so_far+=l->piece_widths[i];
+
+  l->left_hang=0;
+  l->right_hang=0;
+
+  // Now discount for hanging verse numbers, footnotes and punctuation.
+  int left_hang_piece=0;
+  if (l->piece_count) {
+    if (!(strcmp(l->fonts[0]->font_nickname,"versenum"))) {
+      // Verse number on the left
+      l->left_hang=l->piece_widths[0];
+      left_hang_piece=1;
+    }
+
+    char *text=NULL;
+    char *hang_text=NULL;
+
+    // Check for hanging punctuation (including if it immediately follows a
+    // verse number)
+    if (left_hang_piece<l->piece_count) {
+      text=l->pieces[left_hang_piece];
+      hang_text=NULL;
+      if (!strncasecmp(text,"``",2)) hang_text="``";
+      else if (!strncasecmp(text,"`",1)) hang_text="`";
+      else if (!strncasecmp(text,"\"",1)) hang_text="\"";
+      if (hang_text) {
+	set_font(l->fonts[left_hang_piece]->font_nickname);
+	float hang_width=HPDF_Page_TextWidth(page,hang_text);
+	l->left_hang+=hang_width;
+	fprintf(stderr,"Hanging '%s' in left margin (%.1f points)\n",
+		hang_text,hang_width);
+      }
+    }
+
+    // Now check for right hanging
+    hang_text=NULL;
+    int right_hang_piece=l->piece_count-1;
+
+    if (right_hang_piece>=0) {
+      // Footnotes always hang 
+      if (!(strcmp(l->fonts[right_hang_piece]->font_nickname,"footnotemark")))
+	l->right_hang=l->piece_widths[right_hang_piece--];
+    }
+
+    if (right_hang_piece>=0&&(right_hang_piece<l->piece_count)) {
+      text=l->pieces[right_hang_piece];
+      int textlen=strlen(text);
+
+      if (text) {
+	// Now look for right hanging punctuation
+	if ((textlen>=1)&&(!strcmp(&text[textlen-1],","))) hang_text=&text[textlen-1];
+	else if ((textlen>=3)&&(!strcmp(&text[textlen-3],"---")))
+	  hang_text=&text[textlen-3];
+	else if ((textlen>=2)&&(!strcmp(&text[textlen-2],"--")))
+	  hang_text=&text[textlen-2];
+	else if ((textlen>=1)&&(!strcmp(&text[textlen-1],"-")))
+	  hang_text=&text[textlen-1];
+	else if ((textlen>=1)&&(!strcmp(&text[textlen-1],",")))
+	  hang_text=&text[textlen-1];
+	else if ((textlen>=1)&&(!strcmp(&text[textlen-1],".")))
+	  hang_text=&text[textlen-1];
+	if (hang_text) {
+	  set_font(l->fonts[right_hang_piece]->font_nickname);
+	  float hang_width=HPDF_Page_TextWidth(page,hang_text);
+	  l->right_hang+=hang_width;
+	  fprintf(stderr,"Hanging '%s' in right margin (%.1f points)\n",
+		  hang_text,hang_width);
+	}
+      }
+    }
+  }
+  l->line_width_so_far-=l->left_hang+l->right_hang;
   return 0;
 }
 
@@ -286,7 +359,8 @@ int line_emit(struct paragraph *p,int line_num)
 
     if (p->line_count>(line_num+1)) {
 
-      float points_to_add=l->max_line_width-l->line_width_so_far; // -l->left_margin;
+      float points_to_add
+	=l->max_line_width-l->line_width_so_far;
       
       fprintf(stderr,"Justification requires sharing of %.1fpts.\n",points_to_add);
       fprintf(stderr,"  used=%.1fpts, max_width=%dpts\n",
@@ -333,6 +407,7 @@ int line_emit(struct paragraph *p,int line_num)
     fprintf(stderr,"x=%.1f (left/justified alignment)\n",x);
 
   }
+  x-=l->left_hang;
 
   for(i=0;i<l->piece_count;i++) {
     HPDF_Page_SetFontAndSize(page,l->fonts[i]->font,l->actualsizes[i]);

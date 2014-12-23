@@ -196,11 +196,11 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
   if ((!strcmp(text," "))&&(p->current_line->piece_count==0))
     if (!forceSpaceAtStartOfLine) return 0;
 
-  // Verse numbers at the start of poetry lines appear left of the poetry margin
-  int is_poetry_leading_verse=0;
-  if (p->poem_level&&(!p->current_line->piece_count)
+  // Verse numbers at the start of lines appear left of the margin
+  int is_hanging_verse=0;  
+  if ((!p->current_line->piece_count)
       &&!strcmp("versenum",current_font->font_nickname)) {
-    is_poetry_leading_verse=1;
+    is_hanging_verse=1;
     // fprintf(stderr,"Placing verse number in margin at start of poem line\n");
   } else {  
     // Make sure the line has enough space
@@ -222,9 +222,10 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
 		 current_font->font_nickname,size,text);
   
   // Place initial verse number in margin for poetry.
-  if (is_poetry_leading_verse) {
+  if (is_hanging_verse) {
     p->current_line->left_margin-=text_width;
     p->current_line->max_line_width+=text_width;
+    fprintf(stderr,"Hanging verse number '%s' in left margin\n",text);
   }
 
   p->current_line->pieces[p->current_line->piece_count]=strdup(text);

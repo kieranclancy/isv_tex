@@ -80,6 +80,9 @@ struct line_pieces {
   int max_line_width;
   // Reserved space on left side, e.g., for dropchars
   int left_margin;
+  // Left and right side width of hanging content.
+  float left_hang;
+  float right_hang;
 
   int alignment;
   
