@@ -188,8 +188,8 @@ int line_emit(struct paragraph *p,int line_num)
     fprintf(stderr,"Footnote block is %dpts high (%d lines).\n",
 	    footnotes_height,temp.line_count);
     if (baseline_y>(page_height-bottom_margin)) {
-      fprintf(stderr,"Breaking page at %.1fpts to make room for %dpt footnotes block\n",
-	      page_y,footnotes_height);
+      fprintf(stderr,"Breaking page %d at %.1fpts to make room for %dpt footnotes block\n",
+	      current_page,page_y,footnotes_height);
       break_page=1;
     }
   }
@@ -199,22 +199,35 @@ int line_emit(struct paragraph *p,int line_num)
   // all cross-references and make sure that it can fit above the cross-references.
   if (p==&body_paragraph) {
     int crossref_height=0;
-    int n;
+    int crossref_para_count=crossref_count;
+    int n,i;
+
+    // Total height of crossrefs from previous lines on page
     for(n=0;n<crossref_count;n++)
       crossref_height+=crossrefs_queue[n]->total_height;
+    // Now add height of cross refs on the current line(s) being drawn.
+    for(n=line_num;n<=max_line_num;n++) {
+      struct line_pieces *ll=p->paragraph_lines[n];
+      for(i=0;i<ll->piece_count;i++)
+	if (ll->crossrefs[i]) {
+	  crossref_height+=ll->crossrefs[i]->total_height;
+	  crossref_para_count++;
+	}
+    }
 
-    if ((crossref_height+(crossref_count*crossref_min_vspace))
+    if ((crossref_height+(crossref_para_count*crossref_min_vspace))
 	>(page_height-footnotes_total_height-bottom_margin-top_margin)) {
-      fprintf(stderr,"Breaking page at %.1fpts to avoid %dpts of cross references for %d verses\n",
-	      page_y,
-	      crossref_height+(crossref_count*crossref_min_vspace),
-	      crossref_count);
+      fprintf(stderr,"Breaking page %d at %.1fpts to avoid %dpts of cross references for %d verses (only %dpts available for crossrefs)\n",
+	      current_page,page_y,
+	      crossref_height+(crossref_para_count*crossref_min_vspace),
+	      crossref_para_count,
+	      (page_height-footnotes_total_height-bottom_margin-top_margin));
       paragraph_dump(p);
       break_page=1;
     } else {
       fprintf(stderr,"%d cross reference blocks, totalling %dpts high (lines %d..%d)\n",
-	      crossref_count,
-	      crossref_height+(crossref_count*crossref_min_vspace),
+	      crossref_para_count,
+	      crossref_height+(crossref_para_count*crossref_min_vspace),
 	      p->first_crossref_line,max_line_num);
     }
   }
