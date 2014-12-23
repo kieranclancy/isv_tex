@@ -817,12 +817,15 @@ int render_tokens()
 	  } else if (!strcasecmp(token_strings[i],"poeml")) {
 	    target_paragraph->poem_level=1; target_paragraph->poem_subsequent_line=0;
 	    paragraph_setup_next_line(target_paragraph);
+	    target_paragraph->current_line->alignment=AL_LEFT;
 	  } else if (!strcasecmp(token_strings[i],"poemll")) {
 	    target_paragraph->poem_level=2; target_paragraph->poem_subsequent_line=0;
 	    paragraph_setup_next_line(target_paragraph);
+	    target_paragraph->current_line->alignment=AL_LEFT;
 	  } else if (!strcasecmp(token_strings[i],"poemlll")) {
 	    target_paragraph->poem_level=3; target_paragraph->poem_subsequent_line=0;
 	    paragraph_setup_next_line(target_paragraph);
+	    target_paragraph->current_line->alignment=AL_LEFT;
 	  } else if (!strcasecmp(token_strings[i],"end")) {
 	    i++; if (token_types[i]!=TT_TEXT) {
 	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
@@ -831,6 +834,9 @@ int render_tokens()
 	    if (!strcasecmp(token_strings[i],"poetry")) {
 	      target_paragraph->poem_level=0;
 	      paragraph_insert_vspace(target_paragraph,poetry_vspace);
+	      // Revert to justified text after poetry
+	      target_paragraph->paragraph_lines[target_paragraph->line_count-1]
+		->alignment=AL_JUSTIFIED;
 	    } else {
 	      fprintf(stderr,"Warning: I don't know about \%s{%s}\n",
 		      token_strings[i-1],token_strings[i]);	      
