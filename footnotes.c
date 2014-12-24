@@ -138,14 +138,6 @@ int end_footnote()
   target_paragraph=&body_paragraph;
   footnote_mode=0;
 
-  fprintf(stderr,"There are %d footnotes.\n",footnote_count);
-  int i;
-  for(i=0;i<footnote_count;i++)
-    {
-      paragraph_dump(&footnote_paragraphs[i]);
-      if (i<footnote_count-1) fprintf(stderr,"---\n");
-    }
-  
   return 0;
 }
 
@@ -157,11 +149,6 @@ int reenumerate_footnotes(int first_remaining_line_uid)
   // While there are footnotes we have already output, purge them.
   fprintf(stderr,"There are %d footnotes.\n",footnote_count);
   int i;
-  for(i=0;i<footnote_count;i++)
-    {
-      paragraph_dump(&footnote_paragraphs[i]);
-      if (i<footnote_count-1) fprintf(stderr,"---\n");
-    }
   
   while((footnote_count>0)&&(footnote_line_numbers[0]<first_remaining_line_uid))
     {
@@ -247,11 +234,6 @@ int reenumerate_footnotes(int first_remaining_line_uid)
 
 
   fprintf(stderr,"There are %d footnotes left:\n",footnote_count);
-  for(i=0;i<footnote_count;i++)
-    {
-      paragraph_dump(&footnote_paragraphs[i]);
-      if (i<footnote_count-1) fprintf(stderr,"---\n");
-    }
   
   // Update footnote mark based on number of footnotes remaining
   generate_footnote_mark(footnote_count-1);
