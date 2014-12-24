@@ -143,34 +143,48 @@ int end_footnote()
 
 int reenumerate_footnotes(int first_remaining_line_uid)
 {
-  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  fprintf(stderr,"%s()\n",__FUNCTION__);
 
   // While there are footnotes we have already output, purge them.
+  fprintf(stderr,"There are %d footnotes.\n",footnote_count);
+  int i;
+  for(i=0;i<footnote_count;i++)
+    {
+      paragraph_dump(&footnote_paragraphs[i]);
+    }
+  
   while((footnote_count>0)&&(footnote_line_numbers[0]<first_remaining_line_uid))
     {
       fprintf(stderr,"%d foot notes remaining: deleting %d (is < %d)\n",
 	      footnote_count,
 	      footnote_line_numbers[0],first_remaining_line_uid);
+      paragraph_dump(&footnote_paragraphs[0]);
+      fprintf(stderr,"  clearing footnote\n");
       paragraph_clear(&footnote_paragraphs[0]);
       int i;
       // Copy down foot notes
-      for(i=0;i<footnote_count;i++) {
+      for(i=0;i<(footnote_count-1);i++) {
 	footnote_line_numbers[i]=footnote_line_numbers[i+1];
-	bcopy(&footnote_paragraphs[i],&footnote_paragraphs[i+1],
+	bcopy(&footnote_paragraphs[i+1],&footnote_paragraphs[i],
 	      sizeof (struct paragraph));
       }
       footnote_count--;
     }
 
+  fprintf(stderr,"There are %d footnotes left:\n",footnote_count);
+  for(i=0;i<footnote_count;i++)
+    {
+      paragraph_dump(&footnote_paragraphs[i]);
+    }
+
+  
   // Now that we have only the relevant footnotes left, update the footnote marks
   // in the footnotes, and in the lines that reference them.
   // XXX - If the footnote mark becomes wider, it might stick out into the margin.
-  int i;
   int footnote_number_in_line=0;
   int footnotemark_typeface_index=set_font("footnotemark");
   for(i=0;i<footnote_count;i++)
     {
-
       if (i) {
 	if (footnote_line_numbers[i]==footnote_line_numbers[i-1])
 	  footnote_number_in_line++;
