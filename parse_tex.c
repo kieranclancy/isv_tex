@@ -204,8 +204,15 @@ int tokenise_file(char *filename, int crossreference_parsing)
 	    token_type=TT_TEXT;
 	    token_len=0;
 	  }
-	else if (file[i]==',') {
+	else if ((file[i]==',')
+		 &&(file[i+1]!='"')
+		 &&(file[i+1]!=',')
+		 &&(file[i+1]!='.')
+		 &&(file[i+1]!='\'')
+		 )
+	  {
 	  // Break text AFTER each comma to allow line wrapping
+	  // (unless other right-hangable punctuation follows)
 	  token_text[token_len++]=',';
 	  token_text[token_len]=0;
 	  next_file_token(p,token_type,token_len,token_text);
