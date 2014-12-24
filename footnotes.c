@@ -137,6 +137,14 @@ int end_footnote()
 
   target_paragraph=&body_paragraph;
   footnote_mode=0;
+
+  fprintf(stderr,"There are %d footnotes.\n",footnote_count);
+  int i;
+  for(i=0;i<footnote_count;i++)
+    {
+      paragraph_dump(&footnote_paragraphs[i]);
+    }
+  
   return 0;
 }
 
@@ -170,13 +178,6 @@ int reenumerate_footnotes(int first_remaining_line_uid)
       }
       footnote_count--;
     }
-
-  fprintf(stderr,"There are %d footnotes left:\n",footnote_count);
-  for(i=0;i<footnote_count;i++)
-    {
-      paragraph_dump(&footnote_paragraphs[i]);
-    }
-
   
   // Now that we have only the relevant footnotes left, update the footnote marks
   // in the footnotes, and in the lines that reference them.
@@ -193,6 +194,8 @@ int reenumerate_footnotes(int first_remaining_line_uid)
       }
 
       generate_footnote_mark(i);
+
+      // Update footnote marks in body text
       struct paragraph *p=&body_paragraph;
       int j,k;
       for(j=0;j<p->line_count;j++)
@@ -214,8 +217,37 @@ int reenumerate_footnotes(int first_remaining_line_uid)
 		}
 	    }
 	}
+
+      // Update footnote marks in footnotes
+      int footnotemarkinfootnote_typeface_index=set_font("footnotemarkinfootnote");
+      p=&footnote_paragraphs[i];
+      for(j=0;j<p->line_count;j++)
+	{	  
+	  for(k=0;k<p->paragraph_lines[j]->piece_count;k++)
+	    {
+	      if (p->paragraph_lines[j]->fonts[k]
+		  ==&type_faces[footnotemarkinfootnote_typeface_index])
+		{
+		  // This is the piece
+		  free(p->paragraph_lines[j]->pieces[k]);
+		  p->paragraph_lines[j]->pieces[k]=strdup(footnote_mark_string);
+		  fprintf(stderr,"  footnotemark #%d = '%s' (piece %d/%d in footnote)\n",
+			  i,footnote_mark_string,
+			  k,p->paragraph_lines[j]->piece_count);
+		  break;
+		}
+	    }
+	}
+      
     }
 
+
+  fprintf(stderr,"There are %d footnotes left:\n",footnote_count);
+  for(i=0;i<footnote_count;i++)
+    {
+      paragraph_dump(&footnote_paragraphs[i]);
+    }
+  
   // Update footnote mark based on number of footnotes remaining
   generate_footnote_mark(footnote_count-1);
 
