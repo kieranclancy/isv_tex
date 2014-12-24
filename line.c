@@ -214,9 +214,19 @@ int line_recalculate_width(struct line_pieces *l)
 	if (hang_text) {
 	  set_font(l->fonts[right_hang_piece]->font_nickname);
 	  float hang_width=HPDF_Page_TextWidth(page,hang_text);
-	  l->right_hang+=hang_width;
-	  fprintf(stderr,"Hanging '%s' in right margin (%.1f points)\n",
-		  hang_text,hang_width);
+	  // Only hang if it won't run into things on the side.
+	  // XX Narrowest space is probably between body and
+	  // cross-refs, so use that measure regardless of whether
+	  // we are on a left or right face.
+	  int max_hang_space
+	    =right_margin
+	    -crossref_margin_width-crossref_column_width
+	    -2;  // plus a little space to ensure some white space
+	  if (hang_width<=max_hang_space) {
+	    l->right_hang+=hang_width;
+	    fprintf(stderr,"Hanging '%s' in right margin (%.1f points)\n",
+		    hang_text,hang_width);
+	  }
 	}
       }
     }
