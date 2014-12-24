@@ -35,6 +35,10 @@
 #include "hpdf.h"
 #include "generate.h"
 
+#define NONDECENDING_LETTERS "abcdefhiklmnorstuvwxz"
+char *footnote_alphabet=NONDECENDING_LETTERS;
+int footnote_alphabet_size=strlen(NONDECENDING_LETTERS);
+
 struct paragraph rendered_footnote_paragraph;
 
 struct paragraph footnote_paragraphs[MAX_FOOTNOTES_ON_PAGE];
@@ -66,14 +70,14 @@ int footnotes_reset()
 
 int generate_footnote_mark(int n)
 {
-  if (n<27) {
-    footnote_mark_string[0]='a'+(n);
+  if (n<=footnote_alphabet_size) {
+    footnote_mark_string[0]=footnote_alphabet[n-1];
     footnote_mark_string[1]=0;
   }
   else {
-    n-=26;
-    footnote_mark_string[0]='a'+(n/26);
-    footnote_mark_string[1]='a'+(n%26);
+    n-=footnote_alphabet_size;
+    footnote_mark_string[0]=footnote_alphabet[n/footnote_alphabet_size];
+    footnote_mark_string[1]=footnote_alphabet[n%footnote_alphabet_size];
     footnote_mark_string[2]=0;
   }
   return 0;
