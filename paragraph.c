@@ -224,11 +224,12 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
 		 current_font->font_nickname,size,text);
   
   // Place initial verse number in margin for poetry.
-  if (is_hanging_verse) {
-    p->current_line->left_margin-=text_width;
-    p->current_line->max_line_width+=text_width;
-    fprintf(stderr,"Hanging verse number '%s' in left margin (start of paragraph)\n",text);
-  }
+  if (0)
+    if (is_hanging_verse) {
+      p->current_line->left_margin-=text_width;
+      p->current_line->max_line_width+=text_width;
+      fprintf(stderr,"Hanging verse number '%s' in left margin (start of paragraph)\n",text);
+    }
 
   p->current_line->pieces[p->current_line->piece_count]=strdup(text);
   p->current_line->fonts[p->current_line->piece_count]=current_font;
