@@ -292,6 +292,7 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
       //         p->current_line->line_width_so_far);
       
       // Inherit alignment of previous line
+      if (p->poem_level) last_line->alignment=AL_LEFT;
       p->current_line->alignment=last_line->alignment;
       dropchar_margin_check(p,p->current_line);
     } else {
