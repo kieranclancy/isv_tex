@@ -754,11 +754,11 @@ int render_tokens()
 	    paragraph_clear_style_stack();
 	    // If we are on a left page, add a blank right page so that
 	    // the book starts on a left page
-	    if (leftRight==LR_LEFT) {
+	    if (leftRight==LR_RIGHT) {
 	      fprintf(stderr,"Inserting blank page so that book starts on left.\n");
-	      new_empty_page(LR_RIGHT,1);
+	      new_empty_page(LR_LEFT,1);
 	    }
-	    leftRight=LR_LEFT;
+	    leftRight=LR_RIGHT;
 	    i++; if (token_types[i]!=TT_TEXT) {
 	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
 	      exit(-1);
