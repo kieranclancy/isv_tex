@@ -199,29 +199,18 @@ int line_recalculate_width(struct line_pieces *l)
 
       if (text) {
 	// Now look for right hanging punctuation
-	if ((textlen>=1)&&(!strcmp(&text[textlen-1],","))) hang_text=&text[textlen-1];
-	else if ((textlen>=3)&&(!strcmp(&text[textlen-3],"---")))
-	  hang_text=&text[textlen-3];
-	else if ((textlen>=2)&&(!strcmp(&text[textlen-2],"--")))
-	  hang_text=&text[textlen-2];
-	else if ((textlen>=1)&&(!strcmp(&text[textlen-1],"-")))
-	  hang_text=&text[textlen-1];
-	else if ((textlen>=1)&&(!strcmp(&text[textlen-1],",")))
-	  hang_text=&text[textlen-1];
-	else if ((textlen>=1)&&(!strcmp(&text[textlen-1],".")))
-	  hang_text=&text[textlen-1];
-	else if ((textlen>=1)&&(!strcmp(&text[textlen-1],";")))
-	  hang_text=&text[textlen-1];
-	else if ((textlen>=1)&&(!strcmp(&text[textlen-1],"\"")))
-	  hang_text=&text[textlen-1];
-	else if ((textlen>=3)&&(!strcmp(&text[textlen-3],".''")))
-	  hang_text=&text[textlen-3];
-	else if ((textlen>=3)&&(!strcmp(&text[textlen-3],",''")))
-	  hang_text=&text[textlen-3];
-	else if ((textlen>=2)&&(!strcmp(&text[textlen-2],"''")))
-	  hang_text=&text[textlen-2];
-	else if ((textlen>=1)&&(!strcmp(&text[textlen-1],"'")))
-	  hang_text=&text[textlen-1];
+	int o=textlen;
+	while(o>0) {
+	  switch(text[o-1]) {	    
+	  case '\'': case '.': case ',':
+	  case '"': case '-': case ';':
+	  case '`': case ' ': case ':':
+	    hang_text=&text[--o];
+	    continue;
+	  }
+	  break;
+	}
+	
 	if (hang_text) {
 	  set_font(l->fonts[right_hang_piece]->font_nickname);
 	  float hang_width=HPDF_Page_TextWidth(page,hang_text);
