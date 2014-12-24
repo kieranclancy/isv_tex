@@ -145,9 +145,10 @@ int line_recalculate_width(struct line_pieces *l)
   if (l->piece_count) {
     if (!(strcmp(l->fonts[0]->font_nickname,"versenum"))) {
       // Verse number on the left.
-      // Only hang single-digit verse numbers
-      int vn=atoi(l->pieces[0]);
-      if (vn<10) {
+      // Only hang single-digit or skinny (10-19) verse numbers
+      // Actually, let's just hang all verse numbers. I think it looks better.
+      int vn=atoi(l->pieces[0]);      
+      if (vn<999) {
 	l->left_hang=l->piece_widths[0];	
 	left_hang_piece=1;
 	fprintf(stderr,"Hanging verse number '%s'(=%d) in left margin (%.1f points)\n",
