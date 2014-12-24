@@ -60,7 +60,7 @@ int footnotes_reset()
     footnote_line_numbers[i]=-1;
   }
 
-  generate_footnote_mark(-1);
+  generate_footnote_mark(0);
 
   footnote_stack_depth=-1;
   footnote_count=0;
@@ -70,8 +70,9 @@ int footnotes_reset()
 
 int generate_footnote_mark(int n)
 {
-  if (n<=footnote_alphabet_size) {
-    footnote_mark_string[0]=footnote_alphabet[n-1];
+  fprintf(stderr,"%s(%d)\n",__FUNCTION__,n);
+  if (n<footnote_alphabet_size) {
+    footnote_mark_string[0]=footnote_alphabet[n];
     footnote_mark_string[1]=0;
   }
   else {
