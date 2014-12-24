@@ -143,6 +143,7 @@ int end_footnote()
   for(i=0;i<footnote_count;i++)
     {
       paragraph_dump(&footnote_paragraphs[i]);
+      if (i<footnote_count-1) fprintf(stderr,"---\n");
     }
   
   return 0;
@@ -159,6 +160,7 @@ int reenumerate_footnotes(int first_remaining_line_uid)
   for(i=0;i<footnote_count;i++)
     {
       paragraph_dump(&footnote_paragraphs[i]);
+      if (i<footnote_count-1) fprintf(stderr,"---\n");
     }
   
   while((footnote_count>0)&&(footnote_line_numbers[0]<first_remaining_line_uid))
@@ -177,6 +179,8 @@ int reenumerate_footnotes(int first_remaining_line_uid)
 	      sizeof (struct paragraph));
       }
       footnote_count--;
+      // bzero freed slot
+      bzero(&footnote_paragraphs[footnote_count],sizeof(struct paragraph));
     }
   
   // Now that we have only the relevant footnotes left, update the footnote marks
@@ -246,6 +250,7 @@ int reenumerate_footnotes(int first_remaining_line_uid)
   for(i=0;i<footnote_count;i++)
     {
       paragraph_dump(&footnote_paragraphs[i]);
+      if (i<footnote_count-1) fprintf(stderr,"---\n");
     }
   
   // Update footnote mark based on number of footnotes remaining
