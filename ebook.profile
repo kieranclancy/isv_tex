@@ -13,6 +13,15 @@ bottom_margin 36
 
 heading_y 497
 
+# Indentation of first line of a paragraph
+paragraph_indent 18
+
+# Poetry indents: Level 1 = poetry_left_margin, level 2+ add (n-1)x poetry_level_indent
+poetry_left_margin 35
+poetry_level_indent 10
+poetry_wrap_indent 30
+poetry_vspace 5
+
 # for marginal cross-references
 crossref_column_width 34
 crossref_margin_width 4
