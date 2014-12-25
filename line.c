@@ -138,14 +138,23 @@ int line_recalculate_width(struct line_pieces *l)
   int footnotemark_index=set_font("footnotemark");
   l->line_width_so_far=0;
   for(i=0;i<l->piece_count;i++) {
+    l->piece_widths[i]=l->natural_widths[i];
     l->line_width_so_far+=l->piece_widths[i];
-    if (i&&l->fonts[i]==&type_faces[footnotemark_index]) {
+
+
+    if (i  // make sure there is a previous piece
+	&&(i<(l->piece_count-1)) // and that this is not matter that would appear
+	                         // hung in the right margin so that it doesn't get
+	                         // double-discount.
+	&&l->fonts[i]==&type_faces[footnotemark_index]) {
       // This is a footnote mark.
       // Check if the preceeding piece ends in any low punctuation marks.
       // If so, then discount the width of that piece by the width of such
       // punctuation. If the width of the discount is wider than this footnotemark,
       // then increase the width of this footnotemark so that the end of text
       // position is advanced correctly.
+      fprintf(stderr,"hanging footnotemark over punctuation: ");
+      line_dump(l);
       char *text=l->pieces[i-1];
       int o=strlen(text);
       char *hang_text=NULL;
@@ -160,7 +169,7 @@ int line_recalculate_width(struct line_pieces *l)
       }
       set_font(l->fonts[i-1]->font_nickname);
       float hang_width=HPDF_Page_TextWidth(page,hang_text);
-      float all_width=HPDF_Page_TextWidth(page,text);
+      float all_width=l->natural_widths[i-1];
       l->piece_widths[i-1]=all_width-hang_width;
       if (hang_width>l->piece_widths[i]) l->piece_widths[i]=hang_width;
     }
@@ -403,6 +412,8 @@ int line_emit(struct paragraph *p,int line_num)
   float linegap=0;
 
   line_remove_trailing_space(l);
+  fprintf(stderr,"Final width recalculation: ");
+  line_recalculate_width(l);
   
   // Add extra spaces to justified lines, except for the last
   // line of a paragraph, and poetry lines.
@@ -550,6 +561,7 @@ int line_remove_leading_space(struct line_pieces *l)
       l->piece_is_elastic[j]=l->piece_is_elastic[j+i];
       l->piece_baseline[j]=l->piece_baseline[j+i];
       l->piece_widths[j]=l->piece_widths[j+i];
+      l->natural_widths[j]=l->natural_widths[j+i];
       l->crossrefs[j]=l->crossrefs[j+i];
     }
     

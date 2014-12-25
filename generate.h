@@ -91,7 +91,8 @@ struct line_pieces {
   char *pieces[MAX_LINE_PIECES];
   struct type_face *fonts[MAX_LINE_PIECES];
   int actualsizes[MAX_LINE_PIECES];
-  float piece_widths[MAX_LINE_PIECES];
+  float piece_widths[MAX_LINE_PIECES];  // width of piece after any fiddling
+  float natural_widths[MAX_LINE_PIECES];  // natural width of piece
   // Used to mark spaces that can be stretched for justification
   int piece_is_elastic[MAX_LINE_PIECES];
   // Where the piece sits with respect to the nominal baseline

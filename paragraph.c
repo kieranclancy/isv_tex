@@ -235,6 +235,7 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
   p->current_line->fonts[p->current_line->piece_count]=current_font;
   p->current_line->actualsizes[p->current_line->piece_count]=size;
   p->current_line->piece_widths[p->current_line->piece_count]=text_width;
+  p->current_line->natural_widths[p->current_line->piece_count]=text_width;
   p->current_line->crossrefs[p->current_line->piece_count]=NULL;
   if (strcmp(text," "))
     p->current_line->piece_is_elastic[p->current_line->piece_count]=0;
@@ -275,6 +276,8 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
 	    =last_line->actualsizes[i];
 	  p->current_line->piece_widths[p->current_line->piece_count]
 	    =last_line->piece_widths[i];
+	  p->current_line->natural_widths[p->current_line->piece_count]
+	    =last_line->natural_widths[i];
 	  p->current_line->piece_is_elastic[p->current_line->piece_count]
 	    =last_line->piece_is_elastic[i];
 	  p->current_line->piece_baseline[p->current_line->piece_count]
@@ -430,6 +433,7 @@ int paragraph_append_thinspace(struct paragraph *p,int forceSpaceAtStartOfLine)
   if (p->current_line) p->current_line->checkpoint=p->current_line->piece_count;
   paragraph_append_characters(p," ",current_font->font_size,0,forceSpaceAtStartOfLine);
   p->current_line->piece_widths[p->current_line->piece_count-1]/=2;
+  p->current_line->natural_widths[p->current_line->piece_count-1]/=2;
   return 0;
 }
 
