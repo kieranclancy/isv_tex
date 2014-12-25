@@ -147,7 +147,7 @@ float calc_left_hang(struct line_pieces *l,int left_hang_piece)
     break;
   }
   
-  if (hang_text) {
+  if (hang_text[0]) {
     set_font(l->fonts[left_hang_piece]->font_nickname);
     float hang_width=HPDF_Page_TextWidth(page,hang_text);
     fprintf(stderr,"Hanging '%s' on the left (%.1f points)\n",
@@ -171,9 +171,6 @@ int line_recalculate_width(struct line_pieces *l)
 
 
     if (i  // make sure there is a previous piece
-	&&(i<(l->piece_count-1)) // and that this is not matter that would appear
-	                         // hung in the right margin so that it doesn't get
-	                         // double-discount.
 	&&l->fonts[i]==&type_faces[footnotemark_index]) {
       // This is a footnote mark.
       // Check if the preceeding piece ends in any low punctuation marks.
@@ -200,6 +197,9 @@ int line_recalculate_width(struct line_pieces *l)
       float all_width=l->natural_widths[i-1];
       l->piece_widths[i-1]=all_width-hang_width;
       if (hang_width>l->piece_widths[i]) l->piece_widths[i]=hang_width;
+      fprintf(stderr,"  This is the punctuation over which we are hanging the footnotemark: [%s] (%.1fpts)\n",hang_text,hang_width);
+      fprintf(stderr,"Line after hanging footnote over punctuation: ");
+      line_dump(l);
     }
 
     // Related to the above, we must discount the width of a dropchar if it is
@@ -313,6 +313,8 @@ int line_emit(struct paragraph *p,int line_num)
   struct line_pieces *l=p->paragraph_lines[line_num];
   int break_page=0;
 
+  fprintf(stderr,"Emitting line: "); line_dump(p->paragraph_lines[line_num]);
+  
   // Work out maximum line number that we have to take into account for
   // page fitting, i.e., to prevent orphaned heading lines.
   int max_line_num=line_num;
@@ -449,6 +451,9 @@ int line_emit(struct paragraph *p,int line_num)
   line_remove_trailing_space(l);
   fprintf(stderr,"Final width recalculation: ");
   line_recalculate_width(l);
+
+  fprintf(stderr,"After final width recalculation: "); line_dump(p->paragraph_lines[line_num]);
+
   
   // Add extra spaces to justified lines, except for the last
   // line of a paragraph, and poetry lines.
@@ -611,8 +616,11 @@ int line_dump(struct line_pieces *l)
 {
   int i;
   fprintf(stderr,"line_uid #%d: ",l->line_uid);
-  for(i=0;i<l->piece_count;i++)
+  for(i=0;i<l->piece_count;i++) {
+    if (i&&(l->piece_widths[i-1]!=l->natural_widths[i-1]))
+      fprintf(stderr,"%.1f",l->piece_widths[i-1]-l->natural_widths[i-1]);
     fprintf(stderr,"[%s]",l->pieces[i]);
+  }
   fprintf(stderr,"\n");
   return 0;
 }
