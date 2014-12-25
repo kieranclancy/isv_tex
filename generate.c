@@ -1042,8 +1042,8 @@ int setup_job()
   }
   fprintf(stderr,"Loaded fonts\n");
   
-  // Start with a right page so that we don't insert a blank one
-  leftRight=LR_RIGHT;
+  // Start with a left page so that we don't insert a blank one
+  leftRight=LR_LEFT;
 
   // Create first page so that text widths get calculated.
   page = HPDF_AddPage(pdf); 
