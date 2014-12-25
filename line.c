@@ -133,9 +133,38 @@ int line_recalculate_width(struct line_pieces *l)
   // Recalculate line width
   int i;
 
-  // Work out basic width
+  // Work out basic width.
+  // At the same time, look for footnotes that can be placed above punctuation
+  int footnotemark_index=set_font("footnotemark");
   l->line_width_so_far=0;
-  for(i=0;i<l->piece_count;i++) l->line_width_so_far+=l->piece_widths[i];
+  for(i=0;i<l->piece_count;i++) {
+    l->line_width_so_far+=l->piece_widths[i];
+    if (i&&l->fonts[i]==&type_faces[footnotemark_index]) {
+      // This is a footnote mark.
+      // Check if the preceeding piece ends in any low punctuation marks.
+      // If so, then discount the width of that piece by the width of such
+      // punctuation. If the width of the discount is wider than this footnotemark,
+      // then increase the width of this footnotemark so that the end of text
+      // position is advanced correctly.
+      char *text=l->pieces[i-1];
+      int o=strlen(text);
+      char *hang_text=NULL;
+      while(o>0) {
+	switch(text[o-1]) {	    
+	case '.': case ',':
+	case '-': case ' ': 
+	  hang_text=&text[--o];
+	  continue;
+	}
+	break;
+      }
+      set_font(l->fonts[i-1]->font_nickname);
+      float hang_width=HPDF_Page_TextWidth(page,hang_text);
+      float all_width=HPDF_Page_TextWidth(page,text);
+      l->piece_widths[i-1]=all_width-hang_width;
+      if (hang_width>l->piece_widths[i]) l->piece_widths[i]=hang_width;
+    }
+  }
 
   l->left_hang=0;
   l->right_hang=0;
