@@ -128,6 +128,24 @@ int line_free(struct line_pieces *l)
   return 0;
 }
 
+float calc_left_hang(struct line_pieces *l,int left_hang_piece)
+{
+  if (left_hang_piece>=l->piece_count) return 0.0;
+  
+  char *text=l->pieces[left_hang_piece];
+  char *hang_text=NULL;
+  if (!strncasecmp(text,"``",2)) hang_text="``";
+  else if (!strncasecmp(text,"`",1)) hang_text="`";
+  else if (!strncasecmp(text,"\"",1)) hang_text="\"";
+  if (hang_text) {
+    set_font(l->fonts[left_hang_piece]->font_nickname);
+    float hang_width=HPDF_Page_TextWidth(page,hang_text);
+    fprintf(stderr,"Hanging '%s' on the left (%.1f points)\n",
+	    hang_text,hang_width);
+    return hang_width;
+  } else return 0.0;
+}
+
 int line_recalculate_width(struct line_pieces *l)
 {
   // Recalculate line width
@@ -178,11 +196,15 @@ int line_recalculate_width(struct line_pieces *l)
     // followed by left-hangable material
     if ((i==1)&&(l->fonts[0]->line_count>1))
       {
-	int discount=0;
+	int piece=i;
+	float discount=0;
 	
 	// Discount any footnote
-	if (l->fonts[i]==&type_faces[footnotemark_index])
-	  discount+=l->natural_widths[i];
+	if (l->fonts[piece]==&type_faces[footnotemark_index]) {
+	  discount+=l->natural_widths[piece];
+	  piece++;
+	}
+	discount+=calc_left_hang(l,piece);       
 	
 	l->piece_widths[0]=l->natural_widths[0]-discount;
 	l->line_width_so_far-=discount;
@@ -214,18 +236,7 @@ int line_recalculate_width(struct line_pieces *l)
     // Check for hanging punctuation (including if it immediately follows a
     // verse number)
     if (left_hang_piece<l->piece_count) {
-      text=l->pieces[left_hang_piece];
-      hang_text=NULL;
-      if (!strncasecmp(text,"``",2)) hang_text="``";
-      else if (!strncasecmp(text,"`",1)) hang_text="`";
-      else if (!strncasecmp(text,"\"",1)) hang_text="\"";
-      if (hang_text) {
-	set_font(l->fonts[left_hang_piece]->font_nickname);
-	float hang_width=HPDF_Page_TextWidth(page,hang_text);
-	l->left_hang+=hang_width;
-	fprintf(stderr,"Hanging '%s' in left margin (%.1f points)\n",
-		hang_text,hang_width);
-      }
+      l->left_hang+=calc_left_hang(l,left_hang_piece);
     }
 
     // Now check for right hanging
