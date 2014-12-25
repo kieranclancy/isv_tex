@@ -431,9 +431,13 @@ int paragraph_append_thinspace(struct paragraph *p,int forceSpaceAtStartOfLine)
   fprintf(stderr,"%s()\n",__FUNCTION__);
   // Checkpoint where we are up to, in case we need to split the line
   if (p->current_line) p->current_line->checkpoint=p->current_line->piece_count;
+  int piece=p->current_line->piece_count-1;
   paragraph_append_characters(p," ",current_font->font_size,0,forceSpaceAtStartOfLine);
-  p->current_line->piece_widths[p->current_line->piece_count-1]/=2;
-  p->current_line->natural_widths[p->current_line->piece_count-1]/=2;
+  p->current_line->piece_widths[piece]/=2;
+  p->current_line->natural_widths[piece]/=2;
+  // Mark piece non-elastic since thin spaces are thin for a reason.
+  // This is also intended to prevent the breaking of a line at a thin space.
+  p->current_line->piece_is_elastic[piece]=0;
   return 0;
 }
 
