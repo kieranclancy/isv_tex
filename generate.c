@@ -632,13 +632,19 @@ int dropchar_margin_check(struct paragraph *p,struct line_pieces *l)
   // If the current font has drop chars (i.e, line_count > 1),
   // then set the dropchar margin line count to (line_count-1),
   // and set drop_char_left_margin to the width accumulated on the
-  // line so far.
+  // line so far, plus enough space for left hanging punctation.
+  
+  int max_hang_space
+    =right_margin
+    -crossref_margin_width-crossref_column_width
+    -2;  // plus a little space to ensure some white space
+  
   if ((current_font->line_count-1)>p->drop_char_margin_line_count) {
     fprintf(stderr,"Font '%s' spans %d lines -- activating dropchar margin\n",
 	    current_font->font_nickname,current_font->line_count);
     p->drop_char_margin_line_count=current_font->line_count-1;
-    if (l->line_width_so_far>p->drop_char_left_margin)
-      p->drop_char_left_margin=l->line_width_so_far;
+    if (l->line_width_so_far+max_hang_space>p->drop_char_left_margin)
+      p->drop_char_left_margin=l->line_width_so_far+max_hang_space;
   }
   return 0;
 }

@@ -494,6 +494,16 @@ int paragraph_pop_style(struct paragraph *p)
   }
   
   if (type_face_stack_pointer) {
+    // Adjust line position following dropchars
+    if (current_font->line_count>1) {
+      struct line_pieces *l=target_paragraph->current_line;
+      int max_hang_space
+	=right_margin
+	-crossref_margin_width-crossref_column_width
+	-2;  // plus a little space to ensure some white space
+      l->natural_widths[l->piece_count-1]+=max_hang_space;
+      line_recalculate_width(l);
+    }
     // Add vertical space after certain type faces
     if (!strcasecmp(current_font->font_nickname,"booktitle"))
       {
