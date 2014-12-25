@@ -185,6 +185,7 @@ int line_recalculate_width(struct line_pieces *l)
 	  discount+=l->natural_widths[i];
 	
 	l->piece_widths[0]=l->natural_widths[0]-discount;
+	l->line_width_so_far-=discount;
       }
   }
 
