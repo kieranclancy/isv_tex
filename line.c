@@ -173,6 +173,19 @@ int line_recalculate_width(struct line_pieces *l)
       l->piece_widths[i-1]=all_width-hang_width;
       if (hang_width>l->piece_widths[i]) l->piece_widths[i]=hang_width;
     }
+
+    // Related to the above, we must discount the width of a dropchar if it is
+    // followed by left-hangable material
+    if ((i==1)&&(l->fonts[0]->line_count>1))
+      {
+	int discount=0;
+	
+	// Discount any footnote
+	if (l->fonts[i]==&type_faces[footnotemark_index])
+	  discount+=l->natural_widths[i];
+	
+	l->piece_widths[0]=l->natural_widths[0]-discount;
+      }
   }
 
   l->left_hang=0;
