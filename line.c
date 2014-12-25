@@ -133,10 +133,20 @@ float calc_left_hang(struct line_pieces *l,int left_hang_piece)
   if (left_hang_piece>=l->piece_count) return 0.0;
   
   char *text=l->pieces[left_hang_piece];
-  char *hang_text=NULL;
-  if (!strncasecmp(text,"``",2)) hang_text="``";
-  else if (!strncasecmp(text,"`",1)) hang_text="`";
-  else if (!strncasecmp(text,"\"",1)) hang_text="\"";
+  char hang_text[1024];
+
+  int o=0;
+  hang_text[0]=0;
+  while(o<1024&&text[o]) {
+    switch(text[o]) {
+    case '\"': case '`': case '\'':
+      hang_text[o]=text[o]; hang_text[o+1]=0;
+      o++;
+      continue;
+    }
+    break;
+  }
+  
   if (hang_text) {
     set_font(l->fonts[left_hang_piece]->font_nickname);
     float hang_width=HPDF_Page_TextWidth(page,hang_text);
