@@ -167,8 +167,6 @@ int line_recalculate_width(struct line_pieces *l)
   l->line_width_so_far=0;
   for(i=0;i<l->piece_count;i++) {
     l->piece_widths[i]=l->natural_widths[i];
-    l->line_width_so_far+=l->piece_widths[i];
-
 
     if (i  // make sure there is a previous piece
 	&&l->fonts[i]==&type_faces[footnotemark_index]) {
@@ -217,9 +215,10 @@ int line_recalculate_width(struct line_pieces *l)
 	discount+=calc_left_hang(l,piece);       
 	
 	l->piece_widths[0]=l->natural_widths[0]-discount;
-	l->line_width_so_far-=discount;
       }
   }
+
+  for(i=0;i<l->piece_count;i++) l->line_width_so_far+=l->piece_widths[i];
 
   l->left_hang=0;
   l->right_hang=0;
@@ -449,6 +448,7 @@ int line_emit(struct paragraph *p,int line_num)
   float linegap=0;
 
   line_remove_trailing_space(l);
+  if (l->alignment==AL_JUSTIFIED) line_remove_leading_space(l);
   fprintf(stderr,"Final width recalculation: ");
   line_recalculate_width(l);
 
@@ -458,10 +458,6 @@ int line_emit(struct paragraph *p,int line_num)
   // Add extra spaces to justified lines, except for the last
   // line of a paragraph, and poetry lines.
   if (l->alignment==AL_JUSTIFIED) {
-
-    line_recalculate_width(l);
-    line_remove_leading_space(l);
-
     if (p->line_count>(line_num+1)) {
 
       float points_to_add
