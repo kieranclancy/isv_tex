@@ -815,17 +815,25 @@ int render_tokens()
 	    // Passage header line	    
 	    int index=set_font("passageheader");
 	    paragraph_flush(target_paragraph);
-	    paragraph_insert_vspace(target_paragraph,passageheader_vspace);
+	    paragraph_insert_vspace(target_paragraph,passageheader_vspace,1);
 	    paragraph_push_style(target_paragraph,AL_LEFT,index);
 	    // Require at least one more line after this before page breaking
 	    paragraph_set_widow_counter(target_paragraph,1);
 	  } else if (!strcasecmp(token_strings[i],"passageinfo")) {
 	    // Passage info line	    
 	    int index=set_font("passageinfo");
-	    paragraph_insert_vspace(target_paragraph,passageheader_vspace);
+	    fprintf(stderr,"%s:%d:checkpoint\n",__FILE__,__LINE__);
+	    paragraph_dump(target_paragraph);
+	    paragraph_insert_vspace(target_paragraph,passageheader_vspace,1);
+	    fprintf(stderr,"%s:%d:checkpoint\n",__FILE__,__LINE__);
+	    paragraph_dump(target_paragraph);
 	    paragraph_push_style(target_paragraph,AL_LEFT,index);
+	    fprintf(stderr,"%s:%d:checkpoint\n",__FILE__,__LINE__);
+	    paragraph_dump(target_paragraph);
 	    // Require at least one more line after this before page breaking
 	    paragraph_set_widow_counter(target_paragraph,1);
+	    fprintf(stderr,"%s:%d:checkpoint\n",__FILE__,__LINE__);
+	    paragraph_dump(target_paragraph);
 	  } else if (!strcasecmp(token_strings[i],"chapt")) {
 	    // Chapter big number (dropchar)
 	    verse_label=0;
@@ -916,7 +924,7 @@ int render_tokens()
 	    }
 	    if (!strcasecmp(token_strings[i],"poetry")) {
 	      target_paragraph->poem_level=0;
-	      paragraph_insert_vspace(target_paragraph,poetry_vspace);
+	      paragraph_insert_vspace(target_paragraph,poetry_vspace,0);
 	      // Revert to justified text after poetry
 	      target_paragraph->paragraph_lines[target_paragraph->line_count-1]
 		->alignment=AL_JUSTIFIED;
@@ -935,7 +943,7 @@ int render_tokens()
 	    }
 	    if (!strcasecmp(token_strings[i],"poetry")) {
 	      target_paragraph->poem_level=0;
-	      paragraph_insert_vspace(target_paragraph,poetry_vspace);
+	      paragraph_insert_vspace(target_paragraph,poetry_vspace,0);
 	    } else {
 	      fprintf(stderr,"Warning: I don't know about \%s{%s}\n",
 		      token_strings[i-1],token_strings[i]);	      

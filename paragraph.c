@@ -501,11 +501,12 @@ int paragraph_push_style(struct paragraph *p, int font_alignment,int font_index)
   return 0;
 }
 
-int paragraph_insert_vspace(struct paragraph *p,int points)
+int paragraph_insert_vspace(struct paragraph *p,int points,int tied)
 {
   fprintf(stderr,"%s(%dpt)\n",__FUNCTION__,points);
   paragraph_setup_next_line(p);
   p->current_line->line_height=points;
+  p->current_line->tied_to_next_line=tied;
   current_line_flush(p);
   return 0;
 }
@@ -536,7 +537,7 @@ int paragraph_pop_style(struct paragraph *p)
     // Add vertical space after certain type faces
     if (!strcasecmp(current_font->font_nickname,"booktitle"))
       {
-	paragraph_insert_vspace(p,type_faces[set_font("blackletter")].linegap/2);
+	paragraph_insert_vspace(p,type_faces[set_font("blackletter")].linegap/2,1);
       }
     current_font=type_face_stack[--type_face_stack_pointer];
   }
@@ -604,7 +605,8 @@ int paragraph_append(struct paragraph *dst,struct paragraph *src)
 	  
     if (!src->paragraph_lines[i]->piece_count) {
       // Empty lines are vspace markers, so just re-add the vspace
-      paragraph_insert_vspace(dst,src->paragraph_lines[i]->line_height);
+      paragraph_insert_vspace(dst,src->paragraph_lines[i]->line_height,
+			      src->paragraph_lines[i]->tied_to_next_line);
     } else {
       for(j=0;j<src->paragraph_lines[i]->piece_count;j++)
 	{
