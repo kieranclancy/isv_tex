@@ -225,29 +225,9 @@ int tokenise_file(char *filename, int crossreference_parsing)
 	  }
 	  else if (token_len<1023) {
 	    token_text[token_len++]=file[i];
-	    if (token_len>=3) {
-	      if ((token_text[token_len-2]=='-')
-		  &&(token_text[token_len-1]=='-')) {
 
-		if (token_text[token_len-3]=='-') {
-		  // Replace --- with em-dash, which conveniently takes the same number
-		  // of characters to encode in UTF8
-		  token_text[token_len-3]=0xE2;
-		  token_text[token_len-2]=0x80;
-		  token_text[token_len-1]=0x94;
-		  fprintf(stderr,"Replaced --- with em-dash\n");
-		} else {
-		  if (file[i+1]!='-') {
-		  // Replace --- with en-dash
-		  token_text[token_len-2]=0xE2;
-		  token_text[token_len-1]=0x80;
-		  token_text[token_len++]=0x93;
-		  fprintf(stderr,"Replaced --- with en-dash near %d:%d\n",
-			  chapter_label,verse_label);
-		  }
-		}
-	      }
-	    }
+	    unicodify(token_text,&token_len,1023,
+		      (i<fileLength?file[i+1]:0x00));
 	  } else {
 	    include_show_stack();
 	    fprintf(stderr,"%s:%d:Token or line too long.\n",

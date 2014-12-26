@@ -301,3 +301,6 @@ int read_profile(char *file);
 int finish_job();
 int setup_job();
 int typeset_file(char *file);
+
+int unicodify(char *token_text,int *token_len,int max_len,
+	      unsigned char next_char);
