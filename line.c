@@ -317,12 +317,17 @@ int line_emit(struct paragraph *p,int line_num)
   // Work out maximum line number that we have to take into account for
   // page fitting, i.e., to prevent orphaned heading lines.
   int max_line_num=line_num;
-  int combined_line_height=l->line_height;
+  float combined_line_height=l->line_height;
+  fprintf(stderr,"  line itself (#%d) is %.1fpts high\n",line_num,l->line_height);
   while ((max_line_num<(p->line_count-1))
-	 &&p->paragraph_lines[max_line_num]->tied_to_next_line)
+	 &&p->paragraph_lines[max_line_num]->tied_to_next_line) {
     combined_line_height+=p->paragraph_lines[++max_line_num]->line_height;
-  fprintf(stderr,"Treating lines %d -- %d as a unit\n",
-	  line_num,max_line_num);
+    fprintf(stderr,"  dependent line is %.1fpts high:",
+	    p->paragraph_lines[max_line_num]->line_height);
+    line_dump(p->paragraph_lines[max_line_num]);
+  }
+  fprintf(stderr,"Treating lines %d -- %d as a unit %.1fpts high\n",
+	  line_num,max_line_num,combined_line_height);
   
   // Does the line(s) require more space than there is?    
   float baseline_y=page_y+combined_line_height*line_spacing;

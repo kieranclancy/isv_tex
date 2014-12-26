@@ -137,8 +137,8 @@ int paragraph_append_line(struct paragraph *p,struct line_pieces *line)
 int line_uid_counter=0;
 int paragraph_setup_next_line(struct paragraph *p)
 {
-  //  fprintf(stderr,"%s()\n",__FUNCTION__);
-
+  fprintf(stderr,"%s()\n",__FUNCTION__);
+  
   // Append any line in progress before creating fresh line
   if (p->current_line) paragraph_append_line(p,p->current_line);
   
@@ -160,14 +160,14 @@ int paragraph_setup_next_line(struct paragraph *p)
 
   // If there is a dropchar margin in effect, then apply it.
   if (p->drop_char_margin_line_count>0) {
-    if (0) fprintf(stderr,
+    if (1) fprintf(stderr,
 		   "Applying dropchar margin of %dpt (%d more lines, including this one)\n",
 		   p->drop_char_left_margin,p->drop_char_margin_line_count);
     p->current_line->max_line_width
       =page_width-left_margin-right_margin-p->drop_char_left_margin;
     p->current_line->left_margin=p->drop_char_left_margin;
     p->drop_char_margin_line_count--;
-    p->current_line->tied_to_next_line=1;
+    if (p->drop_char_margin_line_count) p->current_line->tied_to_next_line=1;
   }
 
   line_apply_poetry_margin(p,p->current_line);
@@ -179,9 +179,10 @@ int paragraph_setup_next_line(struct paragraph *p)
 
 int paragraph_set_widow_counter(struct paragraph *p,int lines)
 {
-  fprintf(stderr,"%s()\n",__FUNCTION__);
+  fprintf(stderr,"%s() ENTER\n",__FUNCTION__);
   if (!p->current_line) paragraph_setup_next_line(p);
   p->current_line->tied_to_next_line=1;
+  fprintf(stderr,"%s() EXIT\n",__FUNCTION__);
   return 0;
 }
 
@@ -245,6 +246,10 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
   // p->current_line->line_width_so_far+=text_width;
   p->current_line->piece_count++;
   line_recalculate_width(p->current_line);
+
+  // Keep dropchars and their associated lines together
+  if (current_font->line_count>1)
+    paragraph_set_widow_counter(p,current_font->line_count-1);
 
   if (p->current_line->line_width_so_far>=p->current_line->max_line_width) {
     if (0) fprintf(stderr,"Breaking line at %1.f points wide (max width=%dpts).\n",
@@ -515,6 +520,8 @@ int paragraph_pop_style(struct paragraph *p)
 	-2;  // plus a little space to ensure some white space
       l->natural_widths[l->piece_count-1]+=max_hang_space;
       line_recalculate_width(l);
+      fprintf(stderr,"After closing dropchar text\n");
+      paragraph_dump(target_paragraph);
     }
     // Add vertical space after certain type faces
     if (!strcasecmp(current_font->font_nickname,"booktitle"))
