@@ -35,6 +35,58 @@
 #include "hpdf.h"
 #include "generate.h"
 
+int unicode_replace(char *text,int *len,
+		    int offset,int number_of_chars_to_replace,
+		    int unicode_point)
+{
+  int bytes;
+  if (unicode_point<0) return -1;
+  else if (unicode_point<0x80) bytes=1;
+  else if (unicode_point<0x800) bytes=2;
+  else if (unicode_point<0x10000) bytes=3;
+  else if (unicode_point<0x20000) bytes=4;
+  else return -1;
+  
+  // Make space for the unicode point.
+  bcopy(&text[offset+number_of_chars_to_replace],
+	&text[offset+bytes],
+	strlen(text)-offset-number_of_chars_to_replace);
+  (*len)+=bytes-number_of_chars_to_replace;
+
+  // We can now encode the point at &text[offset] using bytes bytes
+  switch(bytes) {
+  case 1:
+    text[offset]=unicode_point&0x7f;
+    return 0;
+  case 2:
+    text[offset]=0xc0+((unicode_point>>6)&0x1f);
+    text[offset+1]=0xc0+((unicode_point>>0)&0x3f);
+    return 0;
+  case 3:
+    text[offset]=0xe0+((unicode_point>>12)&0x0f);
+    text[offset+1]=0xc0+((unicode_point>>6)&0x3f);
+    text[offset+2]=0xc0+((unicode_point>>0)&0x3f);
+    return 0;
+  case 4:
+    text[offset]=0xf0+((unicode_point>>12)&0x07);
+    text[offset+1]=0xc0+((unicode_point>>12)&0x3f);
+    text[offset+2]=0xc0+((unicode_point>>6)&0x3f);
+    text[offset+3]=0xc0+((unicode_point>>0)&0x3f);
+    return 0;
+  default:
+    return -1;
+  }
+  
+}
+
+int dump_bytes(char *text,int len)
+{
+  int i;
+  for(i=0;i<len;i++) fprintf(stderr," 0x%02x",(unsigned char)text[i]);
+  fprintf(stderr,"\n");
+  return 0;
+}
+
 int unicodify(char *text,int *token_len,int max_len,
 	      unsigned char next_char)
 {
@@ -47,19 +99,11 @@ int unicodify(char *text,int *token_len,int max_len,
       if (text[len-3]=='-') {
 	// Replace --- with em-dash, which conveniently takes the same number
 	// of characters to encode in UTF8
-	text[len-3]=0xE2;
-	text[len-2]=0x80;
-	text[len-1]=0x94;
-	fprintf(stderr,"Replaced --- with em-dash\n");
+	unicode_replace(text,token_len,len-3,3,0x2014);
       } else {
 	if (next_char!='-') {
 	  // Replace -- with en-dash
-	  text[len-2]=0xE2;
-	  text[len-1]=0x80;
-	  text[len]=0x93;
-	  (*token_len)++;
-	  fprintf(stderr,"Replaced --- with en-dash near %d:%d\n",
-		  chapter_label,verse_label);
+	  unicode_replace(text,token_len,len-2,2,0x2013);
 	}
       }
     }
