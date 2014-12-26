@@ -258,11 +258,15 @@ int line_recalculate_width(struct line_pieces *l)
 	   &&strlen(l->pieces[right_hang_piece])
 	   &&(l->pieces[right_hang_piece][0]==' '))
       right_hang_piece--;
+
+    float hang_width=0;
     
     if (right_hang_piece>=0) {
       // Footnotes always hang 
-      if (!(strcmp(l->fonts[right_hang_piece]->font_nickname,"footnotemark")))
+      if (!(strcmp(l->fonts[right_hang_piece]->font_nickname,"footnotemark"))) {
+	hang_width+=l->natural_widths[right_hang_piece];
 	l->right_hang=l->piece_widths[right_hang_piece--];
+      }
     }
 
     if (right_hang_piece>=0&&(right_hang_piece<l->piece_count)) {
@@ -285,7 +289,7 @@ int line_recalculate_width(struct line_pieces *l)
 	
 	if (hang_text) {
 	  set_font(l->fonts[right_hang_piece]->font_nickname);
-	  float hang_width=HPDF_Page_TextWidth(page,hang_text);
+	  hang_width+=HPDF_Page_TextWidth(page,hang_text);
 	  // Only hang if it won't run into things on the side.
 	  // XX Narrowest space is probably between body and
 	  // cross-refs, so use that measure regardless of whether
