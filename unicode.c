@@ -60,18 +60,18 @@ int unicode_replace(char *text,int *len,
     return 0;
   case 2:
     text[offset]=0xc0+((unicode_point>>6)&0x1f);
-    text[offset+1]=0xc0+((unicode_point>>0)&0x3f);
+    text[offset+1]=0x80+((unicode_point>>0)&0x3f);
     return 0;
   case 3:
     text[offset]=0xe0+((unicode_point>>12)&0x0f);
-    text[offset+1]=0xc0+((unicode_point>>6)&0x3f);
-    text[offset+2]=0xc0+((unicode_point>>0)&0x3f);
+    text[offset+1]=0x80+((unicode_point>>6)&0x3f);
+    text[offset+2]=0x80+((unicode_point>>0)&0x3f);
     return 0;
   case 4:
     text[offset]=0xf0+((unicode_point>>12)&0x07);
-    text[offset+1]=0xc0+((unicode_point>>12)&0x3f);
-    text[offset+2]=0xc0+((unicode_point>>6)&0x3f);
-    text[offset+3]=0xc0+((unicode_point>>0)&0x3f);
+    text[offset+1]=0x80+((unicode_point>>12)&0x3f);
+    text[offset+2]=0x80+((unicode_point>>6)&0x3f);
+    text[offset+3]=0x80+((unicode_point>>0)&0x3f);
     return 0;
   default:
     return -1;
@@ -91,7 +91,8 @@ int unicodify(char *text,int *token_len,int max_len,
 	      unsigned char next_char)
 {
   int len=*token_len;
-  
+
+  // em- and en- dashes
   if (len>=3) {
     if ((text[len-2]=='-')
 	&&(text[len-1]=='-')) {
@@ -108,5 +109,36 @@ int unicodify(char *text,int *token_len,int max_len,
       }
     }
   }
+
+  // Quotation marks and apostrophes
+  if (text[len-1]=='\'') {
+    if (((len==1)||(text[len-2]!='\''))&&(next_char!='\'')) {
+      // Lone closing quote.
+      // If surrounded by letters, then it must be an apostrophe,
+      // else we assume it to be a single closing book quote
+      if ((len>1)&&(isalpha(text[len-2]))&&(isalpha(next_char))) {
+	// Surrounded by letters, so is an apostrophe
+	return unicode_replace(text,token_len,len-1,1,0x0027);
+      } else {
+	// Lacks a letter one side or the other, so is a closing quote
+	return unicode_replace(text,token_len,len-1,1,0x2019);
+      }
+    }
+    if ((len>1)&&(text[len-2]=='\'')&&(text[len-1]=='\'')) {
+      // Two closing quotes
+      return unicode_replace(text,token_len,len-2,2,0x201D);
+    }
+  }
+  if (text[len-1]=='`') {
+    if ((len>1)&&(text[len-2]=='`')&&(text[len-1]=='`')) {
+      // Two opening quotes
+      return unicode_replace(text,token_len,len-2,2,0x201C);
+    }
+    if (((len==1)||(text[len-2]!='`'))&&(next_char!='`')) {
+      // Lone opening quote
+      return unicode_replace(text,token_len,len-1,1,0x2018);
+    }
+  }
+  
   return 0;
 }
