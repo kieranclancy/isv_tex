@@ -259,12 +259,13 @@ int line_recalculate_width(struct line_pieces *l)
 	   &&(l->pieces[right_hang_piece][0]==' '))
       right_hang_piece--;
 
+    float hang_note_width=0;
     float hang_width=0;
     
     if (right_hang_piece>=0) {
       // Footnotes always hang 
       if (!(strcmp(l->fonts[right_hang_piece]->font_nickname,"footnotemark"))) {
-	hang_width+=l->natural_widths[right_hang_piece];
+	hang_note_width=l->natural_widths[right_hang_piece];
 	l->right_hang=l->piece_widths[right_hang_piece--];
       }
     }
@@ -289,7 +290,11 @@ int line_recalculate_width(struct line_pieces *l)
 	
 	if (hang_text) {
 	  set_font(l->fonts[right_hang_piece]->font_nickname);
-	  hang_width+=HPDF_Page_TextWidth(page,hang_text);
+	  hang_width=HPDF_Page_TextWidth(page,hang_text);
+	  // Reduce hang width by the amount of any footnote hang over
+	  // the punctuation.
+	  hang_width-=(l->natural_widths[right_hang_piece]
+		       -l->piece_widths[right_hang_piece]);
 	  // Only hang if it won't run into things on the side.
 	  // XX Narrowest space is probably between body and
 	  // cross-refs, so use that measure regardless of whether
@@ -298,11 +303,11 @@ int line_recalculate_width(struct line_pieces *l)
 	    =right_margin
 	    -crossref_margin_width-crossref_column_width
 	    -2;  // plus a little space to ensure some white space
-	  if (hang_width<=max_hang_space) {
-	    l->right_hang+=hang_width;
-	    fprintf(stderr,"Hanging '%s' in right margin (%.1f points)\n",
-		    hang_text,hang_width);
-	  }
+	  if (hang_width+hang_note_width<=max_hang_space) {
+	    l->right_hang=hang_note_width+hang_width;
+	    fprintf(stderr,"Hanging '%s' in right margin (%.1f points, font=%s)\n",
+		    hang_text,hang_width,l->fonts[right_hang_piece]->font_nickname);
+	  } else l->right_hang=hang_note_width;
 	}
       }
     }
