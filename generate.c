@@ -1038,7 +1038,10 @@ int setup_job()
   }
   HPDF_SetCompressionMode (pdf, HPDF_COMP_ALL);
   HPDF_SetPageLayout(pdf,HPDF_PAGE_LAYOUT_TWO_COLUMN_LEFT);
-
+  
+  HPDF_UseUTFEncodings(pdf); 
+  HPDF_SetCurrentEncoder(pdf, "UTF-8"); 
+  
   fprintf(stderr,"About to load fonts\n");
   // Load all the fonts we will need
   int i;
@@ -1046,7 +1049,7 @@ int setup_job()
     fprintf(stderr,"  Loading %s font from %s\n",
 	    type_faces[i].font_nickname,type_faces[i].font_filename);
     type_faces[i].font
-      =HPDF_GetFont(pdf,resolve_font(type_faces[i].font_filename),NULL);
+      =HPDF_GetFont(pdf,resolve_font(type_faces[i].font_filename),"UTF-8");
     type_faces[i].linegap=get_linegap(type_faces[i].font_filename,
 				      type_faces[i].font_size);
     fprintf(stderr,"%s linegap is %dpt\n",type_faces[i].font_nickname,
