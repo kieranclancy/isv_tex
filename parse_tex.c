@@ -223,8 +223,21 @@ int tokenise_file(char *filename, int crossreference_parsing)
 	    // Start of a comment
 	    parse_state=PS_COMMENT;
 	  }
-	  else if (token_len<1023) token_text[token_len++]=file[i];
-	  else {
+	  else if (token_len<1023) {
+	    token_text[token_len++]=file[i];
+	    if (token_len>=3) {
+	      if ((token_text[token_len-3]=='-')
+		  &&(token_text[token_len-2]=='-')
+		  &&(token_text[token_len-1]=='-')) {
+		// Replace --- with em-dash, which conveniently takes the same number
+		// of characters to encode in UTF8
+		token_text[token_len-3]=0xE2;
+		token_text[token_len-2]=0x80;
+		token_text[token_len-1]=0x94;
+		fprintf(stderr,"Replaced --- with em-dash\n");
+	      }
+	    }
+	  } else {
 	    include_show_stack();
 	    fprintf(stderr,"%s:%d:Token or line too long.\n",
 		    file,line_num);
@@ -248,6 +261,7 @@ int tokenise_file(char *filename, int crossreference_parsing)
 	break;
 	// Thin space
       case ',':
+#ifdef NO_UNICODE
 	parse_state = PS_NORMAL;
 	token_text[token_len]=0;
 	if (token_len)
@@ -257,6 +271,14 @@ int tokenise_file(char *filename, int crossreference_parsing)
 	next_file_token(p,TT_THINSPACE,0,token_text);
 	token_type= TT_TEXT;
 	token_len=0;
+#else
+	// Add non-breaking thin-space unicode point (0x202f)
+	// Well, libharu doesn't support it, so we have to settle for a
+	// regular non-breaking space (0xa0)
+	token_text[token_len++]=0xC2;
+	token_text[token_len++]=0xA0;
+	token_text[token_len]=0;
+#endif
 	break;
       default:
 	// not an escape character, so assume it is a label
@@ -287,4 +309,4 @@ int tokenise_file(char *filename, int crossreference_parsing)
   fclose(f);
 
   return 0;
-}
+  }
