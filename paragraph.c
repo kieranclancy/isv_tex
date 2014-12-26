@@ -452,11 +452,15 @@ int paragraph_append_thinspace(struct paragraph *p,int forceSpaceAtStartOfLine)
     p->current_line->checkpoint=checkpoint;    
   }
   paragraph_append_characters(p," ",current_font->font_size,0,forceSpaceAtStartOfLine);
-  p->current_line->piece_widths[p->current_line->piece_count-1]/=2;
-  p->current_line->natural_widths[p->current_line->piece_count-1]/=2;
+  // If the thin-space isn't added to the line, don't go causing a segfault.
+  if (p->current_line->piece_count) {
+    p->current_line->piece_widths[p->current_line->piece_count-1]/=2;
+    p->current_line->natural_widths[p->current_line->piece_count-1]/=2;
 
-  // Mark thinspace non-elastic
-  p->current_line->piece_is_elastic[p->current_line->piece_count-1]=0;
+    // Mark thinspace non-elastic
+    p->current_line->piece_is_elastic[p->current_line->piece_count-1]=0;
+  }
+
   return 0;
 }
 
