@@ -89,6 +89,12 @@ int paragraph_flush(struct paragraph *p)
   int i;
   for(i=0;i<p->line_count;i++) line_calculate_height(p->paragraph_lines[i]);
 
+  // Keep first two and last two lines together to stop orphans and widows
+  if (p->line_count>1) {
+    p->paragraph_lines[0]->tied_to_next_line=1;
+    p->paragraph_lines[p->line_count-2]->tied_to_next_line=1;    
+  }
+  
   for(i=0;i<p->line_count;i++) line_emit(p,i);
 
   // Clear out old lines
