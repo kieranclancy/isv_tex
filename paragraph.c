@@ -89,10 +89,24 @@ int paragraph_flush(struct paragraph *p)
   int i;
   for(i=0;i<p->line_count;i++) line_calculate_height(p->paragraph_lines[i]);
 
-  // Keep first two and last two lines together to stop orphans and widows
+  // Keep first two and last two lines together to stop orphans and widows.
   if (p->line_count>1) {
     p->paragraph_lines[0]->tied_to_next_line=1;
     p->paragraph_lines[p->line_count-2]->tied_to_next_line=1;    
+  }
+  // Also keep the first two lines of text following a passage header or passage
+  // info header.
+  int countdown=0;
+  for(i=0;i<p->line_count;i++) {
+    int isHeading=0;
+    if (p->paragraph_lines[i]->piece_count) {
+      if (!strcasecmp(p->paragraph_lines[i]->fonts[0]->font_nickname,"passageheader"))
+	isHeading=1;
+      if (!strcasecmp(p->paragraph_lines[i]->fonts[0]->font_nickname,"passageinfo"))
+	isHeading=1;
+      if (countdown) p->paragraph_lines[i]->tied_to_next_line=1;
+      if (isHeading) countdown=2; else if (countdown>0) countdown--;
+    }
   }
   
   for(i=0;i<p->line_count;i++) line_emit(p,i);
