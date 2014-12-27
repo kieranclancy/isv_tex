@@ -41,7 +41,7 @@ int unicode_replace(char *text,int *len,
 {
   int bytes;
   if (unicode_point<0) return -1;
-  else if (unicode_point<0x80) bytes=1;
+  else if (unicode_point<0xc0) bytes=1;
   else if (unicode_point<0x800) bytes=2;
   else if (unicode_point<0x10000) bytes=3;
   else if (unicode_point<0x20000) bytes=4;
@@ -57,7 +57,7 @@ int unicode_replace(char *text,int *len,
   // We can now encode the point at &text[offset] using bytes bytes
   switch(bytes) {
   case 1:
-    text[offset]=unicode_point&0x7f;
+    text[offset]=unicode_point;
     return 0;
   case 2:
     text[offset]=0xc0+((unicode_point>>6)&0x1f);
@@ -177,7 +177,7 @@ int unicodePrevCodePoint(char *text,int *offset)
   int bits=0;
   
   if ((*offset)<0) return 0;
-  if (text[*offset]&0x80) {
+  if (((unsigned char)text[*offset])>=0xc0) {
     while(((*offset)>=0)&&((text[*offset]&0xc0)==0x80)) {
       codepoint|=(text[*offset]&0x3f)<<bits;
       bits+=6;

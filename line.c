@@ -498,7 +498,7 @@ int line_emit(struct paragraph *p,int line_num)
   fprintf(stderr,"Final width recalculation: ");
   line_recalculate_width(l);
 
-  fprintf(stderr,"After final width recalculation: "); line_dump(p->paragraph_lines[line_num]);
+  fprintf(stderr,"After width recalculation: "); line_dump(p->paragraph_lines[line_num]);
 
   
   // Add extra spaces to justified lines, except for the last
@@ -527,6 +527,9 @@ int line_emit(struct paragraph *p,int line_num)
       }
     }
   }
+
+  fprintf(stderr,"After justification: "); line_dump(p->paragraph_lines[line_num]);
+
   
   // Now draw the pieces
   l->on_page_y=page_y;

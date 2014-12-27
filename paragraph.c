@@ -239,7 +239,11 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
   
   HPDF_Page_SetFontAndSize (page, current_font->font, size);
   text_height = HPDF_Font_GetCapHeight(current_font->font) * size/1000;
-  text_width = HPDF_Page_TextWidth(page,text);
+
+  // 0xa0 for non-breaking space has zero width as measured by HPDF_Page_TextWidth,
+  // so measure it as a real space instead.
+  text_width = HPDF_Page_TextWidth(page,
+				   (((unsigned char)text[0])!=0xa0)?text:" ");
   if (0) fprintf(stderr,"  text_width=%.1f, height=%.1f, font=%p('%s'), size=%d, text='%s'\n",
 		 text_width,text_height,current_font->font,
 		 current_font->font_nickname,size,text);
@@ -262,8 +266,8 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
   if ((text[0]!=0x20)&&(((unsigned char)text[0])!=0xa0))
     p->current_line->piece_is_elastic[p->current_line->piece_count]=0;
   else {
-    // if (((unsigned char)text[0])==0xa0)
-    fprintf(stderr,"Marking space (0x%02x) elastic.\n",text[0]);
+    if (((unsigned char)text[0])==0xa0)
+      fprintf(stderr,"Marking space (0x%02x) elastic.\n",text[0]);
     p->current_line->piece_is_elastic[p->current_line->piece_count]=1;
   }
   p->current_line->piece_baseline[p->current_line->piece_count]=baseline;  
@@ -467,7 +471,8 @@ int paragraph_append_nonbreakingspace(struct paragraph *p,int forceSpaceAtStartO
     
   // Checkpoint where we are up to, in case we need to split the line
   if (p->current_line) p->current_line->checkpoint=p->current_line->piece_count;
-  paragraph_append_characters(p,unicodeToUTF8(0x00a0),current_font->font_size,0,
+  char nbs[2]={0xa0,0};
+  paragraph_append_characters(p,nbs,current_font->font_size,0,
 			      forceSpaceAtStartOfLine);
   return 0;
 }
