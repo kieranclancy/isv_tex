@@ -669,3 +669,30 @@ int line_dump(struct line_pieces *l)
   fprintf(stderr,"\n");
   return 0;
 }
+
+int line_set_checkpoint(struct line_pieces *l)
+{
+  if (!l) return 0;
+  if (!l->piece_count) return 0;
+  
+  // Start with checkpoint at end of current line.
+  l->checkpoint=l->piece_count;
+  while(l->checkpoint>0) {
+    // move back one if the previous word is a verse number
+    if (!strcasecmp(l->fonts[l->checkpoint-1]->font_nickname,"versenum"))
+      l->checkpoint--;
+    // Or if we are drawing a footnote mark
+    else if (!strcasecmp(current_font->font_nickname,"footnotemark"))
+      l->checkpoint--;
+    else if (!strcasecmp(current_font->font_nickname,"footnotemarkinfootnote"))
+      l->checkpoint--;
+    else if (!strcasecmp(current_font->font_nickname,"footnoteversenum"))
+      l->checkpoint--;
+    // Or if we see a non-breaking space
+    else if (((unsigned char)l->pieces[l->checkpoint-1][0])==0xa0)
+      l->checkpoint--;
+    else
+      break;
+  }
+  return 0;
+}

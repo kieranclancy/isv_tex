@@ -369,18 +369,7 @@ int paragraph_append_text(struct paragraph *p,char *text,int baseline,
   else p->last_char_is_a_full_stop=0;
 
   // Checkpoint where we are up to, in case we need to split the line
-  if (p->current_line) {
-    // Start with checkpoint at end of current line.
-    p->current_line->checkpoint=p->current_line->piece_count;
-    if (p->current_line->piece_count) {
-      // But move back one if the previous word is a verse number
-      if (!strcasecmp(p->current_line->fonts[p->current_line->piece_count-1]->font_nickname,"versenum"))
-	p->current_line->checkpoint--;
-      // Or if we are drawing a footnote mark
-      else if (!strcasecmp(current_font->font_nickname,"footnotemark"))
-	p->current_line->checkpoint--;
-    }
-  }
+  line_set_checkpoint(p->current_line);
   
   if (current_font->smallcaps) {
     // This font uses emulated small caps, so break the word down into
@@ -450,9 +439,9 @@ int paragraph_append_space(struct paragraph *p,int forceSpaceAtStartOfLine)
 	return 0;
 
     }
-    
+  
   // Checkpoint where we are up to, in case we need to split the line
-  if (p->current_line) p->current_line->checkpoint=p->current_line->piece_count;
+  line_set_checkpoint(p->current_line);
   paragraph_append_characters(p," ",current_font->font_size,0,forceSpaceAtStartOfLine);
   return 0;
 }
@@ -470,7 +459,7 @@ int paragraph_append_nonbreakingspace(struct paragraph *p,int forceSpaceAtStartO
     }
     
   // Checkpoint where we are up to, in case we need to split the line
-  if (p->current_line) p->current_line->checkpoint=p->current_line->piece_count;
+  line_set_checkpoint(p->current_line);
   char nbs[2]={0xa0,0};
   paragraph_append_characters(p,nbs,current_font->font_size,0,
 			      forceSpaceAtStartOfLine);
@@ -484,13 +473,7 @@ int paragraph_append_thinspace(struct paragraph *p,int forceSpaceAtStartOfLine)
   // Checkpoint where we are up to, in case we need to split the line.
   // We don't want to break on a thin space, so we need to go back to the
   // previous elastic space
-  if (p->current_line) {
-    int checkpoint=p->current_line->piece_count;
-
-    while(checkpoint&&(!p->current_line->piece_is_elastic)) checkpoint--;
-    
-    p->current_line->checkpoint=checkpoint;    
-  }
+  line_set_checkpoint(p->current_line);
   paragraph_append_characters(p," ",current_font->font_size,0,forceSpaceAtStartOfLine);
   // If the thin-space isn't added to the line, don't go causing a segfault.
   if (p->current_line->piece_count) {
@@ -657,13 +640,8 @@ int paragraph_append(struct paragraph *dst,struct paragraph *src)
 	  if (dst->current_line) {
 	    dst->current_line->checkpoint=dst->current_line->piece_count;
 	    // XXX - Adjust the checkpoint so that we don't split verse numbers
-	    // from text, or footnote marks from the initial verse.
-	    if (dst->current_line->piece_count>1) {
-	      struct type_face *face
-		=dst->current_line->fonts[dst->current_line->piece_count-1];
-	      if (!strcmp(face->font_nickname,"footnotemarkinfootnote"))
-		dst->current_line->checkpoint--;
-	    }
+	    // from text, or footnote marks from the initial verse etc.
+	    line_set_checkpoint(dst->current_line);
 	  }
 
 	  // Don't force spaces at start of lines, so that formatting comes out
