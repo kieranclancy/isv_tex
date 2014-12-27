@@ -312,11 +312,11 @@ int line_recalculate_width(struct line_pieces *l)
 	  fprintf(stderr,"Requesting prev code point from \"%s\"[%d]\n",
 		  text,o);
 	  int codepoint=unicodePrevCodePoint(text,&o);
-	  if (codepoint) fprintf(stderr,"Deciding if [%s] is hangable\n",
-				 unicodeToUTF8(codepoint));
-	  if (codepoint&&unicodePointIsHangable(codepoint))
-	    hang_text=&text[o];
-	  else
+	  if (codepoint&&unicodePointIsHangable(codepoint)) {
+	    fprintf(stderr,"Decided [%s] is hangable (o=%d)\n",
+		    unicodeToUTF8(codepoint),o);
+	    hang_text=&text[o+1];
+	  } else
 	    break;
 	}
 	

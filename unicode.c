@@ -52,6 +52,7 @@ int unicode_replace(char *text,int *len,
 	&text[offset+bytes],
 	strlen(text)-offset-number_of_chars_to_replace);
   (*len)+=bytes-number_of_chars_to_replace;
+  text[*len]=0;
 
   // We can now encode the point at &text[offset] using bytes bytes
   switch(bytes) {
