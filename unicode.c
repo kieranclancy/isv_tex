@@ -128,7 +128,7 @@ int unicodify(char *text,int *token_len,int max_len,
       // else we assume it to be a single closing book quote
       if ((len>1)&&(isalpha(text[len-2]))&&(isalpha(next_char))) {
 	// Surrounded by letters, so is an apostrophe
-	return unicode_replace(text,token_len,len-1,1,0x0027);
+	return unicode_replace(text,token_len,len-1,1,0x2019);
       } else {
 	// Lacks a letter one side or the other, so is a closing quote
 	return unicode_replace(text,token_len,len-1,1,0x2019);
