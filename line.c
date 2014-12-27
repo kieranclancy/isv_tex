@@ -138,10 +138,46 @@ float calc_left_hang(struct line_pieces *l,int left_hang_piece)
   int o=0;
   hang_text[0]=0;
   while(o<1024&&text[o]) {
-    switch(text[o]) {
+    int codepoint=0;
+    int bytes=1;
+    if (text[o]&0x80) {
+      // Unicode
+      if (!(text[o]&0x20)) {
+	// 2 byte code point
+	codepoint
+	  =((text[o]&0x1f)<<6)
+	  |((text[o+1]&0x3f)<<0);
+	bytes=2;
+      } else if (!(text[o]&0x10)) {
+	// 3 byte code point
+	codepoint
+	  =((text[o]&0x0f)<<12)
+	  |((text[o+1]&0x3f)<<6)
+	  |((text[o+2]&0x3f)<<0);
+	bytes=3;
+      } else {
+	// 4 byte code point
+	codepoint
+	  =((text[o]&0x07)<<18)
+	  |((text[o+1]&0x3f)<<12)
+	  |((text[o+2]&0x3f)<<6)
+	  |((text[o+3]&0x3f)<<0);
+	bytes=4;
+      }
+    } else {
+      codepoint=text[o++];
+      bytes=1;
+    }
+
+    switch(codepoint) {
     case '\"': case '`': case '\'':
-      hang_text[o]=text[o]; hang_text[o+1]=0;
-      o++;
+    case 0x2018: // left single book quote mark
+    case 0x2019: // right single book quote mark
+    case 0x201c: // left double book quote mark
+    case 0x201d: // right double book quote mark
+      for(int i=0;i<bytes;i++) hang_text[o+i]=text[o+i];
+      o+=bytes;
+      hang_text[o]=0;
       continue;
     }
     break;
