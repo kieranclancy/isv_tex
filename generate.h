@@ -304,3 +304,4 @@ int typeset_file(char *file);
 
 int unicodify(char *token_text,int *token_len,int max_len,
 	      unsigned char next_char);
+int unicodePointIsHangable(int codepoint);

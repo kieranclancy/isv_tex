@@ -169,12 +169,7 @@ float calc_left_hang(struct line_pieces *l,int left_hang_piece)
       bytes=1;
     }
 
-    switch(codepoint) {
-    case '\"': case '`': case '\'':
-    case 0x2018: // left single book quote mark
-    case 0x2019: // right single book quote mark
-    case 0x201c: // left double book quote mark
-    case 0x201d: // right double book quote mark
+    if (unicodePointIsHangable(codepoint)) {
       for(int i=0;i<bytes;i++) hang_text[o+i]=text[o+i];
       o+=bytes;
       hang_text[o]=0;

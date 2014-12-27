@@ -142,3 +142,20 @@ int unicodify(char *text,int *token_len,int max_len,
   
   return 0;
 }
+
+int unicodePointIsHangable(int codepoint)
+{
+  switch(codepoint)
+    {
+    case '\"': case '`': case '\'':
+    case '.': case ';': case ':': case ',': case ' ':
+    case 0x00a0: // non-breaking space
+    case 0x2018: // left single book quote mark
+    case 0x2019: // right single book quote mark
+    case 0x201c: // left double book quote mark
+    case 0x201d: // right double book quote mark
+      return 1;
+    default:
+      return 0;
+    }
+}
