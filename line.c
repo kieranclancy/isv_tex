@@ -307,9 +307,13 @@ int line_recalculate_width(struct line_pieces *l)
 
       if (text) {
 	// Now look for right hanging punctuation
-	int o=textlen;
-	while(o>0) {
+	int o=textlen-1;
+	while(o>=0) {
+	  fprintf(stderr,"Requesting prev code point from \"%s\"[%d]\n",
+		  text,o);
 	  int codepoint=unicodePrevCodePoint(text,&o);
+	  if (codepoint) fprintf(stderr,"Deciding if [%s] is hangable\n",
+				 unicodeToUTF8(codepoint));
 	  if (codepoint&&unicodePointIsHangable(codepoint))
 	    hang_text=&text[o];
 	  else

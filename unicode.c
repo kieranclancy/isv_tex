@@ -79,6 +79,15 @@ int unicode_replace(char *text,int *len,
   
 }
 
+char utf8string[5];
+char *unicodeToUTF8(int codepoint)
+{
+  int len=0;
+  utf8string[0]=0;
+  unicode_replace(utf8string,&len,0,0,codepoint);
+  return utf8string; 
+}
+
 int dump_bytes(char *text,int len)
 {
   int i;
@@ -166,9 +175,9 @@ int unicodePrevCodePoint(char *text,int *offset)
   int codepoint=0;
   int bits=0;
   
-  if ((*offset)<1) return 0;
+  if ((*offset)<0) return 0;
   if (text[*offset]&0x80) {
-    while((*offset)&&((text[*offset]&0xc0)==0x80)) {
+    while(((*offset)>=0)&&((text[*offset]&0xc0)==0x80)) {
       codepoint|=(text[*offset]&0x3f)<<bits;
       bits+=6;
       (*offset)--;

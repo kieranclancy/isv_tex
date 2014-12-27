@@ -306,3 +306,4 @@ int unicodify(char *token_text,int *token_len,int max_len,
 	      unsigned char next_char);
 int unicodePointIsHangable(int codepoint);
 int unicodePrevCodePoint(char *text,int *offset);
+char *unicodeToUTF8(int codepoint);
