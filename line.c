@@ -690,9 +690,12 @@ int line_set_checkpoint(struct line_pieces *l)
       l->checkpoint--;
     // Or if we see a non-breaking space
     else if (((unsigned char)l->pieces[l->checkpoint-1][0])==0xa0)
-      l->checkpoint--;
+      l->checkpoint-=2;
     else
       break;
   }
+  if (l->checkpoint<0) l->checkpoint=0;
+  fprintf(stderr,"Set checkpoint at #%d in ",l->checkpoint);
+  line_dump(l);
   return 0;
 }
