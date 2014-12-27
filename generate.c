@@ -854,12 +854,14 @@ int render_tokens()
 	    paragraph_setup_next_line(target_paragraph);
 	    target_paragraph->current_line->left_margin=0;
 	  } else if (!strcasecmp(token_strings[i],"v")) {
-	    // Verse number
+	    // Verse number	    
 	    if (!footnote_mode) {
 	      // XXX mark line as touching this verse for building cross-reference
 	      // data.
 	      next_token_is_verse_number=1;
-	      paragraph_push_style(target_paragraph,AL_JUSTIFIED,set_font("versenum"));
+	      int alignment=AL_JUSTIFIED;
+	      if (target_paragraph->poem_level) alignment=AL_LEFT;
+	      paragraph_push_style(target_paragraph,alignment,set_font("versenum"));
 	    } else
 	      paragraph_push_style(target_paragraph,AL_JUSTIFIED,set_font("footnoteversenum"));
 
