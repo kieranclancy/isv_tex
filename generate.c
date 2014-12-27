@@ -864,11 +864,11 @@ int render_tokens()
 	      paragraph_push_style(target_paragraph,AL_JUSTIFIED,set_font("footnoteversenum"));
 
 	  } else if (!strcasecmp(token_strings[i],"ldots")) {
-	    // Insert an elipsis
+	    // Insert an ellipsis
 	    paragraph_push_style(target_paragraph,
 				 target_paragraph->current_line->alignment,
 				 set_font(current_font->font_nickname));
-	    paragraph_append_text(target_paragraph,"...",0,0);
+	    paragraph_append_text(target_paragraph,unicodeToUTF8(0x2026),0,0);
 	  } else if (!strcasecmp(token_strings[i],"divine")) {
 	    paragraph_push_style(target_paragraph,
 				 target_paragraph->current_line->alignment,
