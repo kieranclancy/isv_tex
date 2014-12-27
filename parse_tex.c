@@ -241,6 +241,14 @@ int tokenise_file(char *filename, int crossreference_parsing)
 
 	    unicodify(token_text,&token_len,1023,
 		      (i<fileLength?file[i+1]:0x00));
+	    if ((i>1)&&(file[i-2]=='-')&&(file[i-1]=='-')&&(file[i]=='-'))
+	      {
+		// Em-dash.  End token here and insert a space token as well.
+		token_text[token_len]=0;
+		next_file_token(p,token_type,token_len,token_text);
+		token_text[0]=0; token_len=0; token_type=TT_TEXT;
+		next_file_token(p,TT_SPACE,0,token_text);
+	      }
 	  } else {
 	    include_show_stack();
 	    fprintf(stderr,"%s:%d:Token or line too long.\n",
