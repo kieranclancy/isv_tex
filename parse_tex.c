@@ -201,10 +201,11 @@ int tokenise_file(char *filename, int crossreference_parsing)
 	// Put a space between text and em-dash
 	if (fileLength-i>2)
 	  if ((file[i]=='-')&&(file[i+1]=='-')&&(file[i+2]=='-')) {
-	    if (token_len&&(token_text[token_len-1]!='-')) {
+	    if ((token_len&&(token_text[token_len-1]!='-'))
+		||((!token_len)&&(token_types[token_count-1]!=TT_SPACE))) {
 	      // A non-breaking space would be ideal to prevent em-dashes appearing
 	      // at the start of a line.  However, they do still need to be elastic.
-	      next_file_token(p,token_type,token_len,token_text);
+	      if (token_len) next_file_token(p,token_type,token_len,token_text);
 	      token_text[0]=0; token_len=0; token_type=TT_TEXT;
 	      next_file_token(p,TT_NONBREAKINGSPACE,0,token_text);
 	      fprintf(stderr,"Inserting non-breaking space before em-dash\n");
@@ -243,11 +244,13 @@ int tokenise_file(char *filename, int crossreference_parsing)
 		      (i<fileLength?file[i+1]:0x00));
 	    if ((i>1)&&(file[i-2]=='-')&&(file[i-1]=='-')&&(file[i]=='-'))
 	      {
-		// Em-dash.  End token here and insert a space token as well.
+		// Em-dash.  End token here and insert a space token as well
+		// (unless a space already follows)
 		token_text[token_len]=0;
 		next_file_token(p,token_type,token_len,token_text);
 		token_text[0]=0; token_len=0; token_type=TT_TEXT;
-		next_file_token(p,TT_SPACE,0,token_text);
+		if ((file[i+1]!=' ')&&(file[i+1]!='\r')&&(file[i+1]!='\n'))
+		  next_file_token(p,TT_SPACE,0,token_text);
 	      }
 	  } else {
 	    include_show_stack();
