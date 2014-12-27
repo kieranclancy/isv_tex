@@ -309,14 +309,11 @@ int line_recalculate_width(struct line_pieces *l)
 	// Now look for right hanging punctuation
 	int o=textlen;
 	while(o>0) {
-	  switch(text[o-1]) {	    
-	  case '\'': case '.': case ',':
-	  case '"': case '-': case ';':
-	  case '`': case ' ': case ':':
-	    hang_text=&text[--o];
-	    continue;
-	  }
-	  break;
+	  int codepoint=unicodePrevCodePoint(text,&o);
+	  if (codepoint&&unicodePointIsHangable(codepoint))
+	    hang_text=&text[o];
+	  else
+	    break;
 	}
 	
 	if (hang_text) {

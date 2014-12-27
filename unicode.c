@@ -147,8 +147,9 @@ int unicodePointIsHangable(int codepoint)
 {
   switch(codepoint)
     {
-    case '\"': case '`': case '\'':
+    case '"': case '`': case '\'':
     case '.': case ';': case ':': case ',': case ' ':
+    case '-':
     case 0x00a0: // non-breaking space
     case 0x2018: // left single book quote mark
     case 0x2019: // right single book quote mark
@@ -158,4 +159,27 @@ int unicodePointIsHangable(int codepoint)
     default:
       return 0;
     }
+}
+
+int unicodePrevCodePoint(char *text,int *offset)
+{
+  int codepoint=0;
+  int bits=0;
+  
+  if ((*offset)<1) return 0;
+  if (text[*offset]&0x80) {
+    while((*offset)&&((text[*offset]&0xc0)==0x80)) {
+      codepoint|=(text[*offset]&0x3f)<<bits;
+      bits+=6;
+      (*offset)--;
+    }
+    if (!(text[*offset]&0x20)) codepoint|=(text[*offset]&0x1f)<<bits;
+    else if (!(text[*offset]&0x10)) codepoint|=(text[*offset]&0x0f)<<bits;
+    else if (!(text[*offset]&0x08)) codepoint|=(text[*offset]&0x07)<<bits;    
+  } else {
+    codepoint=text[*offset];
+    (*offset)--;
+  }
+
+  return codepoint;
 }
