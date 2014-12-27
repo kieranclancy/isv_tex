@@ -65,6 +65,7 @@ struct type_face {
 #define TT_PARAGRAPH 3
 #define TT_SPACE 4
 #define TT_THINSPACE 5
+#define TT_NONBREAKINGSPACE 6
 #define MAX_TOKENS 1048576
 extern int token_count;
 extern int token_types[MAX_TOKENS];
@@ -241,6 +242,7 @@ int paragraph_clear_style_stack();
 int paragraph_push_style(struct paragraph *p, int font_alignment,int font_index);
 int paragraph_append_thinspace(struct paragraph *p,int forceSpaceAtStartOfLine);
 int paragraph_append_space(struct paragraph *p, int forceSpaceAtStartOfLine);
+int paragraph_append_nonbreakingspace(struct paragraph *p,int forceSpaceAtStartOfLine);
 int paragraph_append_text(struct paragraph *p,char *text,int baseline,int forceSpaceAtStartOfLine);
 int paragraph_append_characters(struct paragraph *p,char *text,int size,int baseline,int forceSpaceAtStartOfLine);
 int paragraph_set_widow_counter(struct paragraph *p,int lines);
@@ -307,3 +309,6 @@ int unicodify(char *token_text,int *token_len,int max_len,
 int unicodePointIsHangable(int codepoint);
 int unicodePrevCodePoint(char *text,int *offset);
 char *unicodeToUTF8(int codepoint);
+int unicode_replace(char *text,int *len,
+		    int offset,int number_of_chars_to_replace,
+		    int unicode_point);

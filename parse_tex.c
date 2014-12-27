@@ -197,6 +197,19 @@ int tokenise_file(char *filename, int crossreference_parsing)
 	break;
       default:
 	token_text[token_len]=0;
+
+	// Put a space between text and em-dash
+	if (fileLength-i>2)
+	  if ((file[i]=='-')&&(file[i+1]=='-')&&(file[i+2]=='-')) {
+	    if (token_len&&(token_text[token_len-1]!='-')) {
+	      // A non-breaking space would be ideal to prevent em-dashes appearing
+	      // at the start of a line.  However, they do still need to be elastic.
+	      next_file_token(p,token_type,token_len,token_text);
+	      token_text[0]=0; token_len=0; token_type=TT_TEXT;
+	      next_file_token(p,TT_NONBREAKINGSPACE,0,token_text);
+	      fprintf(stderr,"Inserting non-breaking space before em-dash\n");
+	    }
+	  }
 	if (token_type==TT_TAG&&(!strcmp(token_text,"allowbrea"))&&(file[i]=='k'))
 	  {
 	    // \allowbreak - implemented by emitting nothing -- the presence
@@ -211,7 +224,7 @@ int tokenise_file(char *filename, int crossreference_parsing)
 		 &&(file[i+1]!='\'')
 		 )
 	  {
-	  // Break text AFTER each comma to allow line wrapping
+	  // Break text after certain forms of punctuation
 	  // (unless other right-hangable punctuation follows)
 	  token_text[token_len++]=',';
 	  token_text[token_len]=0;

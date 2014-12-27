@@ -710,6 +710,10 @@ int render_tokens()
       case TT_SPACE:
 	paragraph_append_space(target_paragraph,0);
 	break;
+      case TT_NONBREAKINGSPACE:
+	fprintf(stderr,"Saw nonbreakingspace\n");
+	paragraph_append_nonbreakingspace(target_paragraph,1);
+	break;
       case TT_THINSPACE:
 	paragraph_append_thinspace(target_paragraph,0);
 	break;
@@ -966,6 +970,7 @@ int render_tokens()
 	      case TT_TEXT: fprintf(stderr,"%s",s); break;
 	      case TT_TAG: fprintf(stderr,"\\%s",s); break;
 	      case TT_SPACE: fprintf(stderr," "); break;
+	      case TT_NONBREAKINGSPACE: fprintf(stderr," "); break;
 	      case TT_PARAGRAPH: fprintf(stderr,"\n\n    "); break;
 	      }
 	    }

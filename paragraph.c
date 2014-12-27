@@ -258,10 +258,14 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
   p->current_line->piece_widths[p->current_line->piece_count]=text_width;
   p->current_line->natural_widths[p->current_line->piece_count]=text_width;
   p->current_line->crossrefs[p->current_line->piece_count]=NULL;
-  if (strcmp(text," "))
+  // only spaces (including non-breaking ones) are elastic
+  if ((text[0]!=0x20)&&(((unsigned char)text[0])!=0xa0))
     p->current_line->piece_is_elastic[p->current_line->piece_count]=0;
-  else
+  else {
+    // if (((unsigned char)text[0])==0xa0)
+    fprintf(stderr,"Marking space (0x%02x) elastic.\n",text[0]);
     p->current_line->piece_is_elastic[p->current_line->piece_count]=1;
+  }
   p->current_line->piece_baseline[p->current_line->piece_count]=baseline;  
   // p->current_line->line_width_so_far+=text_width;
   p->current_line->piece_count++;
@@ -434,7 +438,6 @@ int paragraph_append_text(struct paragraph *p,char *text,int baseline,
 int paragraph_append_space(struct paragraph *p,int forceSpaceAtStartOfLine)
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
-  if (p->last_char_is_a_full_stop) fprintf(stderr,"  space follows a full-stop.\n");
 
   // Don't put spaces after dropchars
   if (p->current_line&&(p->current_line->piece_count==1))
@@ -450,7 +453,25 @@ int paragraph_append_space(struct paragraph *p,int forceSpaceAtStartOfLine)
   return 0;
 }
 
-// Thin space.  Append a normal space, then revise it's width down to 1/2
+int paragraph_append_nonbreakingspace(struct paragraph *p,int forceSpaceAtStartOfLine)
+{
+  fprintf(stderr,"%s()\n",__FUNCTION__);
+
+  // Don't put spaces after dropchars
+  if (p->current_line&&(p->current_line->piece_count==1))
+    {
+      if (!strcasecmp(p->current_line->fonts[p->current_line->piece_count-1]->font_nickname,"chapternum"))
+	return 0;
+
+    }
+    
+  // Checkpoint where we are up to, in case we need to split the line
+  if (p->current_line) p->current_line->checkpoint=p->current_line->piece_count;
+  paragraph_append_characters(p,unicodeToUTF8(0x00a0),current_font->font_size,0,
+			      forceSpaceAtStartOfLine);
+  return 0;
+}
+
 // Thin space.  Append a normal space, then revise it's width down to 1/2
 int paragraph_append_thinspace(struct paragraph *p,int forceSpaceAtStartOfLine)
 {
