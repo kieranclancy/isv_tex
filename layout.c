@@ -172,24 +172,44 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
     }
   }
 
-  // Build list of lines by working backwards through the paragraph.
-  fprintf(stderr,">> Optimal long-line layout is:\n");
+  // Count number of lines in optimal layout.
+  int num_lines=0;
   int position=l->piece_count;
-  int out_line_number=out->line_count;
-  int line_count=0;
   while(position>0) {
-    fprintf(stderr,"Segment at position %d..%d: ",next_steps[position],position);
-    line_dump_segment(l,next_steps[position],position);
     if (next_steps[position]>=position) {
       fprintf(stderr,"Circular path in %s()\n",__FUNCTION__);
       exit(-1);
     }
 
+    num_lines++;
+    position=next_steps[position];
+  }
+
+  
+  // Build list of lines by working backwards through the paragraph.
+  fprintf(stderr,">> Optimal long-line layout is:\n");
+  int out_line_number=out->line_count;
+  int line_count=0;
+  position=l->piece_count;
+  while(position>0) {
+    fprintf(stderr,"Segment at position %d..%d: ",next_steps[position],position);
+    line_dump_segment(l,next_steps[position],position);
+
     // Build line
     struct line_pieces *lout=calloc(sizeof(struct line_pieces),1);
     lout->alignment=l->alignment;
     lout->line_uid=line_uid_counter++;
-    lout->max_line_width=l->max_line_width;
+    lout->max_line_width=page_width-left_margin-right_margin;
+    if (l->pieces[0].font->line_count>1) {
+      // Drop char at beginning of chapter
+      if ((num_lines-line_count)>l->pieces[0].font->line_count) {
+	  int max_hang_space
+	    =right_margin
+	    -crossref_margin_width-crossref_column_width
+	    -2;  // plus a little space to ensure some white space
+	  l->max_line_width-=l->pieces[0].natural_width+max_hang_space;
+      }
+    }
     for(int i=next_steps[position];i<position;i++) {
       line_append_piece(lout,&l->pieces[i]);
       if (!strcasecmp(l->pieces[i].font->font_nickname,"footnotemark")) {
@@ -210,7 +230,6 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
     paragraph_insert_line(out,out_line_number,lout);
     fprintf(stderr,"Laid out line: ");
     line_dump(lout);
-
     
     position=next_steps[position];
     line_count++;
