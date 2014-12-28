@@ -187,13 +187,28 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
     // Build line
     struct line_pieces *lout=calloc(sizeof(struct line_pieces),1);
     lout->alignment=l->alignment;
-    for(int i=next_steps[position];i<position;i++)
+    lout->line_uid=line_uid_counter++;
+    for(int i=next_steps[position];i<position;i++) {
       line_append_piece(lout,&l->pieces[i]);
+      if (!strcasecmp(l->pieces[i].font->font_nickname,"footnotemark")) {
+	// update footnote entry to say it is attached to this line UID
+	for(int i=0;i<footnote_count;i++) {
+	  if (!strcmp(l->pieces[i].piece,
+		      footnote_paragraphs[i]
+		      .paragraph_lines[0]
+		      ->pieces[0].piece)) {
+	    footnote_line_numbers[i]=lout->line_uid;
+	    break;
+	  }	  
+	}
+      }
+    }
 
     // Insert it into the output paragraph
     paragraph_insert_line(out,out_line_number,lout);
     fprintf(stderr,"Laid out line: ");
     line_dump(lout);
+
     
     position=next_steps[position];
     line_count++;
