@@ -230,6 +230,8 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
 	if (line_count<(num_lines-1))
 	  if ((num_lines-line_count)<=l->pieces[0].font->line_count) {
 	    lout->left_margin=l->pieces[0].natural_width;
+	    lout->max_line_width
+	      =page_width-left_margin-right_margin-l->pieces[0].natural_width;
 	  }
     }
 
