@@ -72,13 +72,14 @@ int layout_calculate_segment_cost(struct paragraph *p,
 	break;
       }
       set_font(l->pieces[i-1].font->font_nickname);
-      float hang_width=HPDF_Page_TextWidth(page,hang_text);
+      float hang_width=0;
+      if (hang_text) hang_width=HPDF_Page_TextWidth(page,hang_text);
       float all_width=l->pieces[i-1].natural_width;
       piece_width=all_width-hang_width;
       if (hang_width>piece_width) piece_width=hang_width;
-      //      fprintf(stderr,"  This is the punctuation over which we are hanging the footnotemark: [%s] (%.1fpts)\n",hang_text,hang_width);
-      //      fprintf(stderr,"Line after hanging footnote over punctuation: ");
-      //      line_dump(l);
+      // fprintf(stderr,"  This is the punctuation over which we are hanging the footnotemark: [%s] (%.1fpts)\n",hang_text,hang_width);
+      // fprintf(stderr,"Line after hanging footnote over punctuation: ");
+      // line_dump_segment(l,start,end);
     }
 
     // XXX - Ignore width of any leading or trailing spaces
@@ -87,19 +88,19 @@ int layout_calculate_segment_cost(struct paragraph *p,
   }
 
   // Related to the above, we must discount the width of a dropchar if it is
-  // followed by left-hangable material.
+  // followed by left-hangable material.  This only applies to absolute 2nd
+  // piece.
   if ((l->pieces[0].font->line_count>1)
+      &&(i==1)
       &&(line_count<(l->pieces[0].font->line_count-1)))
     {
-      int piece=start;
       float discount=0;
       
       // Discount any footnote
-      if (l->pieces[piece].font==&type_faces[footnotemark_index]) {
-	discount+=l->pieces[piece].natural_width;
-	piece++;
+      if (l->pieces[0].font==&type_faces[footnotemark_index]) {
+	discount+=l->pieces[1].natural_width;
       }
-      discount+=calc_left_hang(l,piece);       
+      discount+=calc_left_hang(l,1);
       
       line_width-=discount;
 

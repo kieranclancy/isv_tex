@@ -236,6 +236,10 @@ int line_recalculate_width(struct line_pieces *l)
   for(i=0;i<l->piece_count;i++) {
     l->pieces[i].piece_width=l->pieces[i].natural_width;
 
+    fprintf(stderr,"  piece '%s' is %.1fpts wide.\n",
+	    l->pieces[i].piece,
+	    l->pieces[i].natural_width);
+    
     if (i  // make sure there is a previous piece
 	&&l->pieces[i].font==&type_faces[footnotemark_index]) {
       // This is a footnote mark.
@@ -261,7 +265,9 @@ int line_recalculate_width(struct line_pieces *l)
       set_font(l->pieces[i-1].font->font_nickname);
       float hang_width=HPDF_Page_TextWidth(page,hang_text);
       float all_width=l->pieces[i-1].natural_width;
-      l->pieces[i].piece_width=all_width-hang_width;
+      fprintf(stderr,"  hang_width=%.1f, hang_text='%s', all_width=%.1f\n",
+	      hang_width,hang_text?hang_text:"",all_width);
+      l->pieces[i-1].piece_width=all_width-hang_width;
       if (hang_width>l->pieces[i].piece_width) l->pieces[i].piece_width=hang_width;
       fprintf(stderr,"  This is the punctuation over which we are hanging the footnotemark: [%s] (%.1fpts)\n",hang_text,hang_width);
       fprintf(stderr,"Line after hanging footnote over punctuation: ");
