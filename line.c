@@ -202,14 +202,18 @@ float calc_left_hang(struct line_pieces *l,int left_hang_piece)
 	bytes=4;
       }
     } else {
-      codepoint=text[o++];
+      codepoint=text[o];
       bytes=1;
     }
 
+    if (0)
+      fprintf(stderr,"    considering codepoint 0x%04x for hanging (%d bytes, o=%d)\n",
+	    codepoint,bytes,o);
     if (unicodePointIsHangable(codepoint)) {
       for(int i=0;i<bytes;i++) hang_text[o+i]=text[o+i];
       o+=bytes;
       hang_text[o]=0;
+      if (0) fprintf(stderr,"      hang_text='%s'\n",hang_text);
       continue;
     }
     break;
