@@ -110,7 +110,10 @@ int unicodify(char *text,int *token_len,int max_len,
       if (text[len-3]=='-') {
 	// Replace --- with em-dash, which conveniently takes the same number
 	// of characters to encode in UTF8
-	unicode_replace(text,token_len,len-3,3,0x2014);
+	// International english convention is to actually use an en-dash here,
+	// with space either side.  The space is implemented in parse_text.c
+	// unicode_replace(text,token_len,len-3,3,0x2014); // em-dash
+	unicode_replace(text,token_len,len-3,3,0x2013); // en-dash
       } else {
 	if (next_char!='-') {
 	  // Replace -- with en-dash
