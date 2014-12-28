@@ -273,13 +273,21 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
   p->current_line->piece_baseline[p->current_line->piece_count]=baseline;  
   // p->current_line->line_width_so_far+=text_width;
   p->current_line->piece_count++;
-  line_recalculate_width(p->current_line);
+
+  // Don't waste time recalculating width after every word.  Requires O(n^2) time
+  // with respect to line length.
+  // line_recalculate_width(p->current_line);
 
   // Keep dropchars and their associated lines together
   if (current_font->line_count>1)
     paragraph_set_widow_counter(p,current_font->line_count-1);
 
-  if (p->current_line->line_width_so_far>=p->current_line->max_line_width) {
+  // Don't break lines as we gather input.  Line breaks should happen once a paragraph
+  // has been fully collected. At that point a tex-like dynamic programming scheme
+  // should be used to identify the optimal layout using an arbitrary set of
+  // constraints.
+  if (0) {
+  //  if (p->current_line->line_width_so_far>=p->current_line->max_line_width) {
     if (0) fprintf(stderr,"Breaking line at %1.f points wide (max width=%dpts).\n",
 		   p->current_line->line_width_so_far,
 		   p->current_line->max_line_width);

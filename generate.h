@@ -72,7 +72,7 @@ extern int token_types[MAX_TOKENS];
 extern char *token_strings[MAX_TOKENS];
 
 struct line_pieces {
-#define MAX_LINE_PIECES 256
+#define MAX_LINE_PIECES 1024
   int line_uid;
 
   int tied_to_next_line;
