@@ -733,7 +733,7 @@ int line_set_checkpoint(struct line_pieces *l)
       break;
   }
   if (l->checkpoint<0) l->checkpoint=0;
-  fprintf(stderr,"Set checkpoint at #%d in ",l->checkpoint);
+  // fprintf(stderr,"Set checkpoint at #%d in ",l->checkpoint);
   line_dump(l);
   return 0;
 }

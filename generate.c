@@ -640,7 +640,7 @@ int current_line_flush(struct paragraph *para)
  
   para->current_line=NULL;
 
-  paragraph_dump(para);
+  //  paragraph_dump(para);
   return 0;
 }
 
@@ -843,18 +843,10 @@ int render_tokens()
 	  } else if (!strcasecmp(token_strings[i],"passageinfo")) {
 	    // Passage info line	    
 	    int index=set_font("passageinfo");
-	    fprintf(stderr,"%s:%d:checkpoint\n",__FILE__,__LINE__);
-	    paragraph_dump(target_paragraph);
 	    paragraph_insert_vspace(target_paragraph,passageheader_vspace,1);
-	    fprintf(stderr,"%s:%d:checkpoint\n",__FILE__,__LINE__);
-	    paragraph_dump(target_paragraph);
 	    paragraph_push_style(target_paragraph,AL_LEFT,index);
-	    fprintf(stderr,"%s:%d:checkpoint\n",__FILE__,__LINE__);
-	    paragraph_dump(target_paragraph);
 	    // Require at least one more line after this before page breaking
 	    paragraph_set_widow_counter(target_paragraph,1);
-	    fprintf(stderr,"%s:%d:checkpoint\n",__FILE__,__LINE__);
-	    paragraph_dump(target_paragraph);
 	  } else if (!strcasecmp(token_strings[i],"chapt")) {
 	    // Chapter big number (dropchar)
 	    verse_label=0;
