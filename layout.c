@@ -137,7 +137,7 @@ int layout_calculate_segment_cost(struct paragraph *p,
      width when drop-characters are involved.
 
 */
-int layout_line(struct paragraph *p,int line_number)
+int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
 {
   struct line_pieces *l=p->paragraph_lines[line_number];
   
@@ -174,6 +174,8 @@ int layout_line(struct paragraph *p,int line_number)
   // Build list of lines by working backwards through the paragraph.
   fprintf(stderr,">> Optimal long-line layout is:\n");
   int position=l->piece_count;
+  int out_line_number=out->line_count;
+  int line_count=0;
   while(position>0) {
     fprintf(stderr,"Segment at position %d..%d: ",next_steps[position],position);
     line_dump_segment(l,next_steps[position],position);
@@ -181,8 +183,23 @@ int layout_line(struct paragraph *p,int line_number)
       fprintf(stderr,"Circular path in %s()\n",__FUNCTION__);
       exit(-1);
     }
-    position=next_steps[position];    
+
+    // Build line
+    struct line_pieces *lout=calloc(sizeof(struct line_pieces),1);
+    lout->alignment=l->alignment;
+    for(int i=next_steps[position];i<position;i++)
+      line_append_piece(lout,l->pieces[i]);
+
+    // Insert it into the output paragraph
+    paragraph_insert_line(out,out_line_number,lout);
+    
+    position=next_steps[position];
+    line_count++;
   }
+
+  // Now that we know how many lines, make space in the paragraph.
+  
+  
   fprintf(stderr,"<<\n");
   
   return 0;
