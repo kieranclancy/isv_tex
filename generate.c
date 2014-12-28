@@ -55,6 +55,7 @@ struct type_face type_faces[] = {
   {"bookpretitle","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
   {"booktitle","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
   {"header","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
+  {"pagenumber","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
   {"passageheader","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
   {"passageinfo","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
   {"booktab","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0},
@@ -193,6 +194,7 @@ int read_profile(char *file)
 
 
 	    else if (!strcasecmp(key,"heading_y")) heading_y=atoi(value);
+	    else if (!strcasecmp(key,"pagenumber_y")) pagenumber_y=atoi(value);
 	    
 	    // Does the output have left and right faces?
 	    else if (!strcasecmp(key,"left_and_right"))
@@ -414,6 +416,7 @@ int suppress_page_header=0;
 int page_leftRight;
 
 int heading_y=400;
+int pagenumber_y=20;
 
 int first_verse_on_page=0;
 int first_chapter_on_page=0;
@@ -465,6 +468,20 @@ int finalise_page()
   
   first_chapter_on_page=last_chapter_on_page;
   first_verse_on_page=last_verse_on_page;
+
+  // Draw page number on page
+  HPDF_Page_BeginText (page);
+  HPDF_Page_SetTextRenderingMode (page, HPDF_FILL);
+  HPDF_Page_SetRGBFill (page, 0.00, 0.00, 0.00);
+  int index=set_font("pagenumber");
+  y=pagenumber_y;
+  char pagenumberstring[1024];
+  snprintf(pagenumberstring,1024,"%d",current_page);
+  float text_width = HPDF_Page_TextWidth(page,pagenumberstring);
+  x=(page_width/2)-(text_width/2);
+  record_text(&type_faces[index],type_faces[index].font_size,heading,x,y,0);  
+  HPDF_Page_TextOut (page, x, y, pagenumberstring);
+  HPDF_Page_EndText (page);
   
   return 0;
 }

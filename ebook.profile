@@ -12,6 +12,7 @@ top_margin 54
 bottom_margin 36
 
 heading_y 497
+pagenumber_y 20
 
 # Indentation of first line of a paragraph
 paragraph_indent 18
@@ -46,6 +47,8 @@ passageinfo_filename urw-palladio-l-italic.ttf
 passageinfo_fontsize 10
 header_filename urw-palladio-l-roman.ttf
 header_fontsize 10
+pagenumber_filename urw-palladio-l-roman.ttf
+pagenumber_fontsize 10
 bookpretitle_filename urw-palladio-l-roman.ttf
 bookpretitle_fontsize 12
 bookpretitle_smallcaps 9
