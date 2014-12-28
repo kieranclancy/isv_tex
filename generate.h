@@ -121,6 +121,9 @@ struct line_pieces {
   // The position on the page where the line has been rendered.
   // (used to try to match position of cross-references)
   int on_page_y;
+
+  // DEBUG check whether line has been freed previously
+  int freed;
 };
 
 // Current paragraph
@@ -231,6 +234,7 @@ extern int crossref_count;
 extern int page_to_record;
 extern char *recording_filename;
 extern int current_page;
+extern int line_uid_counter;
 
 // Are we drawing a left or right face, or neither
 #define LR_LEFT -1

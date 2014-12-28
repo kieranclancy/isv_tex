@@ -35,10 +35,22 @@
 #include "hpdf.h"
 #include "generate.h"
 
+void log_free(void *p,const char *file,int line,const char *function)
+{
+  fprintf(stderr,"%s:%d: free(%p) called from %s()\n",
+	  file,line,p,function);
+  free(p);
+  return;
+}
+
+// Uncomment to help debug double-frees
+// #define free(X) log_free(X,__FILE__,__LINE__,__FUNCTION__)
+
 int line_clone_piece(struct piece *p,struct piece *clone)
 {
   bcopy(p,clone,sizeof(struct piece));
   clone->piece=strdup(p->piece);
+  fprintf(stderr,"Cloned %p (\"%s\") to be %p\n",p->piece,p->piece,clone->piece);
   return 0;
 }
 
@@ -134,9 +146,21 @@ int line_free(struct line_pieces *l)
 {
   int i;
   if (!l) return 0;
-  if (0) fprintf(stderr,"Freeing line with uid = %d\n",l->line_uid);
+  if (l->freed) {
+    fprintf(stderr,"Being asked to free a line that has already been freed.\n");
+    line_dump(l);
+    exit(-1);
+  }
+  if (0) {
+    fprintf(stderr,"Freeing line with uid = %d\n",l->line_uid);
+    line_dump(l);
+  }
   for(i=0;i<l->piece_count;i++)
-    if (l->pieces[i].piece) { free(l->pieces[i].piece); l->pieces[i].piece=NULL; }
+    if (l->pieces[i].piece) {
+      if (0) fprintf(stderr,"  freeing piece #%d (%p) (\"%s\")\n",
+		     i,l->pieces[i].piece,l->pieces[i].piece);
+      free(l->pieces[i].piece); l->pieces[i].piece=NULL; }
+  l->freed=1;
   free(l);
   return 0;
 }
@@ -497,7 +521,7 @@ int line_emit(struct paragraph *p,int line_num)
     fprintf(stderr,"Rendered footnote paragraph is now:\n");
     paragraph_dump(&rendered_footnote_paragraph);
   }
-  
+
   // convert y to libharu coordinate system (y=0 is at the bottom,
   // and the y position is the base-line of the text to render).
   // Don't apply line_spacing to adjustment, so that extra line spacing
@@ -508,13 +532,13 @@ int line_emit(struct paragraph *p,int line_num)
   float linegap=0;
 
   line_remove_trailing_space(l);
+
   if (l->alignment==AL_JUSTIFIED) line_remove_leading_space(l);
   fprintf(stderr,"Final width recalculation: ");
   line_recalculate_width(l);
 
   fprintf(stderr,"After width recalculation: "); line_dump(p->paragraph_lines[line_num]);
 
-  
   // Add extra spaces to justified lines, except for the last
   // line of a paragraph, and poetry lines.
   if (l->alignment==AL_JUSTIFIED) {
@@ -544,7 +568,6 @@ int line_emit(struct paragraph *p,int line_num)
   }
 
   fprintf(stderr,"After justification: "); line_dump(p->paragraph_lines[line_num]);
-
   
   // Now draw the pieces
   l->on_page_y=page_y;
@@ -594,6 +617,7 @@ int line_emit(struct paragraph *p,int line_num)
       last_verse_on_page=atoi(l->pieces[i].piece);
     if (!strcmp(l->pieces[i].font->font_nickname,"chapternum"))
       last_chapter_on_page=atoi(l->pieces[i].piece);
+
   }
   HPDF_Page_EndText (page);
   if (!l->piece_count) linegap=l->line_height;
@@ -656,11 +680,6 @@ int line_remove_leading_space(struct line_pieces *l)
     fprintf(stderr,"Shuffling remaining pieces down.\n");
     for(j=0;j<l->piece_count-i;j++) {
       bcopy(&l->pieces[j+i],&l->pieces[j],sizeof(struct piece));
-    }
-    // Free text string from each of the removed pieces
-    for(;j<l->piece_count;j++) {
-      if (l->pieces[j].piece) free(l->pieces[j].piece);
-      l->pieces[j].piece=NULL;
     }
     
     l->piece_count-=i;

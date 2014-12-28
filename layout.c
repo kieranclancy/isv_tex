@@ -57,8 +57,8 @@ int layout_calculate_segment_cost(struct paragraph *p,
       // punctuation. If the width of the discount is wider than this footnotemark,
       // then increase the width of this footnotemark so that the end of text
       // position is advanced correctly.
-      fprintf(stderr,"hanging footnotemark over punctuation: ");
-      line_dump(l);
+      //      fprintf(stderr,"hanging footnotemark over punctuation: ");
+      //      line_dump(l);
       char *text=l->pieces[i-1].piece;
       int o=strlen(text);
       char *hang_text=NULL;
@@ -76,9 +76,9 @@ int layout_calculate_segment_cost(struct paragraph *p,
       float all_width=l->pieces[i-1].natural_width;
       piece_width=all_width-hang_width;
       if (hang_width>piece_width) piece_width=hang_width;
-      fprintf(stderr,"  This is the punctuation over which we are hanging the footnotemark: [%s] (%.1fpts)\n",hang_text,hang_width);
-      fprintf(stderr,"Line after hanging footnote over punctuation: ");
-      line_dump(l);
+      //      fprintf(stderr,"  This is the punctuation over which we are hanging the footnotemark: [%s] (%.1fpts)\n",hang_text,hang_width);
+      //      fprintf(stderr,"Line after hanging footnote over punctuation: ");
+      //      line_dump(l);
     }
 
     // XXX - Ignore width of any leading or trailing spaces
@@ -107,7 +107,7 @@ int layout_calculate_segment_cost(struct paragraph *p,
       line_width+=p->drop_char_left_margin;
     }
 
-  fprintf(stderr,"  segment width is %.1fpts\n",line_width);
+  // fprintf(stderr,"  segment width is %.1fpts\n",line_width);
   
   // Fail if line is too wide
   float column_width=page_width-left_margin-right_margin;
@@ -160,8 +160,8 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
       int line_count=0;
       line_count=line_counts[a];
       int segment_cost=layout_calculate_segment_cost(p,l,a,b,line_count);
-      fprintf(stderr,"  segment cost of %d..%d is %d\n",
-	      a,b,segment_cost);
+      if (0) fprintf(stderr,"  segment cost of %d..%d is %d\n",
+		     a,b,segment_cost);
       // Stop looking when line segment is too long
       if (segment_cost==-1) break;  
       if (segment_cost+costs[a]<costs[b]) {
@@ -192,13 +192,12 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
 
     // Insert it into the output paragraph
     paragraph_insert_line(out,out_line_number,lout);
+    fprintf(stderr,"Laid out line: ");
+    line_dump(lout);
     
     position=next_steps[position];
     line_count++;
-  }
-
-  // Now that we know how many lines, make space in the paragraph.
-  
+  }  
   
   fprintf(stderr,"<<\n");
   
