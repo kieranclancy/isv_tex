@@ -104,14 +104,25 @@ int layout_calculate_segment_cost(struct paragraph *p,
       
       line_width-=discount;
 
-      // Add the width of the drop char margin
-      line_width+=p->drop_char_left_margin;
     }
 
   // fprintf(stderr,"  segment width is %.1fpts\n",line_width);
   
   // Fail if line is too wide
   float column_width=page_width-left_margin-right_margin;
+
+  // Deduct drop char margin from line width if required.
+  if (l->pieces[0].font->line_count>1) {
+    // Drop char at beginning of chapter
+    if (line_count>l->pieces[0].font->line_count) {
+      int max_hang_space
+	=right_margin
+	-crossref_margin_width-crossref_column_width
+	-2;  // plus a little space to ensure some white space
+      column_width-=l->pieces[0].natural_width+max_hang_space;
+    }
+  }
+
   if (line_width>column_width) return -1;
   
   // Else work out penalty based on fullness of line
@@ -200,16 +211,6 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
     lout->alignment=l->alignment;
     lout->line_uid=line_uid_counter++;
     lout->max_line_width=page_width-left_margin-right_margin;
-    if (l->pieces[0].font->line_count>1) {
-      // Drop char at beginning of chapter
-      if ((num_lines-line_count)>l->pieces[0].font->line_count) {
-	  int max_hang_space
-	    =right_margin
-	    -crossref_margin_width-crossref_column_width
-	    -2;  // plus a little space to ensure some white space
-	  l->max_line_width-=l->pieces[0].natural_width+max_hang_space;
-      }
-    }
     for(int i=next_steps[position];i<position;i++) {
       line_append_piece(lout,&l->pieces[i]);
       if (!strcasecmp(l->pieces[i].font->font_nickname,"footnotemark")) {
