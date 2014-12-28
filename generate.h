@@ -272,7 +272,7 @@ int paragraph_insert_line(struct paragraph *p,int line_number, struct line_piece
 
 int line_dump(struct line_pieces *l);
 int line_dump_segment(struct line_pieces *l,int start,int end);
-int line_emit(struct paragraph *p, int n);
+int line_emit(struct paragraph *p, int n, int isBodyParagraph);
 int line_free(struct line_pieces *l);
 int line_calculate_height(struct line_pieces *l);
 struct line_pieces *line_clone(struct line_pieces *l);

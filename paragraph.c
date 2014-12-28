@@ -113,7 +113,9 @@ int paragraph_flush(struct paragraph *p_in)
   }
 
   // Actually draw the lines
-  for(i=0;i<p->line_count;i++) line_emit(p,i);
+  int isBodyParagraph=0;
+  if (p_in==&body_paragraph) isBodyParagraph=1;
+  for(i=0;i<p->line_count;i++) line_emit(p,i,isBodyParagraph);
 
   // Clear out old lines in input
   for(i=0;i<p_in->line_count;i++) line_free(p_in->paragraph_lines[i]);

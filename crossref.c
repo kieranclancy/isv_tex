@@ -176,6 +176,11 @@ int crossref_queue(struct paragraph *p, int y)
     crossrefs_y[crossref_count++]=y;
   } else {
     fprintf(stderr,"Too many verses with cross-references on the same page.\n");
+    fprintf(stderr,"Accumulated cross-references are:\n");
+    for(int i=0;i<crossref_count;i++) {
+      fprintf(stderr,"  crossref #%d:\n",i);
+      paragraph_dump(crossrefs_queue[i]);
+    }
     exit(-1);
   }
   return 0;
@@ -287,7 +292,7 @@ int output_accumulated_cross_references(struct paragraph *p,
 	    cr->paragraph_lines[l]->alignment=AL_LEFT;
 	  else
 	    cr->paragraph_lines[l]->alignment=AL_RIGHT;	    
-	  line_emit(cr,l);
+	  line_emit(cr,l,0);
 	}
     } 
   }

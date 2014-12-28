@@ -386,7 +386,7 @@ int line_recalculate_width(struct line_pieces *l)
   return 0;
 }
 
-int line_emit(struct paragraph *p,int line_num)
+int line_emit(struct paragraph *p,int line_num,int isBodyParagraph)
 {
   struct line_pieces *l=p->paragraph_lines[line_num];
   int break_page=0;
@@ -421,7 +421,7 @@ int line_emit(struct paragraph *p,int line_num)
   // line to the clone, then measure its height.
   // - deduct footnote space from remaining space.
   int footnotes_total_height=0;
-  if (p==&body_paragraph) {
+  if (isBodyParagraph) {
     struct paragraph temp;
     paragraph_init(&temp);
     paragraph_clone(&temp,&rendered_footnote_paragraph);
@@ -453,7 +453,7 @@ int line_emit(struct paragraph *p,int line_num)
   // Does the line plus its cross-references require more space than there is?
   // - add height of cross-references for any verses in this line to height of
   // all cross-references and make sure that it can fit above the cross-references.
-  if (p==&body_paragraph) {
+  if (isBodyParagraph) {
     int crossref_height=0;
     int crossref_para_count=crossref_count;
     int n,i;
@@ -501,7 +501,7 @@ int line_emit(struct paragraph *p,int line_num)
 
     // Reenumerate footnotes 
 
-    if (p==&body_paragraph) {
+    if (isBodyParagraph) {
       output_accumulated_footnotes();
       output_accumulated_cross_references(p,line_num-1);
       reenumerate_footnotes(p->paragraph_lines[line_num]->line_uid);
@@ -513,7 +513,7 @@ int line_emit(struct paragraph *p,int line_num)
   }
 
   // Add footnotes to footnote paragraph
-  if (p==&body_paragraph) {
+  if (isBodyParagraph) {
     int i;
     for(i=0;i<footnote_count;i++)
       if (l->line_uid==footnote_line_numbers[i])
