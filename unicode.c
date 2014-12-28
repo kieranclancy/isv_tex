@@ -162,7 +162,7 @@ int unicodePointIsHangable(int codepoint)
     {
     case '"': case '`': case '\'':
     case '.': case ';': case ':': case ',': case ' ':
-    case '-':
+    case '-': case '(': case ')':
     case 0x00a0: // non-breaking space
     case 0x2018: // left single book quote mark
     case 0x2019: // right single book quote mark
