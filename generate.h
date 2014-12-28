@@ -314,3 +314,5 @@ char *unicodeToUTF8(int codepoint);
 int unicode_replace(char *text,int *len,
 		    int offset,int number_of_chars_to_replace,
 		    int unicode_point);
+
+int layout_paragraph(struct paragraph *p);

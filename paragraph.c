@@ -65,6 +65,9 @@ int paragraph_flush(struct paragraph *p)
   // First flush the current line
   current_line_flush(p);
 
+  // Put line-breaks into paragraph to fit column width as required.
+  layout_paragraph(p);
+  
   // XXX mark last line terminal (so that it doesn't get justified).
 
   /* Write lines of paragraph to PDF, generating new pages as required.
