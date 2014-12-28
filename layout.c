@@ -188,6 +188,7 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
     struct line_pieces *lout=calloc(sizeof(struct line_pieces),1);
     lout->alignment=l->alignment;
     lout->line_uid=line_uid_counter++;
+    lout->max_line_width=l->max_line_width;
     for(int i=next_steps[position];i<position;i++) {
       line_append_piece(lout,&l->pieces[i]);
       if (!strcasecmp(l->pieces[i].font->font_nickname,"footnotemark")) {
@@ -221,6 +222,11 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
 
 struct paragraph *layout_paragraph(struct paragraph *p)
 {
+  fprintf(stderr,"%s()\n",__FUNCTION__);
+
+  fprintf(stderr,"  page_width=%d, left_margin=%d, right_margin=%d\n",
+	  page_width,left_margin,right_margin);
+  
   int i;
 
   // Each line in the paragraph now corresponds to a "long line", which may
@@ -228,6 +234,10 @@ struct paragraph *layout_paragraph(struct paragraph *p)
   // that can all be flowed together.
 
   struct paragraph *out=calloc(sizeof(struct paragraph),1);
+
+  if (p->src_book) out->src_book=strdup(p->src_book);
+  out->src_chapter=p->src_chapter;
+  out->src_verse=p->src_verse;
   
   for(i=0;i<p->line_count;i++) layout_line(p,i,out);
 
