@@ -657,16 +657,22 @@ int line_remove_leading_space(struct line_pieces *l)
   return 0;
 }
 
-int line_dump(struct line_pieces *l)
+int line_dump_segment(struct line_pieces *l,int start,int end)
 {
   int i;
   fprintf(stderr,"line_uid #%d: ",l->line_uid);
-  for(i=0;i<l->piece_count;i++) {
+  for(i=start;i<end;i++) {
     if (i&&(l->piece_widths[i-1]!=l->natural_widths[i-1]))
       fprintf(stderr,"%.1f",l->piece_widths[i-1]-l->natural_widths[i-1]);
     fprintf(stderr,"[%s]",l->pieces[i]);
   }
   fprintf(stderr,"\n");
+  return 0;
+}
+
+int line_dump(struct line_pieces *l)
+{
+  if (l) return line_dump_segment(l,0,l->piece_count);
   return 0;
 }
 

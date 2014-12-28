@@ -261,6 +261,7 @@ int paragraph_dump(struct paragraph *p);
 int current_line_flush(struct paragraph *p);
 
 int line_dump(struct line_pieces *l);
+int line_dump_segment(struct line_pieces *l,int start,int end);
 int line_emit(struct paragraph *p, int n);
 int line_free(struct line_pieces *l);
 int line_calculate_height(struct line_pieces *l);
@@ -271,6 +272,7 @@ int line_recalculate_width(struct line_pieces *l);
 int line_remove_trailing_space(struct line_pieces *l);
 int line_remove_leading_space(struct line_pieces *l);
 int line_set_checkpoint(struct line_pieces *l);
+float calc_left_hang(struct line_pieces *l,int left_hang_piece);
 
 int generate_footnote_mark(int footnote_count);
 int begin_footnote();
