@@ -71,6 +71,20 @@ extern int token_count;
 extern int token_types[MAX_TOKENS];
 extern char *token_strings[MAX_TOKENS];
 
+struct piece {
+  char *pieces;
+  struct type_face *fonts;
+  int actualsize;
+  float piece_width;  // width of piece after any fiddling
+  float natural_width;  // natural width of piece
+  // Used to mark spaces that can be stretched for justification
+  int piece_is_elastic;
+  // Where the piece sits with respect to the nominal baseline
+  // (used for placing super- and sub-scripts).
+  int piece_baseline;
+  struct paragraph *crossrefs;
+};
+
 struct line_pieces {
 #define MAX_LINE_PIECES 1024
   int line_uid;
@@ -89,18 +103,9 @@ struct line_pieces {
   
   int piece_count;
   float line_width_so_far;
-  char *pieces[MAX_LINE_PIECES];
-  struct type_face *fonts[MAX_LINE_PIECES];
-  int actualsizes[MAX_LINE_PIECES];
-  float piece_widths[MAX_LINE_PIECES];  // width of piece after any fiddling
-  float natural_widths[MAX_LINE_PIECES];  // natural width of piece
-  // Used to mark spaces that can be stretched for justification
-  int piece_is_elastic[MAX_LINE_PIECES];
-  // Where the piece sits with respect to the nominal baseline
-  // (used for placing super- and sub-scripts).
-  int piece_baseline[MAX_LINE_PIECES];
-  struct paragraph *crossrefs[MAX_LINE_PIECES];
- 
+
+  struct piece pieces[MAX_LINE_PIECES];
+  
   // We try adding a word first, and if it doesn't fit,
   // then we re-wind to the last checkpoint, flush that
   // line out, then purge out the flushed pieces, leaving
@@ -272,6 +277,7 @@ int line_recalculate_width(struct line_pieces *l);
 int line_remove_trailing_space(struct line_pieces *l);
 int line_remove_leading_space(struct line_pieces *l);
 int line_set_checkpoint(struct line_pieces *l);
+int line_append_piece(struct line_pieces *l,struct piece *p);
 float calc_left_hang(struct line_pieces *l,int left_hang_piece);
 
 int generate_footnote_mark(int footnote_count);
