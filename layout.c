@@ -107,8 +107,8 @@ int layout_calculate_segment_cost(struct paragraph *p,
     }
 
   // fprintf(stderr,"  segment width is %.1fpts\n",line_width);
-  
-  // Fail if line is too wide
+
+  // Work out column width
   float column_width=page_width-left_margin-right_margin;
 
   // Deduct drop char margin from line width if required.
@@ -123,6 +123,7 @@ int layout_calculate_segment_cost(struct paragraph *p,
     }
   }
 
+  // Fail if line is too wide for column
   if (line_width>column_width) return -1;
   
   // Else work out penalty based on fullness of line
@@ -131,6 +132,20 @@ int layout_calculate_segment_cost(struct paragraph *p,
 
   // Then adjust penalty for bad things, like starting the line with punctuation
   // or a non-breaking space.
+
+  // Skip leading spaces
+  i=start;
+  while((i<end)&&(l->pieces[i].piece[0]==' ')) i++;
+
+  if (i<end) {
+    // Don't allow breaking of non-breakable spaces
+    if (((unsigned char)l->pieces[i].piece[0])==0xa0) penalty+=1000000;
+    // Or starting lines with various sorts of punctuation
+    if (((unsigned char)l->pieces[i].piece[0])==',') penalty+=1000000;
+    if (((unsigned char)l->pieces[i].piece[0])=='.') penalty+=1000000;
+    if (!strcasecmp(l->pieces[i].font->font_nickname,"footnotemark"))
+      penalty+=1000000;
+  }
   
   return penalty;
 }
