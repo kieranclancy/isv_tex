@@ -47,10 +47,10 @@ int layout_calculate_segment_cost(struct paragraph *p,
   
   // Calculate width of the segment.
   for(i=start;i<end;i++) {
-    piece_width=l->natural_widths[i];
+    piece_width=l->pieces[i].natural_width;
     
     if ((i>start)  // make sure there is a previous piece
-	&&l->fonts[i]==&type_faces[footnotemark_index]) {
+	&&l->pieces[i].font==&type_faces[footnotemark_index]) {
       // This is a footnote mark.
       // Check if the preceeding piece ends in any low punctuation marks.
       // If so, then discount the width of that piece by the width of such
@@ -59,7 +59,7 @@ int layout_calculate_segment_cost(struct paragraph *p,
       // position is advanced correctly.
       fprintf(stderr,"hanging footnotemark over punctuation: ");
       line_dump(l);
-      char *text=l->pieces[i-1];
+      char *text=l->pieces[i-1].piece;
       int o=strlen(text);
       char *hang_text=NULL;
       while(o>0) {
@@ -71,9 +71,9 @@ int layout_calculate_segment_cost(struct paragraph *p,
 	}
 	break;
       }
-      set_font(l->fonts[i-1]->font_nickname);
+      set_font(l->pieces[i-1].font->font_nickname);
       float hang_width=HPDF_Page_TextWidth(page,hang_text);
-      float all_width=l->natural_widths[i-1];
+      float all_width=l->pieces[i-1].natural_width;
       piece_width=all_width-hang_width;
       if (hang_width>piece_width) piece_width=hang_width;
       fprintf(stderr,"  This is the punctuation over which we are hanging the footnotemark: [%s] (%.1fpts)\n",hang_text,hang_width);
@@ -88,15 +88,15 @@ int layout_calculate_segment_cost(struct paragraph *p,
 
   // Related to the above, we must discount the width of a dropchar if it is
   // followed by left-hangable material.
-  if ((l->fonts[0]->line_count>1)
-      &&(line_count<(l->fonts[0]->line_count-1)))
+  if ((l->pieces[0].font->line_count>1)
+      &&(line_count<(l->pieces[0].font->line_count-1)))
     {
       int piece=start;
       float discount=0;
       
       // Discount any footnote
-      if (l->fonts[piece]==&type_faces[footnotemark_index]) {
-	discount+=l->natural_widths[piece];
+      if (l->pieces[piece].font==&type_faces[footnotemark_index]) {
+	discount+=l->pieces[piece].natural_width;
 	piece++;
       }
       discount+=calc_left_hang(l,piece);       
@@ -188,7 +188,7 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
     struct line_pieces *lout=calloc(sizeof(struct line_pieces),1);
     lout->alignment=l->alignment;
     for(int i=next_steps[position];i<position;i++)
-      line_append_piece(lout,l->pieces[i]);
+      line_append_piece(lout,&l->pieces[i]);
 
     // Insert it into the output paragraph
     paragraph_insert_line(out,out_line_number,lout);
@@ -205,17 +205,17 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
   return 0;
 }
 
-int layout_paragraph(struct paragraph *p)
+struct paragraph *layout_paragraph(struct paragraph *p)
 {
   int i;
 
   // Each line in the paragraph now corresponds to a "long line", which may
   // be either the entire paragraph, or a block of text in the paragraph
   // that can all be flowed together.
-  for(i=0;i<p->line_count;i++)
-    {
-      layout_line(p,i);
-    }
+
+  struct paragraph *out=calloc(sizeof(struct paragraph),1);
   
-  return 0;
+  for(i=0;i<p->line_count;i++) layout_line(p,i,out);
+
+  return out;
 }

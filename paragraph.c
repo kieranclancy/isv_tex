@@ -58,15 +58,15 @@ int paragraph_clear(struct paragraph *p)
   return 0;
 }
 
-int paragraph_flush(struct paragraph *p)
+int paragraph_flush(struct paragraph *p_in)
 {  
   //  fprintf(stderr,"%s():\n",__FUNCTION__);
 
   // First flush the current line
-  current_line_flush(p);
+  current_line_flush(p_in);
 
   // Put line-breaks into paragraph to fit column width as required.
-  layout_paragraph(p);
+  struct paragraph *p=layout_paragraph(p_in);
   
   // XXX mark last line terminal (so that it doesn't get justified).
 
@@ -103,20 +103,26 @@ int paragraph_flush(struct paragraph *p)
   for(i=0;i<p->line_count;i++) {
     int isHeading=0;
     if (p->paragraph_lines[i]->piece_count) {
-      if (!strcasecmp(p->paragraph_lines[i]->fonts[0]->font_nickname,"passageheader"))
+      if (!strcasecmp(p->paragraph_lines[i]->pieces[0].font->font_nickname,"passageheader"))
 	isHeading=1;
-      if (!strcasecmp(p->paragraph_lines[i]->fonts[0]->font_nickname,"passageinfo"))
+      if (!strcasecmp(p->paragraph_lines[i]->pieces[0].font->font_nickname,"passageinfo"))
 	isHeading=1;
       if (countdown) p->paragraph_lines[i]->tied_to_next_line=1;
       if (isHeading) countdown=2; else if (countdown>0) countdown--;
     }
   }
-  
+
+  // Actually draw the lines
   for(i=0;i<p->line_count;i++) line_emit(p,i);
 
-  // Clear out old lines
+  // Clear out old lines in input
+  for(i=0;i<p_in->line_count;i++) line_free(p_in->paragraph_lines[i]);
+  p_in->line_count=0;
+
+  // ... and also in the laid-out version of the paragraph
   for(i=0;i<p->line_count;i++) line_free(p->paragraph_lines[i]);
   p->line_count=0;
+  free(p);
   
   return 0;
 }
@@ -259,24 +265,9 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
       fprintf(stderr,"Hanging verse number '%s' in left margin (start of paragraph)\n",text);
     }
 
-  p->current_line->pieces[p->current_line->piece_count]=strdup(text);
-  p->current_line->fonts[p->current_line->piece_count]=current_font;
-  p->current_line->actualsizes[p->current_line->piece_count]=size;
-  p->current_line->piece_widths[p->current_line->piece_count]=text_width;
-  p->current_line->natural_widths[p->current_line->piece_count]=text_width;
-  p->current_line->crossrefs[p->current_line->piece_count]=NULL;
-  // only spaces (including non-breaking ones) are elastic
-  if ((text[0]!=0x20)&&(((unsigned char)text[0])!=0xa0))
-    p->current_line->piece_is_elastic[p->current_line->piece_count]=0;
-  else {
-    if (((unsigned char)text[0])==0xa0)
-      fprintf(stderr,"Marking space (0x%02x) elastic.\n",text[0]);
-    p->current_line->piece_is_elastic[p->current_line->piece_count]=1;
-  }
-  p->current_line->piece_baseline[p->current_line->piece_count]=baseline;  
-  // p->current_line->line_width_so_far+=text_width;
-  p->current_line->piece_count++;
-
+  line_append_piece(p->current_line,
+		    new_line_piece(text,current_font,size,text_width,NULL,baseline));
+  
   // Don't waste time recalculating width after every word.  Requires O(n^2) time
   // with respect to line length.
   // line_recalculate_width(p->current_line);
@@ -312,31 +303,13 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
       int i;
       for(i=saved_checkpoint;i<saved_piece_count;i++)
 	{
-	  // last_line->line_width_so_far-=last_line->piece_widths[i];
-	  // p->current_line->line_width_so_far+=last_line->piece_widths[i];
-	  p->current_line->pieces[p->current_line->piece_count]=last_line->pieces[i];
-	  p->current_line->fonts[p->current_line->piece_count]=last_line->fonts[i];
-	  p->current_line->actualsizes[p->current_line->piece_count]
-	    =last_line->actualsizes[i];
-	  p->current_line->piece_widths[p->current_line->piece_count]
-	    =last_line->piece_widths[i];
-	  p->current_line->natural_widths[p->current_line->piece_count]
-	    =last_line->natural_widths[i];
-	  p->current_line->piece_is_elastic[p->current_line->piece_count]
-	    =last_line->piece_is_elastic[i];
-	  p->current_line->piece_baseline[p->current_line->piece_count]
-	    =last_line->piece_baseline[i];
-	  p->current_line->crossrefs[p->current_line->piece_count]
-	    =last_line->crossrefs[i];
+	  p->current_line->pieces[p->current_line->piece_count]
+	    =last_line->pieces[i];
 	  p->current_line->piece_count++;	  
 	}
       line_remove_leading_space(p->current_line);
       line_recalculate_width(p->current_line);
       line_recalculate_width(last_line);
-      // fprintf(stderr,"  after breaking, the old line is %1.fpts wide\n",
-      //         last_line->line_width_so_far);
-      // fprintf(stderr,"  after breaking, the new line is %1.fpts wide\n",
-      //         p->current_line->line_width_so_far);
       
       // Inherit alignment of previous line
       if (p->poem_level) last_line->alignment=AL_LEFT;
@@ -367,7 +340,7 @@ int paragraph_append_text(struct paragraph *p,char *text,int baseline,
   // Don't put verse number immediately following dropchar
   if (p->current_line&&(p->current_line->piece_count==1))
     {
-      if (!strcasecmp(p->current_line->fonts[p->current_line->piece_count-1]->font_nickname,"chapternum"))
+      if (!strcasecmp(p->current_line->pieces[p->current_line->piece_count-1].font->font_nickname,"chapternum"))
 	if (!strcasecmp(current_font->font_nickname,"versenum"))
 	  return 0;
 
@@ -446,7 +419,8 @@ int paragraph_append_space(struct paragraph *p,int forceSpaceAtStartOfLine)
   // Don't put spaces after dropchars
   if (p->current_line&&(p->current_line->piece_count==1))
     {
-      if (!strcasecmp(p->current_line->fonts[p->current_line->piece_count-1]->font_nickname,"chapternum"))
+      if (!strcasecmp(p->current_line->pieces[p->current_line->piece_count-1]
+		      .font->font_nickname,"chapternum"))
 	return 0;
 
     }
@@ -464,7 +438,8 @@ int paragraph_append_nonbreakingspace(struct paragraph *p,int forceSpaceAtStartO
   // Don't put spaces after dropchars
   if (p->current_line&&(p->current_line->piece_count==1))
     {
-      if (!strcasecmp(p->current_line->fonts[p->current_line->piece_count-1]->font_nickname,"chapternum"))
+      if (!strcasecmp(p->current_line->pieces[p->current_line->piece_count-1]
+		      .font->font_nickname,"chapternum"))
 	return 0;
 
     }
@@ -488,11 +463,11 @@ int paragraph_append_thinspace(struct paragraph *p,int forceSpaceAtStartOfLine)
   paragraph_append_characters(p," ",current_font->font_size,0,forceSpaceAtStartOfLine);
   // If the thin-space isn't added to the line, don't go causing a segfault.
   if (p->current_line->piece_count) {
-    p->current_line->piece_widths[p->current_line->piece_count-1]/=2;
-    p->current_line->natural_widths[p->current_line->piece_count-1]/=2;
+    p->current_line->pieces[p->current_line->piece_count-1].piece_width/=2;
+    p->current_line->pieces[p->current_line->piece_count-1].natural_width/=2;
 
     // Mark thinspace non-elastic
-    p->current_line->piece_is_elastic[p->current_line->piece_count-1]=0;
+    p->current_line->pieces[p->current_line->piece_count-1].piece_is_elastic=0;
   }
 
   return 0;
@@ -563,7 +538,7 @@ int paragraph_pop_style(struct paragraph *p)
 	=right_margin
 	-crossref_margin_width-crossref_column_width
 	-2;  // plus a little space to ensure some white space
-      l->natural_widths[l->piece_count-1]+=max_hang_space;
+      l->pieces[l->piece_count-1].natural_width+=max_hang_space;
       line_recalculate_width(l);
       fprintf(stderr,"After closing dropchar text\n");
       paragraph_dump(target_paragraph);
@@ -645,7 +620,7 @@ int paragraph_append(struct paragraph *dst,struct paragraph *src)
       for(j=0;j<src->paragraph_lines[i]->piece_count;j++)
 	{
 	  struct type_face *preserved_current_font = current_font;
-	  current_font=src->paragraph_lines[i]->fonts[j];
+	  current_font=src->paragraph_lines[i]->pieces[j].font;
 	 
 	  // Checkpoint where we are up to, in case we need to split the line.
 	  if (dst->current_line) {
@@ -658,9 +633,9 @@ int paragraph_append(struct paragraph *dst,struct paragraph *src)
 	  // Don't force spaces at start of lines, so that formatting comes out
 	  // right with appended footnotes etc.
 	  paragraph_append_characters(dst,
-				      src->paragraph_lines[i]->pieces[j],
-				      src->paragraph_lines[i]->actualsizes[j],
-				      src->paragraph_lines[i]->piece_baseline[j],
+				      src->paragraph_lines[i]->pieces[j].piece,
+				      src->paragraph_lines[i]->pieces[j].actualsize,
+				      src->paragraph_lines[i]->pieces[j].piece_baseline,
 				      0);
 	  current_font = preserved_current_font;
 	}
@@ -692,3 +667,22 @@ int paragraph_height(struct paragraph *p)
   
   return height;
 };
+
+int paragraph_insert_line(struct paragraph *p,int line_number, struct line_pieces *l)
+{
+  int i;
+
+  if (p->line_count>=MAX_LINES_IN_PARAGRAPH) {
+    fprintf(stderr,"Too many lines in paragraph.\n");
+    exit(-1);
+  }
+  
+  // Copy lines up one
+  for(i=p->line_count;i>line_number;i--)
+    p->paragraph_lines[i]=p->paragraph_lines[i-1];
+
+  p->paragraph_lines[line_number]=l;
+  p->line_count++;
+  
+  return 0;
+}

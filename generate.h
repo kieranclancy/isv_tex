@@ -72,8 +72,8 @@ extern int token_types[MAX_TOKENS];
 extern char *token_strings[MAX_TOKENS];
 
 struct piece {
-  char *pieces;
-  struct type_face *fonts;
+  char *piece;
+  struct type_face *font;
   int actualsize;
   float piece_width;  // width of piece after any fiddling
   float natural_width;  // natural width of piece
@@ -264,6 +264,7 @@ int paragraph_pop_style(struct paragraph *p);
 int paragraph_height(struct paragraph *p);
 int paragraph_dump(struct paragraph *p);
 int current_line_flush(struct paragraph *p);
+int paragraph_insert_line(struct paragraph *p,int line_number, struct line_pieces *l);
 
 int line_dump(struct line_pieces *l);
 int line_dump_segment(struct line_pieces *l,int start,int end);
@@ -279,6 +280,10 @@ int line_remove_leading_space(struct line_pieces *l);
 int line_set_checkpoint(struct line_pieces *l);
 int line_append_piece(struct line_pieces *l,struct piece *p);
 float calc_left_hang(struct line_pieces *l,int left_hang_piece);
+struct piece *new_line_piece(char *text,struct type_face *current_font,
+			     float size,float text_width,
+			     struct paragraph *crossrefs,float baseline);
+
 
 int generate_footnote_mark(int footnote_count);
 int begin_footnote();
@@ -323,4 +328,4 @@ int unicode_replace(char *text,int *len,
 		    int offset,int number_of_chars_to_replace,
 		    int unicode_point);
 
-int layout_paragraph(struct paragraph *p);
+struct paragraph *layout_paragraph(struct paragraph *p);

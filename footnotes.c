@@ -195,14 +195,15 @@ int reenumerate_footnotes(int first_remaining_line_uid)
 	  int position_in_line=-1;
 	  for(k=0;k<p->paragraph_lines[j]->piece_count;k++)
 	    {
-	      if (p->paragraph_lines[j]->fonts[k]
+	      if (p->paragraph_lines[j]->pieces[k].font
 		  ==&type_faces[footnotemark_typeface_index])
 		{
 		  position_in_line++;
 		  if (position_in_line==footnote_number_in_line) {
 		    // This is the piece
-		    free(p->paragraph_lines[j]->pieces[k]);
-		    p->paragraph_lines[j]->pieces[k]=strdup(footnote_mark_string);
+		    free(p->paragraph_lines[j]->pieces[k].piece);
+		    p->paragraph_lines[j]->pieces[k].piece
+		      =strdup(footnote_mark_string);
 		    fprintf(stderr,"  footnotemark #%d = '%s'\n",i,footnote_mark_string);
 		  }
 		}
@@ -216,12 +217,12 @@ int reenumerate_footnotes(int first_remaining_line_uid)
 	{	  
 	  for(k=0;k<p->paragraph_lines[j]->piece_count;k++)
 	    {
-	      if (p->paragraph_lines[j]->fonts[k]
+	      if (p->paragraph_lines[j]->pieces[k].font
 		  ==&type_faces[footnotemarkinfootnote_typeface_index])
 		{
 		  // This is the piece
-		  free(p->paragraph_lines[j]->pieces[k]);
-		  p->paragraph_lines[j]->pieces[k]=strdup(footnote_mark_string);
+		  free(p->paragraph_lines[j]->pieces[k].piece);
+		  p->paragraph_lines[j]->pieces[k].piece=strdup(footnote_mark_string);
 		  fprintf(stderr,"  footnotemark #%d = '%s' (piece %d/%d in footnote)\n",
 			  i,footnote_mark_string,
 			  k,p->paragraph_lines[j]->piece_count);

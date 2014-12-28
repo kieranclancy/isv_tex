@@ -35,6 +35,13 @@
 #include "hpdf.h"
 #include "generate.h"
 
+int line_clone_piece(struct piece *p,struct piece *clone)
+{
+  bcopy(p,clone,sizeof(struct piece));
+  clone->piece=strdup(p->piece);
+  return 0;
+}
+
 /* Clone a line */
 struct line_pieces *line_clone(struct line_pieces *l)
 {
@@ -45,7 +52,7 @@ struct line_pieces *line_clone(struct line_pieces *l)
 
   // strdup all strings
   int i;
-  for(i=0;i<clone->piece_count;i++) clone->pieces[i]=strdup(clone->pieces[i]);
+  for(i=0;i<clone->piece_count;i++) line_clone_piece(&l->pieces[i],&clone->pieces[i]);
 
   return clone;
 }
@@ -71,22 +78,27 @@ int line_calculate_height(struct line_pieces *l)
   for(i=0;i<l->piece_count;i++)
     {
       // Get ascender height of font
-      int ascender_height=HPDF_Font_GetAscent(l->fonts[i]->font)*l->fonts[i]->font_size/1000;
+      int ascender_height
+	=HPDF_Font_GetAscent(l->pieces[i].font->font)
+	*l->pieces[i].font->font_size/1000;
       // Get descender depth of font
-      int descender_depth=HPDF_Font_GetDescent(l->fonts[i]->font)*l->fonts[i]->font_size/1000;
+      int descender_depth
+	=HPDF_Font_GetDescent(l->pieces[i].font->font)
+	*l->pieces[i].font->font_size/1000;
       if (0) fprintf(stderr,"  '%s' is %.1fpt wide.\n",
-		     l->pieces[i],l->piece_widths[i]);
+		     l->pieces[i].piece,l->pieces[i].piece_width);
       if (descender_depth<0) descender_depth=-descender_depth;
       // Don't count the space used by dropchars, since it gets covered by
       // the extra line(s) of the dropchar.
-      if (l->fonts[i]->line_count==1) {
-	if (ascender_height-l->piece_baseline[i]>max)
-	  max=ascender_height-l->piece_baseline[i];
-	if (l->piece_baseline[i]-descender_depth<min)
-	  min=l->piece_baseline[i]-descender_depth;
+      if (l->pieces[i].font->line_count==1) {
+	if (ascender_height-l->pieces[i].piece_baseline>max)
+	  max=ascender_height-l->pieces[i].piece_baseline;
+	if (l->pieces[i].piece_baseline-descender_depth<min)
+	  min=l->pieces[i].piece_baseline-descender_depth;
       }
-      if (l->fonts[i]->line_count==1) {
-	if (l->fonts[i]->linegap>linegap) linegap=l->fonts[i]->linegap;
+      if (l->pieces[i].font->line_count==1) {
+	if (l->pieces[i].font->linegap>linegap)
+	  linegap=l->pieces[i].font->linegap;
     }
 
     }
@@ -123,7 +135,8 @@ int line_free(struct line_pieces *l)
   int i;
   if (!l) return 0;
   if (0) fprintf(stderr,"Freeing line with uid = %d\n",l->line_uid);
-  for(i=0;i<l->piece_count;i++) free(l->pieces[i]);
+  for(i=0;i<l->piece_count;i++)
+    if (l->pieces[i].piece) { free(l->pieces[i].piece); l->pieces[i].piece=NULL; }
   free(l);
   return 0;
 }
@@ -132,7 +145,7 @@ float calc_left_hang(struct line_pieces *l,int left_hang_piece)
 {
   if (left_hang_piece>=l->piece_count) return 0.0;
   
-  char *text=l->pieces[left_hang_piece];
+  char *text=l->pieces[left_hang_piece].piece;
   char hang_text[1024];
 
   int o=0;
@@ -179,7 +192,7 @@ float calc_left_hang(struct line_pieces *l,int left_hang_piece)
   }
   
   if (hang_text[0]) {
-    set_font(l->fonts[left_hang_piece]->font_nickname);
+    set_font(l->pieces[left_hang_piece].font->font_nickname);
     float hang_width=HPDF_Page_TextWidth(page,hang_text);
     fprintf(stderr,"Hanging '%s' on the left (%.1f points)\n",
 	    hang_text,hang_width);
@@ -197,10 +210,10 @@ int line_recalculate_width(struct line_pieces *l)
   int footnotemark_index=set_font("footnotemark");
   l->line_width_so_far=0;
   for(i=0;i<l->piece_count;i++) {
-    l->piece_widths[i]=l->natural_widths[i];
+    l->pieces[i].piece_width=l->pieces[i].natural_width;
 
     if (i  // make sure there is a previous piece
-	&&l->fonts[i]==&type_faces[footnotemark_index]) {
+	&&l->pieces[i].font==&type_faces[footnotemark_index]) {
       // This is a footnote mark.
       // Check if the preceeding piece ends in any low punctuation marks.
       // If so, then discount the width of that piece by the width of such
@@ -209,7 +222,7 @@ int line_recalculate_width(struct line_pieces *l)
       // position is advanced correctly.
       fprintf(stderr,"hanging footnotemark over punctuation: ");
       line_dump(l);
-      char *text=l->pieces[i-1];
+      char *text=l->pieces[i-1].piece;
       int o=strlen(text);
       char *hang_text=NULL;
       while(o>0) {
@@ -221,11 +234,11 @@ int line_recalculate_width(struct line_pieces *l)
 	}
 	break;
       }
-      set_font(l->fonts[i-1]->font_nickname);
+      set_font(l->pieces[i-1].font->font_nickname);
       float hang_width=HPDF_Page_TextWidth(page,hang_text);
-      float all_width=l->natural_widths[i-1];
-      l->piece_widths[i-1]=all_width-hang_width;
-      if (hang_width>l->piece_widths[i]) l->piece_widths[i]=hang_width;
+      float all_width=l->pieces[i-1].natural_width;
+      l->pieces[i].piece_width=all_width-hang_width;
+      if (hang_width>l->pieces[i].piece_width) l->pieces[i].piece_width=hang_width;
       fprintf(stderr,"  This is the punctuation over which we are hanging the footnotemark: [%s] (%.1fpts)\n",hang_text,hang_width);
       fprintf(stderr,"Line after hanging footnote over punctuation: ");
       line_dump(l);
@@ -233,23 +246,23 @@ int line_recalculate_width(struct line_pieces *l)
 
     // Related to the above, we must discount the width of a dropchar if it is
     // followed by left-hangable material
-    if ((i==1)&&(l->fonts[0]->line_count>1))
+    if ((i==1)&&(l->pieces[0].font->line_count>1))
       {
 	int piece=i;
 	float discount=0;
 	
 	// Discount any footnote
-	if (l->fonts[piece]==&type_faces[footnotemark_index]) {
-	  discount+=l->natural_widths[piece];
+	if (l->pieces[piece].font==&type_faces[footnotemark_index]) {
+	  discount+=l->pieces[i].natural_width;
 	  piece++;
 	}
 	discount+=calc_left_hang(l,piece);       
 	
-	l->piece_widths[0]=l->natural_widths[0]-discount;
+	l->pieces[0].piece_width=l->pieces[0].natural_width-discount;
       }
   }
 
-  for(i=0;i<l->piece_count;i++) l->line_width_so_far+=l->piece_widths[i];
+  for(i=0;i<l->piece_count;i++) l->line_width_so_far+=l->pieces[i].piece_width;
 
   l->left_hang=0;
   l->right_hang=0;
@@ -257,16 +270,16 @@ int line_recalculate_width(struct line_pieces *l)
   // Now discount for hanging verse numbers, footnotes and punctuation.
   int left_hang_piece=0;
   if (l->piece_count) {
-    if (!(strcmp(l->fonts[0]->font_nickname,"versenum"))) {
+    if (!(strcmp(l->pieces[0].font->font_nickname,"versenum"))) {
       // Verse number on the left.
       // Only hang single-digit or skinny (10-19) verse numbers
       // Actually, let's just hang all verse numbers. I think it looks better.
-      int vn=atoi(l->pieces[0]);      
+      int vn=atoi(l->pieces[0].piece);      
       if (vn<999) {
-	l->left_hang=l->piece_widths[0];	
+	l->left_hang=l->pieces[0].piece_width;	
 	left_hang_piece=1;
 	fprintf(stderr,"Hanging verse number '%s'(=%d) in left margin (%.1f points)\n",
-		l->pieces[0],vn,l->left_hang);
+		l->pieces[0].piece,vn,l->left_hang);
       }
     }
 
@@ -285,9 +298,9 @@ int line_recalculate_width(struct line_pieces *l)
 
     // Ignore white-space at the end of lines when working out hanging.
     while ((right_hang_piece>=0)
-	   &&l->pieces[right_hang_piece]
-	   &&strlen(l->pieces[right_hang_piece])
-	   &&(l->pieces[right_hang_piece][0]==' '))
+	   &&l->pieces[right_hang_piece].piece
+	   &&strlen(l->pieces[right_hang_piece].piece)
+	   &&(l->pieces[right_hang_piece].piece[0]==' '))
       right_hang_piece--;
 
     float hang_note_width=0;
@@ -295,14 +308,14 @@ int line_recalculate_width(struct line_pieces *l)
     
     if (right_hang_piece>=0) {
       // Footnotes always hang 
-      if (!(strcmp(l->fonts[right_hang_piece]->font_nickname,"footnotemark"))) {
-	hang_note_width=l->natural_widths[right_hang_piece];
-	l->right_hang=l->piece_widths[right_hang_piece--];
+      if (!(strcmp(l->pieces[right_hang_piece].font->font_nickname,"footnotemark"))) {
+	hang_note_width=l->pieces[right_hang_piece].natural_width;
+	l->right_hang=l->pieces[right_hang_piece--].piece_width;
       }
     }
 
     if (right_hang_piece>=0&&(right_hang_piece<l->piece_count)) {
-      text=l->pieces[right_hang_piece];
+      text=l->pieces[right_hang_piece].piece;
       int textlen=strlen(text);
 
       if (text) {
@@ -321,12 +334,12 @@ int line_recalculate_width(struct line_pieces *l)
 	}
 	
 	if (hang_text) {
-	  set_font(l->fonts[right_hang_piece]->font_nickname);
+	  set_font(l->pieces[right_hang_piece].font->font_nickname);
 	  hang_width=HPDF_Page_TextWidth(page,hang_text);
 	  // Reduce hang width by the amount of any footnote hang over
 	  // the punctuation.
-	  hang_width-=(l->natural_widths[right_hang_piece]
-		       -l->piece_widths[right_hang_piece]);
+	  hang_width-=(l->pieces[right_hang_piece].natural_width
+		       -l->pieces[right_hang_piece].piece_width);
 	  // Only hang if it won't run into things on the side.
 	  // XX Narrowest space is probably between body and
 	  // cross-refs, so use that measure regardless of whether
@@ -338,7 +351,8 @@ int line_recalculate_width(struct line_pieces *l)
 	  if (hang_width+hang_note_width<=max_hang_space) {
 	    l->right_hang=hang_note_width+hang_width;
 	    fprintf(stderr,"Hanging '%s' in right margin (%.1f points, font=%s)\n",
-		    hang_text,hang_width,l->fonts[right_hang_piece]->font_nickname);
+		    hang_text,hang_width,
+		    l->pieces[right_hang_piece].font->font_nickname);
 	  } else l->right_hang=hang_note_width;
 	}
       }
@@ -427,8 +441,8 @@ int line_emit(struct paragraph *p,int line_num)
     for(n=line_num;n<=max_line_num;n++) {
       struct line_pieces *ll=p->paragraph_lines[n];
       for(i=0;i<ll->piece_count;i++)
-	if (ll->crossrefs[i]) {
-	  crossref_height+=ll->crossrefs[i]->total_height;
+	if (ll->pieces[i].crossrefs) {
+	  crossref_height+=ll->pieces[i].crossrefs->total_height;
 	  crossref_para_count++;
 	}
     }
@@ -514,14 +528,15 @@ int line_emit(struct paragraph *p,int line_num)
 	      l->line_width_so_far,l->max_line_width);
       if (points_to_add>0) {
 	int elastic_pieces=0;
-	for(i=0;i<l->piece_count;i++) if (l->piece_is_elastic[i]) elastic_pieces++;
+	for(i=0;i<l->piece_count;i++)
+	  if (l->pieces[i].piece_is_elastic) elastic_pieces++;
 	if (elastic_pieces) {
 	  float slice=points_to_add/elastic_pieces;
 	  fprintf(stderr,
 		  "  There are %d elastic pieces to share this among (%.1fpts each).\n",
 		  elastic_pieces,slice);
 	  for(i=0;i<l->piece_count;i++)
-	    if (l->piece_is_elastic[i]) l->piece_widths[i]+=slice;
+	    if (l->pieces[i].piece_is_elastic) l->pieces[i].piece_width+=slice;
 	  l->line_width_so_far=l->max_line_width;
 	}
       }
@@ -560,25 +575,25 @@ int line_emit(struct paragraph *p,int line_num)
   x-=l->left_hang;
 
   for(i=0;i<l->piece_count;i++) {
-    HPDF_Page_SetFontAndSize(page,l->fonts[i]->font,l->actualsizes[i]);
-    HPDF_Page_SetRGBFill(page,l->fonts[i]->red,l->fonts[i]->green,l->fonts[i]->blue);
-    HPDF_Page_TextOut(page,left_margin+x,y-l->piece_baseline[i],
-		      l->pieces[i]);
-    record_text(l->fonts[i],l->actualsizes[i],
-		l->pieces[i],left_margin+x,y-l->piece_baseline[i],0);
-    x=x+l->piece_widths[i];
+    HPDF_Page_SetFontAndSize(page,l->pieces[i].font->font,l->pieces[i].actualsize);
+    HPDF_Page_SetRGBFill(page,l->pieces[i].font->red,l->pieces[i].font->green,l->pieces[i].font->blue);
+    HPDF_Page_TextOut(page,left_margin+x,y-l->pieces[i].piece_baseline,
+		      l->pieces[i].piece);
+    record_text(l->pieces[i].font,l->pieces[i].actualsize,
+		l->pieces[i].piece,left_margin+x,y-l->pieces[i].piece_baseline,0);
+    x=x+l->pieces[i].piece_width;
     // Don't adjust line gap for dropchars
-    if (l->fonts[i]->line_count==1) {
-      if (l->fonts[i]->linegap>linegap) linegap=l->fonts[i]->linegap;
+    if (l->pieces[i].font->line_count==1) {
+      if (l->pieces[i].font->linegap>linegap) linegap=l->pieces[i].font->linegap;
     }
 
     // Queue cross-references
-    if (l->crossrefs[i]) crossref_queue(l->crossrefs[i],page_y);
+    if (l->pieces[i].crossrefs) crossref_queue(l->pieces[i].crossrefs,page_y);
 
-    if (!strcmp(l->fonts[i]->font_nickname,"versenum"))
-      last_verse_on_page=atoi(l->pieces[i]);
-    if (!strcmp(l->fonts[i]->font_nickname,"chapternum"))
-      last_chapter_on_page=atoi(l->pieces[i]);
+    if (!strcmp(l->pieces[i].font->font_nickname,"versenum"))
+      last_verse_on_page=atoi(l->pieces[i].piece);
+    if (!strcmp(l->pieces[i].font->font_nickname,"chapternum"))
+      last_chapter_on_page=atoi(l->pieces[i].piece);
   }
   HPDF_Page_EndText (page);
   if (!l->piece_count) linegap=l->line_height;
@@ -608,12 +623,12 @@ int line_remove_trailing_space(struct line_pieces *l)
   for(i=l->piece_count-1;i>=0;i--) {
     if (0) fprintf(stderr,"Considering piece #%d/%d '%s'\n",i,
 		   l->piece_count,
-		   l->pieces[i]);
-    if ((!strcmp(" ",l->pieces[i]))
-	||(!strcmp("",l->pieces[i]))) {
+		   l->pieces[i].piece);
+    if ((!strcmp(" ",l->pieces[i].piece))
+	||(!strcmp("",l->pieces[i].piece))) {
       l->piece_count=i;
-      l->line_width_so_far-=l->piece_widths[i];
-      free(l->pieces[i]);
+      l->line_width_so_far-=l->pieces[i].piece_width;
+      free(l->pieces[i].piece); l->pieces[i].piece=NULL;
       fprintf(stderr,"  Removed trailing space from line\n");
     } else break;
   }
@@ -627,12 +642,12 @@ int line_remove_leading_space(struct line_pieces *l)
   for(i=0;i<l->piece_count;i++) {
     fprintf(stderr,"Considering piece #%d/%d '%s'\n",i,
 	    l->piece_count,
-	    l->pieces[i]);
-    if ((strcmp(" ",l->pieces[i]))&&(strcmp("",l->pieces[i]))) break;
+	    l->pieces[i].piece);
+    if ((strcmp(" ",l->pieces[i].piece))&&(strcmp("",l->pieces[i].piece))) break;
     else {
       fprintf(stderr,"  removing space from start of line.\n");
-      free(l->pieces[i]); l->pieces[i]=NULL;
-      l->line_width_so_far-=l->piece_widths[i];
+      free(l->pieces[i].piece); l->pieces[i].piece=NULL;
+      l->line_width_so_far-=l->pieces[i].piece_width;
     }
   }
 
@@ -640,14 +655,12 @@ int line_remove_leading_space(struct line_pieces *l)
     // Shuffle remaining pieces down
     fprintf(stderr,"Shuffling remaining pieces down.\n");
     for(j=0;j<l->piece_count-i;j++) {
-      l->pieces[j]=l->pieces[j+i];
-      l->fonts[j]=l->fonts[j+i];
-      l->actualsizes[j]=l->actualsizes[j+i];
-      l->piece_is_elastic[j]=l->piece_is_elastic[j+i];
-      l->piece_baseline[j]=l->piece_baseline[j+i];
-      l->piece_widths[j]=l->piece_widths[j+i];
-      l->natural_widths[j]=l->natural_widths[j+i];
-      l->crossrefs[j]=l->crossrefs[j+i];
+      bcopy(&l->pieces[j+i],&l->pieces[j],sizeof(struct piece));
+    }
+    // Free text string from each of the removed pieces
+    for(;j<l->piece_count;j++) {
+      if (l->pieces[j].piece) free(l->pieces[j].piece);
+      l->pieces[j].piece=NULL;
     }
     
     l->piece_count-=i;
@@ -662,9 +675,9 @@ int line_dump_segment(struct line_pieces *l,int start,int end)
   int i;
   fprintf(stderr,"line_uid #%d: ",l->line_uid);
   for(i=start;i<end;i++) {
-    if (i&&(l->piece_widths[i-1]!=l->natural_widths[i-1]))
-      fprintf(stderr,"%.1f",l->piece_widths[i-1]-l->natural_widths[i-1]);
-    fprintf(stderr,"[%s]",l->pieces[i]);
+    if (i&&(l->pieces[i-1].piece_width!=l->pieces[i-1].natural_width))
+      fprintf(stderr,"%.1f",l->pieces[i-1].piece_width-l->pieces[i-1].natural_width);
+    fprintf(stderr,"[%s]",l->pieces[i].piece);
   }
   fprintf(stderr,"\n");
   return 0;
@@ -685,7 +698,7 @@ int line_set_checkpoint(struct line_pieces *l)
   l->checkpoint=l->piece_count;
   while(l->checkpoint>0) {
     // move back one if the previous word is a verse number
-    if (!strcasecmp(l->fonts[l->checkpoint-1]->font_nickname,"versenum"))
+    if (!strcasecmp(l->pieces[l->checkpoint-1].font->font_nickname,"versenum"))
       l->checkpoint--;
     // Or if we are drawing a footnote mark
     else if (!strcasecmp(current_font->font_nickname,"footnotemark"))
@@ -695,7 +708,7 @@ int line_set_checkpoint(struct line_pieces *l)
     else if (!strcasecmp(current_font->font_nickname,"footnoteversenum"))
       l->checkpoint--;
     // Or if we see a non-breaking space
-    else if (((unsigned char)l->pieces[l->checkpoint-1][0])==0xa0)
+    else if (((unsigned char)l->pieces[l->checkpoint-1].piece[0])==0xa0)
       l->checkpoint-=2;
     else
       break;
@@ -704,4 +717,34 @@ int line_set_checkpoint(struct line_pieces *l)
   fprintf(stderr,"Set checkpoint at #%d in ",l->checkpoint);
   line_dump(l);
   return 0;
+}
+
+int line_append_piece(struct line_pieces *l,struct piece *p)
+{
+  bcopy(p,&l->pieces[l->piece_count],sizeof(struct piece));
+  l->pieces[l->piece_count++].piece=strdup(p->piece);
+  return 0;
+}
+
+struct piece *new_line_piece(char *text,struct type_face *current_font,
+			     float size,float text_width,
+			     struct paragraph *crossrefs,float baseline)
+{
+  struct piece *p=calloc(sizeof(struct piece),1);
+  p->piece=strdup(text);
+  p->font=current_font;
+  p->actualsize=size;
+  p->piece_width=text_width;
+  p->natural_width=text_width;
+  p->crossrefs=crossrefs;
+  // only spaces (including non-breaking ones) are elastic
+  if ((text[0]!=0x20)&&(((unsigned char)text[0])!=0xa0))
+    p->piece_is_elastic=0;
+  else {
+    if (((unsigned char)text[0])==0xa0)
+      fprintf(stderr,"Marking space (0x%02x) elastic.\n",text[0]);
+    p->piece_is_elastic=1;
+  }
+  p->piece_baseline=baseline;  
+  return p;
 }
