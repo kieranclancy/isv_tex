@@ -111,6 +111,11 @@ int layout_calculate_segment_cost(struct paragraph *p,
   // Work out column width
   float column_width=page_width-left_margin-right_margin;
 
+  if (start==0&&l==p->paragraph_lines[0]) {
+    // First line of a paragraph is indented.
+    column_width-=paragraph_indent;
+  }
+  
   // Deduct drop char margin from line width if required.
   if (l->pieces[0].font->line_count>1) {
     // Drop char at beginning of chapter
@@ -247,15 +252,21 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
       line_append_piece(lout,&l->pieces[i]);
       if (!strcasecmp(l->pieces[i].font->font_nickname,"footnotemark")) {
 	// update footnote entry to say it is attached to this line UID
-	for(int i=0;i<footnote_count;i++) {
+	for(int j=0;j<footnote_count;j++) {
 	  if (!strcmp(l->pieces[i].piece,
-		      footnote_paragraphs[i]
+		      footnote_paragraphs[j]
 		      .paragraph_lines[0]
 		      ->pieces[0].piece)) {
-	    footnote_line_numbers[i]=lout->line_uid;
+	    footnote_line_numbers[j]=lout->line_uid;
 	    break;
 	  }	  
 	}
+      }
+      // Add left margin for start of paragraph
+      if ((line_number==0)&&(next_steps[position]<1)) {
+	lout->left_margin=paragraph_indent;
+	    lout->max_line_width
+	      =page_width-left_margin-right_margin-paragraph_indent;
       }
       // Add left margin for any dropchar
       if (l->pieces[0].font->line_count>1)
