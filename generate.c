@@ -1000,8 +1000,10 @@ int render_tokens()
 	if (!strcmp(token_strings[i],"\r")) {
 	  current_line_flush(target_paragraph);
 	} else {
+	  int nobreak=NO_NOTBREAKABLE;
+	  if (!strcmp(current_font->font_nickname,"versenum")) nobreak=NOTBREAKABLE;
 	  paragraph_append_text(target_paragraph,token_strings[i],0,
-				NO_FORCESPACEATSTARTOFLINE,NO_NOTBREAKABLE);
+				NO_FORCESPACEATSTARTOFLINE,nobreak);
 	  // Attach verse number to this line if necessary.
 	  if (next_token_is_verse_number) {
 	    next_token_is_verse_number=0;
