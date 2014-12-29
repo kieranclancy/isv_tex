@@ -112,13 +112,16 @@ int begin_footnote()
   // footnotes get appended together later the spaces may be in the middle of a line.
   // We use 4 normal spaces so that justification will scale the space appropriately.
   int i;
-  for(i=0;i<4;i++) paragraph_append_space(target_paragraph,1);
+  for(i=0;i<4;i++) paragraph_append_space(target_paragraph,
+					  FORCESPACEATSTARTOFLINE,NO_NOTBREAKABLE);
 
   // Draw footnote mark at start of footnote
   paragraph_push_style(target_paragraph,AL_JUSTIFIED,
 		       set_font("footnotemarkinfootnote"));
   generate_footnote_mark(footnote_count-1);
-  paragraph_append_text(target_paragraph,footnote_mark_string,0,0);
+  // Don't allow footnote marks to appear at the end of a line
+  paragraph_append_text(target_paragraph,footnote_mark_string,0,
+			NO_FORCESPACEATSTARTOFLINE,NOTBREAKABLE);
   paragraph_pop_style(target_paragraph);
 
   footnote_mode=1;

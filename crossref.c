@@ -70,11 +70,15 @@ int crossreference_start()
 
   // Begin cross-reference paragraph with marker
   if (crossreference_chapter>0) {
-    paragraph_append_text(target_paragraph,crossreference_chapter,0,0); 
-    paragraph_append_text(target_paragraph,":",0,0); 
+    paragraph_append_text(target_paragraph,crossreference_chapter,0,
+			  NO_FORCESPACEATSTARTOFLINE,NOTBREAKABLE); 
+    paragraph_append_text(target_paragraph,":",0,
+			  NO_FORCESPACEATSTARTOFLINE,NOTBREAKABLE); 
   }
-  paragraph_append_text(target_paragraph,crossreference_verse,0,0); 
-  paragraph_append_text(target_paragraph," ",0,0); 
+  paragraph_append_text(target_paragraph,crossreference_verse,0,
+			NO_FORCESPACEATSTARTOFLINE,NO_NOTBREAKABLE); 
+  paragraph_append_text(target_paragraph," ",0,
+			NO_FORCESPACEATSTARTOFLINE,NO_NOTBREAKABLE); 
 
   paragraph_pop_style(target_paragraph);
   paragraph_push_style(target_paragraph,AL_JUSTIFIED,set_font("crossref"));

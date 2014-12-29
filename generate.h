@@ -83,6 +83,13 @@ struct piece {
   // (used for placing super- and sub-scripts).
   int piece_baseline;
   struct paragraph *crossrefs;
+
+  // if non-zero, do not break after this piece
+#define NO_FORCESPACEATSTARTOFLINE 0
+#define FORCESPACEATSTARTOFLINE 1
+#define NO_NOTBREAKABLE 0
+#define NOTBREAKABLE 1
+  int nobreak;
 };
 
 struct line_pieces {
@@ -251,11 +258,14 @@ int new_empty_page(int page_face, int noHeading);
 
 int paragraph_clear_style_stack();
 int paragraph_push_style(struct paragraph *p, int font_alignment,int font_index);
-int paragraph_append_thinspace(struct paragraph *p,int forceSpaceAtStartOfLine);
-int paragraph_append_space(struct paragraph *p, int forceSpaceAtStartOfLine);
-int paragraph_append_nonbreakingspace(struct paragraph *p,int forceSpaceAtStartOfLine);
-int paragraph_append_text(struct paragraph *p,char *text,int baseline,int forceSpaceAtStartOfLine);
-int paragraph_append_characters(struct paragraph *p,char *text,int size,int baseline,int forceSpaceAtStartOfLine);
+int paragraph_append_thinspace(struct paragraph *p,int forceSpaceAtStartOfLine,
+			       int nobreak);
+int paragraph_append_space(struct paragraph *p, int forceSpaceAtStartOfLine,
+			   int nobreak);
+int paragraph_append_text(struct paragraph *p,char *text,int baseline,
+			  int forceSpaceAtStartOfLine, int nobreak);
+int paragraph_append_characters(struct paragraph *p,char *text,int size,int baseline,
+				int forceSpaceAtStartOfLine, int nobreak);
 int paragraph_set_widow_counter(struct paragraph *p,int lines);
 int paragraph_setup_next_line(struct paragraph *p);
 int paragraph_append_line(struct paragraph *p,struct line_pieces *line);
@@ -287,7 +297,8 @@ int line_append_piece(struct line_pieces *l,struct piece *p);
 float calc_left_hang(struct line_pieces *l,int left_hang_piece);
 struct piece *new_line_piece(char *text,struct type_face *current_font,
 			     float size,float text_width,
-			     struct paragraph *crossrefs,float baseline);
+			     struct paragraph *crossrefs,float baseline,
+			     int nobreak);
 
 
 int generate_footnote_mark(int footnote_count);

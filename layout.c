@@ -145,7 +145,11 @@ int layout_calculate_segment_cost(struct paragraph *p,
     if (((unsigned char)l->pieces[i].piece[0])=='.') penalty+=1000000;
     if (!strcasecmp(l->pieces[i].font->font_nickname,"footnotemark"))
       penalty+=1000000;
+
+    // Don't allow line breaks following non-breakable pieces
+    if (i&&l->pieces[i-1].nobreak) penalty+=1000000;
   }
+
   
   return penalty;
 }

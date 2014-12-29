@@ -725,14 +725,19 @@ int render_tokens()
 	}
 	break;
       case TT_SPACE:
-	paragraph_append_space(target_paragraph,0);
+	paragraph_append_space(target_paragraph,
+			       NO_FORCESPACEATSTARTOFLINE,
+			       NO_NOTBREAKABLE);
 	break;
       case TT_NONBREAKINGSPACE:
 	fprintf(stderr,"Saw nonbreakingspace\n");
-	paragraph_append_nonbreakingspace(target_paragraph,1);
+	paragraph_append_space(target_paragraph,
+			       FORCESPACEATSTARTOFLINE,NOTBREAKABLE);
 	break;
       case TT_THINSPACE:
-	paragraph_append_thinspace(target_paragraph,0);
+	paragraph_append_thinspace(target_paragraph,
+				   NO_FORCESPACEATSTARTOFLINE,
+				   NO_NOTBREAKABLE);
 	break;
       case TT_TAG:
 	if (token_strings[i]) {
@@ -883,7 +888,8 @@ int render_tokens()
 	    paragraph_push_style(target_paragraph,
 				 target_paragraph->current_line->alignment,
 				 set_font(current_font->font_nickname));
-	    paragraph_append_text(target_paragraph,unicodeToUTF8(0x2026),0,0);
+	    paragraph_append_text(target_paragraph,unicodeToUTF8(0x2026),0,
+				  NO_FORCESPACEATSTARTOFLINE,NO_NOTBREAKABLE);
 	  } else if (!strcasecmp(token_strings[i],"divine")) {
 	    paragraph_push_style(target_paragraph,
 				 target_paragraph->current_line->alignment,
@@ -909,7 +915,8 @@ int render_tokens()
 	    char *mark=next_footnote_mark();
 	    paragraph_push_style(target_paragraph,target_paragraph->current_line->alignment,set_font("footnotemark"));
 	    fprintf(stderr,"Footnote mark is '%s'\n",mark);
-	    paragraph_append_text(target_paragraph,mark,current_font->baseline_delta,0);
+	    paragraph_append_text(target_paragraph,mark,current_font->baseline_delta,
+				  NO_FORCESPACEATSTARTOFLINE,NO_NOTBREAKABLE);
 	    paragraph_pop_style(target_paragraph);
 
 	    // Select footnote font
@@ -993,7 +1000,8 @@ int render_tokens()
 	if (!strcmp(token_strings[i],"\r")) {
 	  current_line_flush(target_paragraph);
 	} else {
-	  paragraph_append_text(target_paragraph,token_strings[i],0,0);
+	  paragraph_append_text(target_paragraph,token_strings[i],0,
+				NO_FORCESPACEATSTARTOFLINE,NO_NOTBREAKABLE);
 	  // Attach verse number to this line if necessary.
 	  if (next_token_is_verse_number) {
 	    next_token_is_verse_number=0;

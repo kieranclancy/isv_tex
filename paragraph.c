@@ -218,7 +218,7 @@ int paragraph_set_widow_counter(struct paragraph *p,int lines)
 }
 
 int paragraph_append_characters(struct paragraph *p,char *text,int size,int baseline,
-				int forceSpaceAtStartOfLine)
+				int forceSpaceAtStartOfLine, int nobreak)
 {
   // fprintf(stderr,"%s(\"%s\",%d)\n",__FUNCTION__,text,size);
   
@@ -268,7 +268,8 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
     }
 
   line_append_piece(p->current_line,
-		    new_line_piece(text,current_font,size,text_width,NULL,baseline));
+		    new_line_piece(text,current_font,size,text_width,NULL,baseline,
+				   nobreak));
   
   // Don't waste time recalculating width after every word.  Requires O(n^2) time
   // with respect to line length.
@@ -335,7 +336,8 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
 }
 
 int paragraph_append_text(struct paragraph *p,char *text,int baseline,
-			  int forceSpaceAtStartOfLine)
+			  int forceSpaceAtStartOfLine,
+			  int nobreak)
 {  
   fprintf(stderr,"%s(\"%s\")\n",__FUNCTION__,text);
 
@@ -373,16 +375,20 @@ int paragraph_append_text(struct paragraph *p,char *text,int baseline,
 	    if ((text[j]>='a')&&(text[j]<='z')) thisislower=1;
 	    if (thisislower!=islower)
 	      {
+		int nobreak_flag=nobreak;
+		if (j<strlen(text)) nobreak_flag=1;
 		// case change
 		chars[count]=0;
 		if (islower)
 		  paragraph_append_characters(p,chars,current_font->smallcaps,
 					      baseline+current_font->baseline_delta,
-					      forceSpaceAtStartOfLine);
+					      forceSpaceAtStartOfLine,
+					      nobreak_flag);
 		else
 		  paragraph_append_characters(p,chars,current_font->font_size,
 					      baseline+current_font->baseline_delta,
-					      forceSpaceAtStartOfLine);
+					      forceSpaceAtStartOfLine,
+					      nobreak_flag);
 		i=j;
 		count=0;
 		break;
@@ -393,11 +399,11 @@ int paragraph_append_text(struct paragraph *p,char *text,int baseline,
 	  if (islower)
 	    paragraph_append_characters(p,chars,current_font->smallcaps,
 					baseline+current_font->baseline_delta,
-					forceSpaceAtStartOfLine);
+					forceSpaceAtStartOfLine,nobreak);
 	  else
 	    paragraph_append_characters(p,chars,current_font->font_size,
 					baseline+current_font->baseline_delta,
-					forceSpaceAtStartOfLine);
+					forceSpaceAtStartOfLine,nobreak);
 	  break;
 	}
       }
@@ -405,7 +411,7 @@ int paragraph_append_text(struct paragraph *p,char *text,int baseline,
     // Regular text. Render as one piece.
     paragraph_append_characters(p,text,current_font->font_size,
 				baseline+current_font->baseline_delta,
-				forceSpaceAtStartOfLine);
+				forceSpaceAtStartOfLine,nobreak);
   }
     
   return 0;
@@ -414,7 +420,8 @@ int paragraph_append_text(struct paragraph *p,char *text,int baseline,
 /* Add a space to a paragraph.  Similar to appending text, but adds elastic
    space that can be expanded if required for justified text.
 */
-int paragraph_append_space(struct paragraph *p,int forceSpaceAtStartOfLine)
+int paragraph_append_space(struct paragraph *p,
+			   int forceSpaceAtStartOfLine, int nobreak)
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
 
@@ -429,40 +436,22 @@ int paragraph_append_space(struct paragraph *p,int forceSpaceAtStartOfLine)
   
   // Checkpoint where we are up to, in case we need to split the line
   line_set_checkpoint(p->current_line);
-  paragraph_append_characters(p," ",current_font->font_size,0,forceSpaceAtStartOfLine);
-  return 0;
-}
-
-int paragraph_append_nonbreakingspace(struct paragraph *p,int forceSpaceAtStartOfLine)
-{
-  fprintf(stderr,"%s()\n",__FUNCTION__);
-
-  // Don't put spaces after dropchars
-  if (p->current_line&&(p->current_line->piece_count==1))
-    {
-      if (!strcasecmp(p->current_line->pieces[p->current_line->piece_count-1]
-		      .font->font_nickname,"chapternum"))
-	return 0;
-
-    }
-    
-  // Checkpoint where we are up to, in case we need to split the line
-  line_set_checkpoint(p->current_line);
-  char nbs[2]={0xa0,0};
-  paragraph_append_characters(p,nbs,current_font->font_size,0,
-			      forceSpaceAtStartOfLine);
+  paragraph_append_characters(p," ",current_font->font_size,0,
+			      forceSpaceAtStartOfLine,nobreak);
   return 0;
 }
 
 // Thin space.  Append a normal space, then revise it's width down to 1/2
-int paragraph_append_thinspace(struct paragraph *p,int forceSpaceAtStartOfLine)
+int paragraph_append_thinspace(struct paragraph *p,int forceSpaceAtStartOfLine,
+			       int nobreak)
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
   // Checkpoint where we are up to, in case we need to split the line.
   // We don't want to break on a thin space, so we need to go back to the
   // previous elastic space
   line_set_checkpoint(p->current_line);
-  paragraph_append_characters(p," ",current_font->font_size,0,forceSpaceAtStartOfLine);
+  paragraph_append_characters(p," ",current_font->font_size,0,
+			      forceSpaceAtStartOfLine,nobreak);
   // If the thin-space isn't added to the line, don't go causing a segfault.
   if (p->current_line->piece_count) {
     p->current_line->pieces[p->current_line->piece_count-1].piece_width/=2;
@@ -638,7 +627,8 @@ int paragraph_append(struct paragraph *dst,struct paragraph *src)
 				      src->paragraph_lines[i]->pieces[j].piece,
 				      src->paragraph_lines[i]->pieces[j].actualsize,
 				      src->paragraph_lines[i]->pieces[j].piece_baseline,
-				      0);
+				      NO_FORCESPACEATSTARTOFLINE,
+				      src->paragraph_lines[i]->pieces[j].nobreak);
 	  current_font = preserved_current_font;
 	}
     }

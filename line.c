@@ -757,7 +757,8 @@ int line_append_piece(struct line_pieces *l,struct piece *p)
 
 struct piece *new_line_piece(char *text,struct type_face *current_font,
 			     float size,float text_width,
-			     struct paragraph *crossrefs,float baseline)
+			     struct paragraph *crossrefs,float baseline,
+			     int nobreak)
 {
   struct piece *p=calloc(sizeof(struct piece),1);
   p->piece=strdup(text);
@@ -766,6 +767,7 @@ struct piece *new_line_piece(char *text,struct type_face *current_font,
   p->piece_width=text_width;
   p->natural_width=text_width;
   p->crossrefs=crossrefs;
+  p->nobreak=nobreak;
   // only spaces (including non-breaking ones) are elastic
   if ((text[0]!=0x20)&&(((unsigned char)text[0])!=0xa0))
     p->piece_is_elastic=0;
