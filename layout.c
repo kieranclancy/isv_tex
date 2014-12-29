@@ -139,6 +139,10 @@ int layout_calculate_segment_cost(struct paragraph *p,
 	  line_width,column_width,fullness);
   int penalty=(100-fullness)*(100-fullness);
 
+  // No penalty for short lines in the last line of a paragraph
+  if (p->line_count&&l==p->paragraph_lines[p->line_count-1])
+    if (end==l->piece_count) penalty=0;
+
   // Then adjust penalty for bad things, like starting the line with punctuation
   // or a non-breaking space.
 
