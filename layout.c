@@ -139,9 +139,6 @@ int layout_calculate_segment_cost(struct paragraph *p,
 	  line_width,column_width,fullness);
   int penalty=(100-fullness)*(100-fullness);
 
-  // No penalty for short lines in the last line of a paragraph
-  if (end==l->piece_count) penalty=0;
-
   // Then adjust penalty for bad things, like starting the line with punctuation
   // or a non-breaking space.
 
@@ -207,11 +204,11 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
       line_count=line_counts[a];
       int segment_cost=layout_calculate_segment_cost(p,l,a,b,line_count);
       if (segment_cost==-1) break;  
-      if (1) fprintf(stderr,"  segment cost of %d..%d is %d (combined cost = %d)\n",
+      if (0) fprintf(stderr,"  segment cost of %d..%d is %d (combined cost = %d)\n",
 		     a,b,segment_cost,segment_cost+costs[a]);
       // Stop looking when line segment is too long
       if (segment_cost+costs[a]<costs[b]) {
-	fprintf(stderr,"    this beats the old cost of %d\n",costs[b]);
+	// fprintf(stderr,"    this beats the old cost of %d\n",costs[b]);
 	costs[b]=segment_cost+costs[a];
 	next_steps[b]=a;
       }
