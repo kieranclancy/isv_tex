@@ -174,13 +174,14 @@ int unicodePointIsHangable(int codepoint)
     }
 }
 
-int unicodePrevCodePoint(char *text,int *offset)
+int unicodePrevCodePoint(char *text_in,int *offset)
 {
+  unsigned char *text=(unsigned char *)text_in;
   int codepoint=0;
   int bits=0;
   
   if ((*offset)<0) return 0;
-  if (((unsigned char)text[*offset])>=0xc0) {
+  if (text[*offset]>=0x80) {
     while(((*offset)>=0)&&((text[*offset]&0xc0)==0x80)) {
       codepoint|=(text[*offset]&0x3f)<<bits;
       bits+=6;
@@ -189,10 +190,8 @@ int unicodePrevCodePoint(char *text,int *offset)
     if (!(text[*offset]&0x20)) codepoint|=(text[*offset]&0x1f)<<bits;
     else if (!(text[*offset]&0x10)) codepoint|=(text[*offset]&0x0f)<<bits;
     else if (!(text[*offset]&0x08)) codepoint|=(text[*offset]&0x07)<<bits;    
-  } else {
-    codepoint=text[*offset];
-    (*offset)--;
-  }
-
+  } else codepoint=text[*offset];
+  (*offset)--;
+  
   return codepoint;
 }
