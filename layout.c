@@ -94,7 +94,7 @@ int layout_calculate_segment_cost(struct paragraph *p,
   // piece.
   if ((l->pieces[0].font->line_count>1)
       &&(i==1)
-      &&(line_count<(l->pieces[0].font->line_count-1)))
+      &&(line_count<=(l->pieces[0].font->line_count-1)))
     {
       float discount=0;
       
@@ -121,7 +121,7 @@ int layout_calculate_segment_cost(struct paragraph *p,
   // Deduct drop char margin from line width if required.
   if (l->pieces[0].font->line_count>1) {
     // Drop char at beginning of chapter
-    if (line_count>l->pieces[0].font->line_count) {
+    if (line_count&&line_count<=(l->pieces[0].font->line_count-1)) {
       int max_hang_space
 	=right_margin
 	-crossref_margin_width-crossref_column_width
@@ -215,6 +215,7 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
 	// fprintf(stderr,"    this beats the old cost of %d\n",costs[b]);
 	costs[b]=segment_cost+costs[a];
 	next_steps[b]=a;
+	line_counts[b]=line_counts[a]+1;
       }
     }
   }
