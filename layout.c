@@ -177,16 +177,19 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
   
   int a,b;
 
-  int costs[MAX_LINE_PIECES];
-  int next_steps[MAX_LINE_PIECES];
-  int line_counts[MAX_LINE_PIECES];
+  int costs[MAX_LINE_PIECES+1];
+  int next_steps[MAX_LINE_PIECES+1];
+  int line_counts[MAX_LINE_PIECES+1];
   
   // Start out with infinite costs and no steps
-  for(a=0;a<l->piece_count;a++) {
-    costs[a]=0x7fffffff;
+  for(a=0;a<=l->piece_count;a++) {
+    // make costs very hight by default, but not so high as to cause over-flows
+    costs[a]=0x70000000;
     next_steps[a]=-1;
     line_counts[a]=0;
   }
+  // Cost from start to start is 0
+  costs[0]=0; next_steps[0]=1;
 
   // Calculate costs of every possible segment
   for(a=0;a<l->piece_count;a++) {    
@@ -194,11 +197,12 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
       int line_count=0;
       line_count=line_counts[a];
       int segment_cost=layout_calculate_segment_cost(p,l,a,b,line_count);
-      if (0) fprintf(stderr,"  segment cost of %d..%d is %d\n",
-		     a,b,segment_cost);
-      // Stop looking when line segment is too long
       if (segment_cost==-1) break;  
+      if (1) fprintf(stderr,"  segment cost of %d..%d is %d (combined cost = %d)\n",
+		     a,b,segment_cost,segment_cost+costs[a]);
+      // Stop looking when line segment is too long
       if (segment_cost+costs[a]<costs[b]) {
+	fprintf(stderr,"    this beats the old cost of %d\n",costs[b]);
 	costs[b]=segment_cost+costs[a];
 	next_steps[b]=a;
       }
@@ -210,7 +214,12 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
   int position=l->piece_count;
   while(position>0) {
     if (next_steps[position]>=position) {
-      fprintf(stderr,"Circular path in %s()\n",__FUNCTION__);
+      fprintf(stderr,"Circular path in %s(): next_steps[%d]=%d\n",
+	      __FUNCTION__,position,next_steps[position]);
+      for(int i=0;i<=l->piece_count;i++) {
+	fprintf(stderr,"%d..%d : cost %d (next step=0x%08x)\n",
+		next_steps[i],i,costs[i],next_steps[i]);
+      }
       exit(-1);
     }
 
@@ -225,7 +234,8 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
   int line_count=0;
   position=l->piece_count;
   while(position>0) {
-    fprintf(stderr,"Segment at position %d..%d: ",next_steps[position],position);
+    fprintf(stderr,"Segment at position %d..%d (cost %d): ",
+	    next_steps[position],position,costs[position]);
     line_dump_segment(l,next_steps[position],position);
 
     // Build line
