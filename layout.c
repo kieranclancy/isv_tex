@@ -74,9 +74,10 @@ int layout_calculate_segment_cost(struct paragraph *p,
       set_font(l->pieces[i-1].font->font_nickname);
       float hang_width=0;
       if (hang_text) hang_width=HPDF_Page_TextWidth(page,hang_text);
-      float all_width=l->pieces[i-1].natural_width;
-      piece_width=all_width-hang_width;
-      if (hang_width>piece_width) piece_width=hang_width;
+      // Discount the width of this piece based on hang_width
+      if (hang_width>piece_width) piece_width=0;
+      else piece_width=piece_width-hang_width;
+
       // fprintf(stderr,"  This is the punctuation over which we are hanging the footnotemark: [%s] (%.1fpts)\n",hang_text,hang_width);
       // fprintf(stderr,"Line after hanging footnote over punctuation: ");
       // line_dump_segment(l,start,end);
@@ -85,6 +86,7 @@ int layout_calculate_segment_cost(struct paragraph *p,
     // XXX - Ignore width of any leading or trailing spaces
     
     line_width+=piece_width;
+
   }
 
   // Related to the above, we must discount the width of a dropchar if it is
@@ -133,6 +135,8 @@ int layout_calculate_segment_cost(struct paragraph *p,
   
   // Else work out penalty based on fullness of line
   float fullness=line_width*100.0/column_width;
+  fprintf(stderr,"    line_width=%.1fpts, column_width=%.1fpts, fullness=%.1f%%\n",
+	  line_width,column_width,fullness);
   int penalty=(100-fullness)*(100-fullness);
 
   // No penalty for short lines in the last line of a paragraph
