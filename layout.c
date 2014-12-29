@@ -135,7 +135,7 @@ int layout_calculate_segment_cost(struct paragraph *p,
   
   // Else work out penalty based on fullness of line
   float fullness=line_width*100.0/column_width;
-  fprintf(stderr,"    line_width=%.1fpts, column_width=%.1fpts, fullness=%.1f%%\n",
+  if (0) fprintf(stderr,"    line_width=%.1fpts, column_width=%.1fpts, fullness=%.1f%%\n",
 	  line_width,column_width,fullness);
   int penalty=(100-fullness)*(100-fullness);
 
@@ -154,8 +154,11 @@ int layout_calculate_segment_cost(struct paragraph *p,
     // Don't allow breaking of non-breakable spaces
     if (((unsigned char)l->pieces[i].piece[0])==0xa0) penalty+=1000000;
     // Or starting lines with various sorts of punctuation
+    
     if (((unsigned char)l->pieces[i].piece[0])==',') penalty+=1000000;
     if (((unsigned char)l->pieces[i].piece[0])=='.') penalty+=1000000;
+    if (((unsigned char)l->pieces[i].piece[0])=='\'') penalty+=1000000;
+    
     if (!strcasecmp(l->pieces[i].font->font_nickname,"footnotemark"))
       penalty+=1000000;
 
