@@ -269,69 +269,6 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
   // Mark line as poetry if required.
   p->current_line->poem_level=p->poem_level;
   
-  // Don't waste time recalculating width after every word.  Requires O(n^2) time
-  // with respect to line length.
-  // line_recalculate_width(p->current_line);
-
-  // Keep dropchars and their associated lines together
-  // XXX - This is now done in paragraph_layout().  It does mean that dropchars cannot
-  // span multiple paragraphs any longer, however.
-  //  if (current_font->line_count>1)
-  //    paragraph_set_widow_counter(p,current_font->line_count-1);
-
-  // Don't break lines as we gather input.  Line breaks should happen once a paragraph
-  // has been fully collected. At that point a tex-like dynamic programming scheme
-  // should be used to identify the optimal layout using an arbitrary set of
-  // constraints.
-  if (0) {
-  //  if (p->current_line->line_width_so_far>=p->current_line->max_line_width) {
-    if (0) fprintf(stderr,"Breaking line at %1.f points wide (max width=%dpts).\n",
-		   p->current_line->line_width_so_far,
-		   p->current_line->max_line_width);
-    // Line is too long.
-    if (p->current_line->checkpoint) {
-      // Rewind to checkpoint, add this line
-      // to the current paragraph.  Then allocate a new line with just
-      // the recently added stuff.
-      int saved_piece_count=p->current_line->piece_count;
-      int saved_checkpoint=p->current_line->checkpoint;
-      p->current_line->piece_count=p->current_line->checkpoint;
-      struct line_pieces *last_line=p->current_line;
-      paragraph_append_line(p,p->current_line);
-      paragraph_setup_next_line(p);
-      p->current_line->alignment=last_line->alignment;
-      if (0) fprintf(stderr,"  new line is indented %dpts\n",
-		     p->current_line->left_margin);
-      // Now populate new line with the left overs from the old line
-      int i;
-      for(i=saved_checkpoint;i<saved_piece_count;i++)
-	{
-	  p->current_line->pieces[p->current_line->piece_count]
-	    =last_line->pieces[i];
-	  p->current_line->piece_count++;	  
-	}
-      line_remove_leading_space(p->current_line);
-      line_recalculate_width(p->current_line);
-      line_recalculate_width(last_line);
-      
-      // Inherit alignment of previous line
-      if (p->poem_level) last_line->alignment=AL_LEFT;
-      p->current_line->alignment=last_line->alignment;
-      dropchar_margin_check(p,p->current_line);
-    } else {
-      // Line too long, but no checkpoint.  This is bad.
-      // Just add this line as is to the paragraph and report a warning.
-      fprintf(stderr,"Line too wide when appending '%s'\n",text);
-      paragraph_append_line(p,p->current_line);
-      dropchar_margin_check(p,p->current_line);
-      p->current_line=NULL;
-      paragraph_setup_next_line(p);
-    }
-  } else {
-    // Fits on this line.
-    dropchar_margin_check(p,p->current_line);
-  }
-  
   return 0;
 }
 
