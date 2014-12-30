@@ -130,6 +130,16 @@ int layout_calculate_segment_cost(struct paragraph *p,
     }
   }
 
+  // Similarly adjust margin for poetry
+  if (l->poem_level) {
+    int poem_indent=0;
+    poem_indent+=poetry_left_margin;
+    poem_indent+=l->poem_level*poetry_level_indent;
+    // Apply poetry wrap for 2nd and subsequent lines
+    if (start) poem_indent+=poetry_wrap_indent;
+    column_width-=poem_indent;
+  }
+  
   // Fail if line is too wide for column
   if (line_width>column_width) return -1;
   
@@ -271,6 +281,9 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
 	  }	  
 	}
       }
+
+      // XXX - Use the largest indent specified by any of these
+      
       // Add left margin for start of paragraph
       if ((line_number==0)&&(next_steps[position]<1)) {
 	lout->left_margin=paragraph_indent;
@@ -285,6 +298,16 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
 	    lout->max_line_width
 	      =page_width-left_margin-right_margin-l->pieces[0].natural_width;
 	  }
+      // Similarly adjust margin for poetry
+      if (l->poem_level) {
+	int poem_indent=0;
+	poem_indent+=poetry_left_margin;
+	poem_indent+=l->poem_level*poetry_level_indent;
+	// Apply poetry wrap for 2nd and subsequent lines
+	if (line_count<(num_lines-1)) poem_indent+=poetry_wrap_indent;
+	lout->left_margin=poem_indent;
+	lout->max_line_width=page_width-left_margin-poem_indent;
+      }
     }
 
     // Insert it into the output paragraph
