@@ -189,6 +189,7 @@ int paragraph_setup_next_line(struct paragraph *p)
   // Set maximum line width
   p->current_line->max_line_width=page_width-left_margin-right_margin;
 
+#ifdef NOTDEFINED
   // If there is a dropchar margin in effect, then apply it.
   if (p->drop_char_margin_line_count>0) {
     if (1) fprintf(stderr,
@@ -200,7 +201,8 @@ int paragraph_setup_next_line(struct paragraph *p)
     p->drop_char_margin_line_count--;
     if (p->drop_char_margin_line_count) p->current_line->tied_to_next_line=1;
   }
-
+#endif
+  
   line_apply_poetry_margin(p,p->current_line);
   if (0) fprintf(stderr,"New line left margin=%dpts, max_width=%dpts\n",
 		 p->current_line->left_margin,p->current_line->max_line_width);
@@ -213,6 +215,7 @@ int paragraph_set_widow_counter(struct paragraph *p,int lines)
   fprintf(stderr,"%s() ENTER\n",__FUNCTION__);
   if (!p->current_line) paragraph_setup_next_line(p);
   p->current_line->tied_to_next_line=1;
+  fprintf(stderr,"Tied line to next (line %d) (widow counter)\n",p->line_count);
   fprintf(stderr,"%s() EXIT\n",__FUNCTION__);
   return 0;
 }
@@ -276,8 +279,10 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
   // line_recalculate_width(p->current_line);
 
   // Keep dropchars and their associated lines together
-  if (current_font->line_count>1)
-    paragraph_set_widow_counter(p,current_font->line_count-1);
+  // XXX - This is now done in paragraph_layout().  It does mean that dropchars cannot
+  // span multiple paragraphs any longer, however.
+  //  if (current_font->line_count>1)
+  //    paragraph_set_widow_counter(p,current_font->line_count-1);
 
   // Don't break lines as we gather input.  Line breaks should happen once a paragraph
   // has been fully collected. At that point a tex-like dynamic programming scheme
@@ -507,6 +512,8 @@ int paragraph_insert_vspace(struct paragraph *p,int points,int tied)
   paragraph_setup_next_line(p);
   p->current_line->line_height=points;
   p->current_line->tied_to_next_line=tied;
+  if (tied) fprintf(stderr,"Tied line to next (line %d) (via vspace)\n",p->line_count);
+
   current_line_flush(p);
   return 0;
 }
