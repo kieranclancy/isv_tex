@@ -705,6 +705,7 @@ int render_tokens()
       switch(token_types[i]) {
       case TT_PARAGRAPH:
 	{
+	  fprintf(stderr,"TT_PARAGRAPH\n");
 	  int break_paragraph=1;
 	  if (target_paragraph->current_line) {
 	    if (target_paragraph->current_line->tied_to_next_line)
@@ -716,6 +717,7 @@ int render_tokens()
 	  }
 	  if (break_paragraph) {
 	    // Flush the previous paragraph.
+	    fprintf(stderr,"Breaking paragraph.\n");
 	    paragraph_flush(target_paragraph);
 	    // Indent the paragraph.
 	  }

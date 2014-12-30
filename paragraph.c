@@ -262,17 +262,12 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
 		 text_width,text_height,current_font->font,
 		 current_font->font_nickname,size,text);
   
-  // Place initial verse number in margin for poetry.
-  if (0)
-    if (is_hanging_verse) {
-      p->current_line->left_margin-=text_width;
-      p->current_line->max_line_width+=text_width;
-      fprintf(stderr,"Hanging verse number '%s' in left margin (start of paragraph)\n",text);
-    }
-
   line_append_piece(p->current_line,
 		    new_line_piece(text,current_font,size,text_width,NULL,baseline,
 				   nobreak));
+
+  // Mark line as poetry if required.
+  p->current_line->poem_level=p->poem_level;
   
   // Don't waste time recalculating width after every word.  Requires O(n^2) time
   // with respect to line length.

@@ -100,8 +100,15 @@ struct line_pieces {
   
   // Horizontal space available to the line
   int max_line_width;
+  
   // Reserved space on left side, e.g., for dropchars
+  // (used during paragraph layout)
   int left_margin;
+
+  // Mark whether the line is poetry, and if so, what level
+  // (used during paragraph layout)
+  int poem_level;
+  
   // Left and right side width of hanging content.
   float left_hang;
   float right_hang;

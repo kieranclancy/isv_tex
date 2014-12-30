@@ -703,6 +703,7 @@ int line_dump_segment(struct line_pieces *l,int start,int end)
 {
   int i;
   fprintf(stderr,"line_uid #%d: ",l->line_uid);
+  if (l->left_margin) fprintf(stderr,"%+d ",l->left_margin);
   for(i=start;i<end;i++) {
     if (i&&(l->pieces[i-1].piece_width!=l->pieces[i-1].natural_width))
       fprintf(stderr,"%.1f",l->pieces[i-1].piece_width-l->pieces[i-1].natural_width);
@@ -714,7 +715,7 @@ int line_dump_segment(struct line_pieces *l,int start,int end)
 
 int line_dump(struct line_pieces *l)
 {
-  if (l) return line_dump_segment(l,0,l->piece_count);
+  if (l) return line_dump_segment(l,0,l->piece_count);    
   return 0;
 }
 
@@ -744,7 +745,7 @@ int line_set_checkpoint(struct line_pieces *l)
   }
   if (l->checkpoint<0) l->checkpoint=0;
   // fprintf(stderr,"Set checkpoint at #%d in ",l->checkpoint);
-  line_dump(l);
+  // line_dump(l);
   return 0;
 }
 
