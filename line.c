@@ -444,10 +444,12 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph)
       for(i=0;i<footnote_count;i++)
 	if (ll->line_uid==footnote_line_numbers[i])
 	  paragraph_append(&temp,&footnote_paragraphs[i]);      
-    }
-    
+    }    
     current_line_flush(&temp);
-    int footnotes_height=paragraph_height(&temp);
+
+    struct paragraph *f=layout_paragraph(&temp);
+    
+    int footnotes_height=paragraph_height(f);
     baseline_y+=footnotes_height;
     baseline_y+=footnote_sep_vspace;
     footnotes_total_height=footnotes_height+footnote_sep_vspace;
@@ -458,6 +460,9 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph)
 	      current_page,page_y,footnotes_height);
       break_page=1;
     }
+
+    paragraph_clear(&temp);
+    paragraph_clear(f); free(f);
   }
 
   // Does the line plus its cross-references require more space than there is?

@@ -262,8 +262,10 @@ int output_accumulated_footnotes()
 
   int saved_page_y=page_y;
   int saved_bottom_margin=bottom_margin;
+
+  struct paragraph *f=layout_paragraph(&rendered_footnote_paragraph);
   
-  int footnotes_height=paragraph_height(&rendered_footnote_paragraph);
+  int footnotes_height=paragraph_height(f);
 
   int footnotes_y=page_height-bottom_margin-footnotes_height;
 
@@ -273,10 +275,12 @@ int output_accumulated_footnotes()
   // Mark all footnote block lines as justified, and strip leading space from
   // lines
   int i;
-  for(i=0;i<rendered_footnote_paragraph.line_count;i++) {
-    rendered_footnote_paragraph.paragraph_lines[i]->alignment=AL_JUSTIFIED;
-    line_remove_leading_space(rendered_footnote_paragraph.paragraph_lines[i]);
+  for(i=0;i<f->line_count;i++) {
+    f->paragraph_lines[i]->alignment=AL_JUSTIFIED;
+    line_remove_leading_space(f->paragraph_lines[i]);
   }
+
+  paragraph_clear(f); free(f);
   
   paragraph_flush(&rendered_footnote_paragraph);
   
