@@ -50,7 +50,7 @@ int line_clone_piece(struct piece *p,struct piece *clone)
 {
   bcopy(p,clone,sizeof(struct piece));
   clone->piece=strdup(p->piece);
-  fprintf(stderr,"Cloned %p (\"%s\") to be %p\n",p->piece,p->piece,clone->piece);
+  // fprintf(stderr,"Cloned %p (\"%s\") to be %p\n",p->piece,p->piece,clone->piece);
   return 0;
 }
 
@@ -222,8 +222,8 @@ float calc_left_hang(struct line_pieces *l,int left_hang_piece)
   if (hang_text[0]) {
     set_font(l->pieces[left_hang_piece].font->font_nickname);
     float hang_width=HPDF_Page_TextWidth(page,hang_text);
-    fprintf(stderr,"Hanging '%s' on the left (%.1f points)\n",
-	    hang_text,hang_width);
+    if (0) fprintf(stderr,"Hanging '%s' on the left (%.1f points)\n",
+		   hang_text,hang_width);
     return hang_width;
   } else return 0.0;
 }
@@ -240,9 +240,9 @@ int line_recalculate_width(struct line_pieces *l)
   for(i=0;i<l->piece_count;i++) {
     l->pieces[i].piece_width=l->pieces[i].natural_width;
 
-    fprintf(stderr,"  piece '%s' is %.1fpts wide.\n",
-	    l->pieces[i].piece,
-	    l->pieces[i].natural_width);
+    if (0) fprintf(stderr,"  piece '%s' is %.1fpts wide.\n",
+		   l->pieces[i].piece,
+		   l->pieces[i].natural_width);
     
     if (i  // make sure there is a previous piece
 	&&l->pieces[i].font==&type_faces[footnotemark_index]) {
@@ -252,8 +252,10 @@ int line_recalculate_width(struct line_pieces *l)
       // punctuation. If the width of the discount is wider than this footnotemark,
       // then increase the width of this footnotemark so that the end of text
       // position is advanced correctly.
-      fprintf(stderr,"hanging footnotemark over punctuation: ");
-      line_dump(l);
+      if (0) {
+	fprintf(stderr,"hanging footnotemark over punctuation: ");
+	line_dump(l);
+      }
       char *text=l->pieces[i-1].piece;
       int o=strlen(text);
       char *hang_text=NULL;
@@ -269,13 +271,15 @@ int line_recalculate_width(struct line_pieces *l)
       set_font(l->pieces[i-1].font->font_nickname);
       float hang_width=HPDF_Page_TextWidth(page,hang_text);
       float all_width=l->pieces[i-1].natural_width;
-      fprintf(stderr,"  hang_width=%.1f, hang_text='%s', all_width=%.1f\n",
-	      hang_width,hang_text?hang_text:"",all_width);
+      if (0) fprintf(stderr,"  hang_width=%.1f, hang_text='%s', all_width=%.1f\n",
+		     hang_width,hang_text?hang_text:"",all_width);
       l->pieces[i-1].piece_width=all_width-hang_width;
       if (hang_width>l->pieces[i].piece_width) l->pieces[i].piece_width=hang_width;
-      fprintf(stderr,"  This is the punctuation over which we are hanging the footnotemark: [%s] (%.1fpts)\n",hang_text,hang_width);
-      fprintf(stderr,"Line after hanging footnote over punctuation: ");
-      line_dump(l);
+      if (0) {
+	fprintf(stderr,"  This is the punctuation over which we are hanging the footnotemark: [%s] (%.1fpts)\n",hang_text,hang_width);
+	fprintf(stderr,"Line after hanging footnote over punctuation: ");
+	line_dump(l);
+      }
     }
 
     // Related to the above, we must discount the width of a dropchar if it is
@@ -312,8 +316,9 @@ int line_recalculate_width(struct line_pieces *l)
       if (vn<999) {
 	l->left_hang=l->pieces[0].piece_width;	
 	left_hang_piece=1;
-	fprintf(stderr,"Hanging verse number '%s'(=%d) in left margin (%.1f points)\n",
-		l->pieces[0].piece,vn,l->left_hang);
+	if (0) fprintf(stderr,
+		       "Hanging verse number '%s'(=%d) in left margin (%.1f points)\n",
+		       l->pieces[0].piece,vn,l->left_hang);
       }
     }
 
@@ -356,12 +361,12 @@ int line_recalculate_width(struct line_pieces *l)
 	// Now look for right hanging punctuation
 	int o=textlen-1;
 	while(o>=0) {
-	  fprintf(stderr,"Requesting prev code point from \"%s\"[%d]\n",
-		  text,o);
+	  if (0) fprintf(stderr,"Requesting prev code point from \"%s\"[%d]\n",
+			 text,o);
 	  int codepoint=unicodePrevCodePoint(text,&o);
 	  if (codepoint&&unicodePointIsHangable(codepoint)) {
-	    fprintf(stderr,"Decided [%s] is hangable (o=%d)\n",
-		    unicodeToUTF8(codepoint),o);
+	    if (0) fprintf(stderr,"Decided [%s] is hangable (o=%d)\n",
+			   unicodeToUTF8(codepoint),o);
 	    hang_text=&text[o+1];
 	  } else
 	    break;
@@ -384,9 +389,11 @@ int line_recalculate_width(struct line_pieces *l)
 	    -2;  // plus a little space to ensure some white space
 	  if (hang_width+hang_note_width<=max_hang_space) {
 	    l->right_hang=hang_note_width+hang_width;
-	    fprintf(stderr,"Hanging '%s' in right margin (%.1f points, font=%s)\n",
-		    hang_text,hang_width,
-		    l->pieces[right_hang_piece].font->font_nickname);
+	    if (0) {
+	      fprintf(stderr,"Hanging '%s' in right margin (%.1f points, font=%s)\n",
+		      hang_text,hang_width,
+		      l->pieces[right_hang_piece].font->font_nickname);
+	    }
 	  } else l->right_hang=hang_note_width;
 	}
       }
@@ -453,6 +460,8 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph)
     baseline_y+=footnotes_height;
     baseline_y+=footnote_sep_vspace;
     footnotes_total_height=footnotes_height+footnote_sep_vspace;
+    fprintf(stderr,"Unrendered footnote block is:\n");
+    paragraph_dump(&rendered_footnote_paragraph);
     fprintf(stderr,"Footnote block is %dpts high (%d lines).\n",
 	    footnotes_height,temp.line_count);
     if (baseline_y>(page_height-bottom_margin)) {
@@ -493,6 +502,9 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph)
 	      crossref_height+((crossref_para_count+1)*crossref_min_vspace),
 	      crossref_para_count,
 	      (page_height-footnotes_total_height-bottom_margin-top_margin));
+      fprintf(stderr,"  page_height=%d, bottom_margin=%d, top_margin=%d\n",
+	      page_height,bottom_margin,top_margin);
+      fprintf(stderr,"  footnotes_total_height=%dpts\n",footnotes_total_height);
       paragraph_dump(p);
       break_page=1;
     } else {
