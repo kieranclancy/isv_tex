@@ -225,6 +225,9 @@ int crossrefs_reposition()
   int i;
 
   if (!crossref_count) return 0;
+
+  fprintf(stderr,"crossref_y_limit=%d, %dpts from bottom of text area (bottom_margin=%d)\n",
+	  crossref_y_limit,page_height-bottom_margin-crossref_y_limit,bottom_margin);
   
   crossref_queue_dump("initial");
   for(i=1;i<crossref_count;i++)
@@ -270,10 +273,6 @@ int output_accumulated_cross_references(struct paragraph *p,
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
 
-  int saved_page_y=page_y;
-  int saved_bottom_margin=bottom_margin;
-  bottom_margin=0;
-
   // Place cross-reference column in space on opposite side to the
   // booktab
   if (leftRight==LR_RIGHT) {
@@ -285,6 +284,10 @@ int output_accumulated_cross_references(struct paragraph *p,
   }
 
   crossrefs_reposition();
+
+  int saved_page_y=page_y;
+  int saved_bottom_margin=bottom_margin;
+  bottom_margin=0;
   
   int n,l;
   for(n=0;n<crossref_count;n++) {
