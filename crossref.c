@@ -109,10 +109,17 @@ int crossreference_end()
 {
   // Clone paragraph, set info, and add into hash table of
   // cross-reference paragraphs
-  struct paragraph *c=target_paragraph;
+  struct paragraph *c_raw=target_paragraph;
 
-  current_line_flush(c);
+  current_line_flush(c_raw);
 
+  // Layout the paragraph
+  struct paragraph *c=layout_paragraph(c_raw);
+
+  // Now free c_raw
+  paragraph_clear(c_raw); free(c_raw);
+  target_paragraph=&body_paragraph;
+  
   c->src_book=strdup(crossreference_book);
   c->src_chapter=atoi(crossreference_chapter);
   c->src_verse=atoi(crossreference_verse);
@@ -133,8 +140,6 @@ int crossreference_end()
   free(crossreference_book); crossreference_book=NULL;
   free(crossreference_chapter); crossreference_chapter=NULL;
   free(crossreference_verse); crossreference_verse=NULL;
-
-  target_paragraph=&body_paragraph;
   
   crossreference_mode=0;
   left_margin=saved_left_margin;

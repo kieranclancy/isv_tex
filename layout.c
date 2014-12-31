@@ -258,6 +258,18 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
   int line_count=0;
   position=l->piece_count;
   while(position>0) {
+    if (position<0||next_steps[position]<0||costs[position]==0x70000000) {
+      // Illegal step.
+      // Dump path
+      fprintf(stderr,"Path contains illegal step at #%d\n",position);
+      for(int i=0;i<=l->piece_count;i++) {
+	fprintf(stderr,"%d..%d : cost %d (next step=0x%08x)\n",
+		next_steps[i],i,costs[i],next_steps[i]);
+      }
+      exit(-1);
+   
+    }
+    
     fprintf(stderr,"Segment at position %d..%d (cost %d): ",
 	    next_steps[position],position,costs[position]);
     line_dump_segment(l,next_steps[position],position);
