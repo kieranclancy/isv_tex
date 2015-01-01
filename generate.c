@@ -490,7 +490,7 @@ int finalise_page()
 // Empty of main content, that is, a booktab will be added
 int new_empty_page(int leftRight, int noHeading)
 {
-  fprintf(stderr,"%s(%d,%d)\n",__FUNCTION__,leftRight,noHeading);
+  // fprintf(stderr,"%s(%d,%d)\n",__FUNCTION__,leftRight,noHeading);
 
   if (!on_first_page) finalise_page();
 

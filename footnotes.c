@@ -137,7 +137,7 @@ int end_footnote()
 
 int output_accumulated_footnotes(int drawingPage)
 {
-  fprintf(stderr,"%s()\n",__FUNCTION__);
+  // fprintf(stderr,"%s()\n",__FUNCTION__);
 
   // Commit any partial last-line in the footnote paragraph.
   if (footnote_paragraph.current_line) {
@@ -180,8 +180,6 @@ int output_accumulated_footnotes(int drawingPage)
     HPDF_Page_LineTo(page,left_margin+footnote_rule_length,y);
     HPDF_Page_Stroke(page);
   } else {
-    fprintf(stderr,"crossref_set_ylimit(%d-%d)\n",
-	    page_height,saved_bottom_margin);
     crossref_set_ylimit(page_height-saved_bottom_margin);
   }
   
