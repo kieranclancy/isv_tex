@@ -4,7 +4,7 @@ SRCS=generate.c parse_tex.c paragraph.c line.c \
 
 HEADERS=generate.h Makefile
 
-COPT=-fsanitize=bounds -fsanitize-undefined-trap-on-error
+COPT=-g -Wall -fsanitize=bounds -fsanitize-undefined-trap-on-error
 
 TTFFILES=	urw-palladio-l-roman.ttf \
 
@@ -16,7 +16,7 @@ all:	generate ebook-red-letter.profile $(TTFFILES)
 	./generate ebook-red-letter.profile
 
 generate:	$(SRCS) $(HEADERS)
-	gcc -g -Wall -I/usr/local/include -I/usr/local/include/freetype2 -o generate $(SRCS) -L/usr/local/lib -lhpdfs -lz -lfreetype $(COPT)
+	gcc -I/usr/local/include -I/usr/local/include/freetype2 -o generate $(SRCS) -L/usr/local/lib -lhpdfs -lz -lfreetype $(COPT)
 
 clean:
 	rm *.pdf *.toc *.aux *.log *.fls

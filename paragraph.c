@@ -437,6 +437,8 @@ int paragraph_stash_style_stack(int n)
   return 0;
 }
 
+extern int blackletterfont_index;
+
 int paragraph_fetch_style_stack(int n)
 {
   if (n==0) {
@@ -451,7 +453,9 @@ int paragraph_fetch_style_stack(int n)
     current_font=stashed_current_font1;
   }
   if (!type_face_stack_pointer)
-    current_font=&type_faces[set_font("blackletter")];
+    if (blackletterfont_index==-1)
+      blackletterfont_index=set_font_by_name("blackletter");
+    current_font=&type_faces[blackletterfont_index];
 
   fprintf(stderr," {fetch %d:%d}",type_face_stack_pointer,n);
   return 0;
@@ -534,7 +538,9 @@ int paragraph_pop_style(struct paragraph *p)
     // Add vertical space after certain type faces
     if (!strcasecmp(current_font->font_nickname,"booktitle"))
       {
-	paragraph_insert_vspace(p,type_faces[set_font("blackletter")].linegap/2,1);
+	if (blackletterfont_index==-1)
+	  blackletterfont_index=set_font_by_name("blackletter");
+	paragraph_insert_vspace(p,type_faces[blackletterfont_index].linegap/2,1);
       }
     current_font=type_face_stack[--type_face_stack_pointer];
   }
@@ -548,7 +554,9 @@ int paragraph_pop_style(struct paragraph *p)
 int paragraph_clear_style_stack()
 {
   // fprintf(stderr,"%s()\n",__FUNCTION__);
-  current_font=&type_faces[set_font("blackletter")];
+  if (blackletterfont_index==-1)
+    blackletterfont_index=set_font_by_name("blackletter");
+  current_font=&type_faces[blackletterfont_index];
   type_face_stack_pointer=0;
   return 0;
 }

@@ -338,7 +338,8 @@ int crossref_set_ylimit(int y);
 int crossrefs_reset();
 int crossref_queue_dump(char *msg);
 
-int set_font(char *nickname);
+int set_font_by_name(char *nickname);
+int set_font(struct type_face *f);
 
 int record_text(struct type_face *font,int text_size,char *text,
 		int x,int y,int radians);

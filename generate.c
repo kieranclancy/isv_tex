@@ -423,6 +423,23 @@ int first_chapter_on_page=0;
 int last_verse_on_page=0;
 int last_chapter_on_page=0;
 
+int headerfont_index=-1;
+int pagenumberfont_index=-1;
+int booktabfont_index=-1;
+int bookpretitlefont_index=-1;
+int booktitlefont_index=-1;
+int passageheaderfont_index=-1;
+int passageinfofont_index=-1;
+int chapternumfont_index=-1;
+int versenumfont_index=-1;
+int footnoteversenumfont_index=-1;
+int footnotefont_index=1;
+int footnotebibfont_index=1;
+int footnotemarkfont_index=1;
+int divinefont_index=-1;
+int redletterfont_index=-1;
+int blackletterfont_index=-1;
+
 int finalise_page()
 {
   char heading[1024];
@@ -432,7 +449,8 @@ int finalise_page()
     // Draw page header.
     // Largely this is book chap:verse on the same side as the booktab
 
-    int index=set_font("header");
+    if (headerfont_index==-1) headerfont_index=set_font_by_name("header");
+    int index=headerfont_index;
     
     y=heading_y;
 
@@ -473,7 +491,8 @@ int finalise_page()
   HPDF_Page_BeginText (page);
   HPDF_Page_SetTextRenderingMode (page, HPDF_FILL);
   HPDF_Page_SetRGBFill (page, 0.00, 0.00, 0.00);
-  int index=set_font("pagenumber");
+  if (pagenumberfont_index==-1) pagenumberfont_index=set_font_by_name("pagenumber");
+  int index=pagenumberfont_index;
   y=pagenumber_y;
   char pagenumberstring[1024];
   snprintf(pagenumberstring,1024,"%d",current_page);
@@ -523,7 +542,8 @@ int new_empty_page(int leftRight, int noHeading)
     // Now draw sideways text
     float text_width, text_height;
 
-    int index = set_font("booktab");
+    if (booktabfont_index==-1) booktabfont_index=set_font_by_name("booktab");
+    int index = booktabfont_index;
     text_width = HPDF_Page_TextWidth(page,booktab_text);
     int ascender_height=HPDF_Font_GetAscent(type_faces[index].font)*type_faces[index].font_size/1000;
     // int descender_depth=HPDF_Font_GetDescent(type_faces[index].font)*type_faces[index].font_size/1000;
@@ -595,7 +615,13 @@ int get_linegap(char *font_filename, int size)
   return linegap;
 }
 
-int set_font(char *nickname) {
+int set_font(struct type_face *f)
+{
+  HPDF_Page_SetFontAndSize (page, f->font, f->font_size);
+  return 0;
+}
+
+int set_font_by_name(char *nickname) {
   int i;
   for(i=0;type_faces[i].font_nickname;i++)
     if (!strcasecmp(nickname,type_faces[i].font_nickname)) break;
@@ -837,43 +863,55 @@ int render_tokens(int token_low,int token_high,int drawingPage)
 	    page_skip_token_as_subordinate(i);
 	  } else if (!strcasecmp(token_strings[i],"bookpretitle")) {
 	    // Book title header line
-	    paragraph_push_style(target_paragraph,AL_CENTRED,set_font("bookpretitle"));
+	    if (bookpretitlefont_index==-1)
+	      bookpretitlefont_index=set_font_by_name("bookpretitle");
+	    paragraph_push_style(target_paragraph,AL_CENTRED,
+				 bookpretitlefont_index);
 	    
 	  } else if (!strcasecmp(token_strings[i],"booktitle")) {
 	    // Book title header line
 	    chapter_label=0; verse_label=0;
 	    current_line_flush(target_paragraph);
-	    paragraph_push_style(target_paragraph,AL_CENTRED,set_font("booktitle"));
-	    
+	    if (booktitlefont_index==-1)
+	      booktitlefont_index=set_font_by_name("booktitle");
+	    paragraph_push_style(target_paragraph,AL_CENTRED,
+				 booktitlefont_index);	    
 	  } else if (!strcasecmp(token_strings[i],"passage")) {
-	    // Passage header line	    
-	    int index=set_font("passageheader");
+	    // Passage header line
+	    if (passageheaderfont_index==-1)
+	      passageheaderfont_index=set_font_by_name("passageheader");
+	    int index=passageheaderfont_index;
 	    paragraph_flush(target_paragraph,drawingPage);
 	    paragraph_insert_vspace(target_paragraph,passageheader_vspace,1);
 	    paragraph_push_style(target_paragraph,AL_LEFT,index);
 	    // Require at least one more line after this before page breaking
 	    paragraph_set_widow_counter(target_paragraph,1);
 	  } else if (!strcasecmp(token_strings[i],"passageinfo")) {
-	    // Passage info line	    
-	    int index=set_font("passageinfo");
+	    // Passage info line
+	    if (passageinfofont_index==-1)
+	      passageinfofont_index=set_font_by_name("passageinfo");
 	    paragraph_insert_vspace(target_paragraph,passageheader_vspace,1);
-	    paragraph_push_style(target_paragraph,AL_LEFT,index);
+	    paragraph_push_style(target_paragraph,AL_LEFT,passageinfofont_index);
 	    // Require at least one more line after this before page breaking
 	    paragraph_set_widow_counter(target_paragraph,1);
 	  } else if (!strcasecmp(token_strings[i],"chapt")) {
 	    // Chapter big number (dropchar)
 	    verse_label=0;
 	    current_line_flush(target_paragraph);
-	    int index=set_font("chapternum");
-	    paragraph_push_style(target_paragraph,AL_JUSTIFIED,index);
+	    if (chapternumfont_index==-1)
+	      chapternumfont_index=set_font_by_name("chapternum");
+	    paragraph_push_style(target_paragraph,AL_JUSTIFIED,
+				 chapternumfont_index);
 	    // fprintf(stderr,"Before setting widow counter\n");
 	    // paragraph_dump(target_paragraph);
 	    // Require sufficient lines after this one so that the
 	    // drop character can fit.
-	    if (type_faces[index].line_count>1) {
+	    if (type_faces[chapternumfont_index].line_count>1) {
 	      // fprintf(stderr,"Tying line due to drop-char (cl uid #%d)\n",
 	      //      target_paragraph->current_line->line_uid);
-	      paragraph_set_widow_counter(target_paragraph,type_faces[index].line_count-1);
+	      paragraph_set_widow_counter(target_paragraph,
+					  type_faces[chapternumfont_index].line_count
+					  -1);
 	      // paragraph_dump(target_paragraph);
 	    }
 	    // Don't indent lines beginning with dropchars
@@ -887,29 +925,45 @@ int render_tokens(int token_low,int token_high,int drawingPage)
 	      next_token_is_verse_number=1;
 	      int alignment=AL_JUSTIFIED;
 	      if (target_paragraph->poem_level) alignment=AL_LEFT;
-	      paragraph_push_style(target_paragraph,alignment,set_font("versenum"));
-	    } else
-	      paragraph_push_style(target_paragraph,AL_JUSTIFIED,set_font("footnoteversenum"));
+	      if (versenumfont_index==-1)
+		versenumfont_index=set_font_by_name("versenum");
+	      paragraph_push_style(target_paragraph,alignment,versenumfont_index);
+	    } else {
+	      if (footnoteversenumfont_index==-1)
+		footnoteversenumfont_index=set_font_by_name("footnoteversenum");
+	      paragraph_push_style(target_paragraph,AL_JUSTIFIED,
+				   footnoteversenumfont_index);
+	    }
 
 	  } else if (!strcasecmp(token_strings[i],"ldots")) {
 	    // Insert an ellipsis
 	    paragraph_push_style(target_paragraph,
 				 target_paragraph->current_line->alignment,
-				 set_font(current_font->font_nickname));
+				 set_font(current_font));
 	    paragraph_append_text(target_paragraph,unicodeToUTF8(0x2026),0,
 				  NO_FORCESPACEATSTARTOFLINE,NO_NOTBREAKABLE);
 	  } else if (!strcasecmp(token_strings[i],"divine")) {
+	    if (divinefont_index==-1)
+	      divinefont_index=set_font_by_name("divine");
 	    paragraph_push_style(target_paragraph,
 				 target_paragraph->current_line->alignment,
-				 set_font("divine"));
+				 divinefont_index);
 	  } else if (!strcasecmp(token_strings[i],"red")) {
+	    if (redletterfont_index==-1)
+	      redletterfont_index=set_font_by_name("redletter");
 	    paragraph_push_style(target_paragraph,
 				 target_paragraph->current_line->alignment,
-				 set_font("redletter"));
+				 redletterfont_index);
 	  } else if (!strcasecmp(token_strings[i],"fbackref")) {
-	    paragraph_push_style(target_paragraph,AL_JUSTIFIED,set_font("footnote"));
+	    if (footnotefont_index==-1)
+	      footnotefont_index=set_font_by_name("footnote");
+	    paragraph_push_style(target_paragraph,AL_JUSTIFIED,
+				 footnotefont_index);
 	  } else if (!strcasecmp(token_strings[i],"fbib")) {
-	    paragraph_push_style(target_paragraph,AL_JUSTIFIED,set_font("footnotebib"));
+	    if (footnotebibfont_index==-1)
+	      footnotebibfont_index=set_font_by_name("footnotebib");
+	    paragraph_push_style(target_paragraph,AL_JUSTIFIED,
+				 footnotebibfont_index);
 	  } else if (!strcasecmp(token_strings[i],"fnote")) {
 	    // Foot note.
 	    // 1. Insert a footnote mark here.
@@ -924,14 +978,19 @@ int render_tokens(int token_low,int token_high,int drawingPage)
 	    int alignment=AL_NONE;
 	    if (target_paragraph->current_line)
 	      alignment=target_paragraph->current_line->alignment;
-	    paragraph_push_style(target_paragraph,alignment,set_font("footnotemark"));
+	    if (footnotemarkfont_index==-1)
+	      footnotemarkfont_index=set_font_by_name("footnotemark");
+	    paragraph_push_style(target_paragraph,alignment,
+				 footnotemarkfont_index);
 	    // fprintf(stderr,"Footnote mark is '%s'\n",mark);
 	    paragraph_append_text(target_paragraph,mark,current_font->baseline_delta,
 				  NO_FORCESPACEATSTARTOFLINE,NO_NOTBREAKABLE);
 	    paragraph_pop_style(target_paragraph);
 
 	    // Select footnote font
-	    paragraph_push_style(target_paragraph,alignment,set_font("footnote"));
+	    if (footnotefont_index==-1)
+	      footnotefont_index=set_font_by_name("footnote");
+	    paragraph_push_style(target_paragraph,alignment,footnotefont_index);
 
 	    // XXX Redirect the foot note text itself to the footnote accumulator.
 	    footnote_stack_depth=type_face_stack_pointer;
@@ -1006,7 +1065,9 @@ int render_tokens(int token_low,int token_high,int drawingPage)
 	      }
 	    }
 	    fprintf(stderr,"\n");
-	    paragraph_push_style(target_paragraph,AL_LEFT,set_font("blackletter"));
+	    if (blackletterfont_index==-1)
+	      blackletterfont_index=set_font_by_name("blackletter");
+	    paragraph_push_style(target_paragraph,AL_LEFT,blackletterfont_index);
 	  }	  
 	}
 	break;

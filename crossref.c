@@ -49,6 +49,9 @@ int crossref_min_vspace=4;
 int crossref_column_width=36;
 int crossref_margin_width=4;
 
+int crossrefmarkerfont_index=-1;
+int crossreffont_index=-1;
+
 int crossreference_start()
 {
   // There is actually nothing that needs to be done here.
@@ -67,7 +70,9 @@ int crossreference_start()
   target_paragraph=calloc(sizeof(struct paragraph),1);
   paragraph_clear(target_paragraph);
 
-  paragraph_push_style(target_paragraph,AL_JUSTIFIED,set_font("crossrefmarker"));
+  if (crossrefmarkerfont_index==-1)
+    crossrefmarkerfont_index=set_font_by_name("crossrefmarker");
+  paragraph_push_style(target_paragraph,AL_JUSTIFIED,crossrefmarkerfont_index);
 
   // Begin cross-reference paragraph with marker
   if (crossreference_chapter>0) {
@@ -82,7 +87,9 @@ int crossreference_start()
 			NO_FORCESPACEATSTARTOFLINE,NO_NOTBREAKABLE); 
 
   paragraph_pop_style(target_paragraph);
-  paragraph_push_style(target_paragraph,AL_JUSTIFIED,set_font("crossref"));
+  if (crossreffont_index==-1)
+    crossreffont_index=set_font_by_name("crossref");
+  paragraph_push_style(target_paragraph,AL_JUSTIFIED,crossreffont_index);
 
   
   crossreference_mode=1;

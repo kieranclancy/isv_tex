@@ -220,13 +220,15 @@ float calc_left_hang(struct line_pieces *l,int left_hang_piece)
   }
   
   if (hang_text[0]) {
-    set_font(l->pieces[left_hang_piece].font->font_nickname);
+    set_font(l->pieces[left_hang_piece].font);
     float hang_width=HPDF_Page_TextWidth(page,hang_text);
     if (0) fprintf(stderr,"Hanging '%s' on the left (%.1f points)\n",
 		   hang_text,hang_width);
     return hang_width;
   } else return 0.0;
 }
+
+extern int footnotemarkfont_index;
 
 int line_recalculate_width(struct line_pieces *l)
 {
@@ -235,7 +237,9 @@ int line_recalculate_width(struct line_pieces *l)
 
   // Work out basic width.
   // At the same time, look for footnotes that can be placed above punctuation
-  int footnotemark_index=set_font("footnotemark");
+  if (footnotemarkfont_index==-1)
+    footnotemarkfont_index=set_font_by_name("footnotemark");
+  int footnotemark_index=footnotemarkfont_index;
   l->line_width_so_far=0;
   for(i=0;i<l->piece_count;i++) {
     l->pieces[i].piece_width=l->pieces[i].natural_width;
@@ -268,7 +272,7 @@ int line_recalculate_width(struct line_pieces *l)
 	}
 	break;
       }
-      set_font(l->pieces[i-1].font->font_nickname);
+      set_font(l->pieces[i-1].font);
       float hang_width=HPDF_Page_TextWidth(page,hang_text);
       float all_width=l->pieces[i-1].natural_width;
       if (0) fprintf(stderr,"  hang_width=%.1f, hang_text='%s', all_width=%.1f\n",
@@ -373,7 +377,7 @@ int line_recalculate_width(struct line_pieces *l)
 	}
 	
 	if (hang_text) {
-	  set_font(l->pieces[right_hang_piece].font->font_nickname);
+	  set_font(l->pieces[right_hang_piece].font);
 	  hang_width=HPDF_Page_TextWidth(page,hang_text);
 	  // Reduce hang width by the amount of any footnote hang over
 	  // the punctuation.

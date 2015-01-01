@@ -87,6 +87,7 @@ char *next_footnote_mark()
   return footnote_mark_string;
 }
 
+int footnotemarkinfootnotefont_index=-1;
 int footnote_mode=0;
 int begin_footnote()
 {
@@ -104,8 +105,10 @@ int begin_footnote()
 					  FORCESPACEATSTARTOFLINE,NO_NOTBREAKABLE);
 
   // Draw footnote mark at start of footnote
+  if (footnotemarkinfootnotefont_index==-1)
+    footnotemarkinfootnotefont_index=set_font_by_name("footnotemarkinfootnote");
   paragraph_push_style(target_paragraph,AL_JUSTIFIED,
-		       set_font("footnotemarkinfootnote"));
+		       footnotemarkinfootnotefont_index);
   generate_footnote_mark(footnote_count-1);
   // Don't allow footnote marks to appear at the end of a line
   paragraph_append_text(target_paragraph,footnote_mark_string,0,

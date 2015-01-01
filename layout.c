@@ -35,6 +35,9 @@
 #include "hpdf.h"
 #include "generate.h"
 
+int footnotemark_index=-1;
+
+
 int layout_calculate_segment_cost(struct paragraph *p,
 				  struct line_pieces *l,
 				  int start,int end, int line_count)
@@ -43,7 +46,8 @@ int layout_calculate_segment_cost(struct paragraph *p,
   float piece_width=0;
   
   int i;
-  int footnotemark_index=set_font("footnotemark");
+
+  if (footnotemark_index==-1) footnotemark_index=set_font_by_name("footnotemark");
   
   // Calculate width of the segment.
   for(i=start;i<end;i++) {
@@ -71,7 +75,7 @@ int layout_calculate_segment_cost(struct paragraph *p,
 	}
 	break;
       }
-      set_font(l->pieces[i-1].font->font_nickname);
+      set_font(l->pieces[i-1].font);
       float hang_width=0;
       if (hang_text) hang_width=HPDF_Page_TextWidth(page,hang_text);
       // Discount the width of this piece based on hang_width
