@@ -253,9 +253,14 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
 
   
   // Build list of lines by working backwards through the paragraph.
-  fprintf(stderr,">> Optimal long-line layout is:\n");
-  int out_line_number=out->line_count;
-  int line_count=0;
+  // Build the list of lines first, then go through them forwards, so that
+  // line numbers are allocated forwards, and avoid confusing the footnote
+  // number handling (this is only an interim problem, because once we go
+  // to optimal page boundary selection only the footnotes for the current
+  // page will be rendered on the current page).
+
+  int positions[l->piece_count+1];
+  int pcount=0;
   position=l->piece_count;
   while(position>0) {
     if (position<0||next_steps[position]<0||costs[position]==0x70000000) {
@@ -266,9 +271,18 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
 	fprintf(stderr,"%d..%d : cost %d (next step=0x%08x)\n",
 		next_steps[i],i,costs[i],next_steps[i]);
       }
-      exit(-1);
-   
+      exit(-1);   
     }
+    positions[pcount++]=position;
+    position=next_steps[position];
+  }
+  
+  fprintf(stderr,">> Optimal long-line layout is:\n");
+  int out_line_number=out->line_count;
+  int line_count=0;
+  int k;
+  for(k=0;k<pcount;k++) {
+    position=positions[k];
     
     fprintf(stderr,"Segment at position %d..%d (cost %d): ",
 	    next_steps[position],position,costs[position]);
@@ -338,7 +352,6 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
     fprintf(stderr,"Laid out line: ");
     line_dump(lout);
     
-    position=next_steps[position];
     line_count++;
   }  
   
@@ -365,7 +378,8 @@ struct paragraph *layout_paragraph(struct paragraph *p)
   if (p->src_book) out->src_book=strdup(p->src_book);
   out->src_chapter=p->src_chapter;
   out->src_verse=p->src_verse;
-  
+
+  // Lay out each line
   for(i=0;i<p->line_count;i++) layout_line(p,i,out);
 
   return out;
