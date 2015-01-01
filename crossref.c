@@ -264,6 +264,12 @@ int crossrefs_reposition()
   return 0;
 }
 
+int crossrefs_reset()
+{
+  crossref_count=0;
+  return 0;
+}
+
 int output_accumulated_cross_references(struct paragraph *p,
 					int max_line_to_render,
 					int drawingPage)

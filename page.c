@@ -35,21 +35,28 @@
 #include "hpdf.h"
 #include "generate.h"
 
+long long page_penalty=0;
+
 int page_begin()
 {
+  footnotes_reset();
+  crossrefs_reset();
+  
   new_empty_page(leftRight,0);
-
   page_y=top_margin;
-
+  page_penalty=0;
+  
   return 0;
 }
 
-int page_end()
+long long page_end()
 {
-  return 0;
+  return page_penalty;
 }
 
 int page_penalty_add(long long penalty)
 {
+  if (page_penalty+penalty>page_penalty)
+    page_penalty+=penalty;
   return 0;
 }
