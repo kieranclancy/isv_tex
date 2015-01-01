@@ -37,6 +37,8 @@
 
 long long page_penalty=0;
 
+char *skip_tokens=NULL;
+
 int page_begin()
 {
   footnotes_reset();
@@ -87,27 +89,40 @@ int page_optimal_render_tokens()
 {
   int start,end;
 
+  skip_tokens=calloc(sizeof(char),(token_count+1));
+
   // Generate every possible page, and record the score.
   for(start=0;start<(token_count-1);start++) {
-    for(end=start+1;end<token_count;end++) {
-      fprintf(stderr,"Calculating cost of page: tokens=[%d,%d)\n",
-	      start,end);
-      page_begin();
-
-      // We need to know the type-face stack at each point.
-      // When start==0, it is start of the document, so no problem.
-      // Else, we need to fetch the style stack.
-      if (start) paragraph_fetch_style_stack();
-      render_tokens(start,end,0);
-      // So that we have a style stack to fetch, we need to have it stowed
-      // away.
-      if (end==start+1) paragraph_stash_style_stack();
-      page_end(0);
-
-      // Stop when page score is too bad
-      if (page_penalty>(OVERFULL_PAGE_PENALTY_PER_PT*16))
-	break;
+    if (!skip_tokens[start]) {
+      for(end=start+1;end<token_count;end++) {
+	fprintf(stderr,"Calculating cost of page: tokens=[%d,%d)\n",
+		start,end);
+	page_begin();
+	
+	// We need to know the type-face stack at each point.
+	// When start==0, it is start of the document, so no problem.
+	// Else, we need to fetch the style stack.
+	if (start) paragraph_fetch_style_stack();
+	render_tokens(start,end,0);
+	// So that we have a style stack to fetch, we need to have it stowed
+	// away.
+	if (end==start+1) paragraph_stash_style_stack();
+	page_end(0);
+	
+	// Stop when page score is too bad
+	if (page_penalty>(OVERFULL_PAGE_PENALTY_PER_PT*16))
+	  break;
+      }
     }
   }
+
+  free(skip_tokens);
+  
+  return 0;
+}
+
+int page_skip_token_as_subordinate(int token_number)
+{
+  if (skip_tokens) skip_tokens[token_number]=1;
   return 0;
 }

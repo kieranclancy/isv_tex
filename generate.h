@@ -363,3 +363,4 @@ int render_tokens(int token_low,int token_high,int drawingPage);
 int page_penalty_add(long long penalty);
 int page_penalty_if_not_start_of_page();
 int page_optimal_render_tokens();
+int page_skip_token_as_subordinate(int token_number);
