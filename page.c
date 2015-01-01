@@ -75,3 +75,24 @@ int page_penalty_if_not_start_of_page()
   // XXX - Apply a large penalty if we are not at the top of a page.
   return 0;
 }
+
+int page_optimal_render_tokens()
+{
+  int start,end;
+
+  // Generate every possible page, and record the score.
+  for(start=0;start<(token_count-1);start++) {
+    for(end=start+1;end<token_count;end++) {
+      fprintf(stderr,"Calculating cost of page: tokens=[%d,%d)\n",
+	      start,end);
+      page_begin();
+      render_tokens(start,token_count,0);
+      page_end(0);
+
+      // Stop when page score is too bad
+      if (page_penalty>(OVERFULL_PAGE_PENALTY_PER_PT*16))
+	break;
+    }
+  }
+  return 0;
+}

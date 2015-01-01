@@ -1114,7 +1114,7 @@ int typeset_file(char *file)
 {
   tokenise_file(file,0);
   fprintf(stderr,"Parsed %s\n",file);
-  render_tokens(0,token_count,1);
+  page_optimal_render_tokens();
   clear_tokens();
   fprintf(stderr,"Rendered %s\n",file);
   return 0;
