@@ -476,7 +476,12 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph,
     page_fullness
       =100.0
       *(baseline_y-top_margin)
-      *(page_height-top_margin-bottom_margin);
+      /(page_height-top_margin-bottom_margin);
+    if (0) fprintf(stderr,
+		   " <baseline_y=%.1f,top_margin=%d,"
+		   " page_height=%d,top_margin=%d, bottom_margin=%d>",
+		   baseline_y,top_margin,
+		   page_height,top_margin,bottom_margin);
     
     paragraph_clear(&temp);
     paragraph_clear(f); free(f);
