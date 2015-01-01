@@ -418,6 +418,7 @@ int stashed_type_face_stack_pointer=0;
 
 int paragraph_stash_style_stack()
 {
+  fprintf(stderr," {stash %d}",type_face_stack_pointer);
   stashed_type_face_stack_pointer=type_face_stack_pointer;
   bcopy(&type_face_stack,&stashed_type_face_stack,
 	sizeof(struct type_face *)*TYPE_FACE_STACK_DEPTH);
@@ -429,6 +430,7 @@ int paragraph_fetch_style_stack()
   type_face_stack_pointer=stashed_type_face_stack_pointer;
   bcopy(&stashed_type_face_stack,&type_face_stack,
 	sizeof(struct type_face *)*TYPE_FACE_STACK_DEPTH);
+  fprintf(stderr," {fetch %d}",type_face_stack_pointer);
   return 0;
 }
 

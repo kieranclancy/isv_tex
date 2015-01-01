@@ -527,7 +527,7 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph,
   }
 
   if (break_page) {
-    fprintf(stderr,"Page would over fill\n");
+    // fprintf(stderr,"Page would over fill\n");
     page_penalty_add(OVERFULL_PAGE_PENALTY_PER_PT*20);
   }
   

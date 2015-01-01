@@ -67,7 +67,7 @@ long long page_end(int drawingPage)
   output_accumulated_footnotes();
   output_accumulated_cross_references(target_paragraph->line_count-1,
 				      drawingPage);
-  fprintf(stderr,"  Page penalty = %lld\n",page_penalty);
+  fprintf(stderr," : score = -%lld",page_penalty);
   
   return page_penalty;
 }
@@ -95,7 +95,7 @@ int page_optimal_render_tokens()
   for(start=0;start<(token_count-1);start++) {
     if (!skip_tokens[start]) {
       for(end=start+1;end<token_count;end++) {
-	fprintf(stderr,"Calculating cost of page: tokens=[%d,%d)\n",
+	fprintf(stderr,"Calculating cost of page: tokens=[%d,%d): ",
 		start,end);
 	page_begin();
 	
@@ -108,6 +108,8 @@ int page_optimal_render_tokens()
 	// away.
 	if (end==start+1) paragraph_stash_style_stack();
 	page_end(0);
+
+	fprintf(stderr,"\n");
 	
 	// Stop when page score is too bad
 	if (page_penalty>(OVERFULL_PAGE_PENALTY_PER_PT*16))

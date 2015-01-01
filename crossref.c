@@ -172,7 +172,7 @@ struct paragraph *crossreference_find(char *book,int chapter, int verse)
 int crossreference_register_verse(struct paragraph *p,
 				  char *book,int chapter, int verse)
 {
-  fprintf(stderr,"Saw %s %d:%d\n",book,chapter,verse);
+  fprintf(stderr," {%s %d:%d}",book,chapter,verse);
   struct paragraph *c=crossreference_find(book,chapter,verse);
   p->current_line->pieces[p->current_line->piece_count-1].crossrefs=c;
   
