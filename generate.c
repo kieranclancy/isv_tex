@@ -858,15 +858,15 @@ int render_tokens(int token_low,int token_high,int drawingPage)
 	    current_line_flush(target_paragraph);
 	    int index=set_font("chapternum");
 	    paragraph_push_style(target_paragraph,AL_JUSTIFIED,index);
-	    fprintf(stderr,"Before setting widow counter\n");
-	    paragraph_dump(target_paragraph);
+	    // fprintf(stderr,"Before setting widow counter\n");
+	    // paragraph_dump(target_paragraph);
 	    // Require sufficient lines after this one so that the
 	    // drop character can fit.
 	    if (type_faces[index].line_count>1) {
-	      fprintf(stderr,"Tying line due to drop-char (cl uid #%d)\n",
-		      target_paragraph->current_line->line_uid);
+	      // fprintf(stderr,"Tying line due to drop-char (cl uid #%d)\n",
+	      //      target_paragraph->current_line->line_uid);
 	      paragraph_set_widow_counter(target_paragraph,type_faces[index].line_count-1);
-	      paragraph_dump(target_paragraph);
+	      // paragraph_dump(target_paragraph);
 	    }
 	    // Don't indent lines beginning with dropchars
 	    paragraph_setup_next_line(target_paragraph);
@@ -914,7 +914,7 @@ int render_tokens(int token_low,int token_high,int drawingPage)
 	    // Draw the mark.
 	    char *mark=next_footnote_mark();
 	    paragraph_push_style(target_paragraph,target_paragraph->current_line->alignment,set_font("footnotemark"));
-	    fprintf(stderr,"Footnote mark is '%s'\n",mark);
+	    // fprintf(stderr,"Footnote mark is '%s'\n",mark);
 	    paragraph_append_text(target_paragraph,mark,current_font->baseline_delta,
 				  NO_FORCESPACEATSTARTOFLINE,NO_NOTBREAKABLE);
 	    paragraph_pop_style(target_paragraph);
