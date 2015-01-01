@@ -293,20 +293,18 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
 		fprintf(stderr,"Found footnotemark '%s' (looking for '%s')\n",
 			footnote_paragraphs[j].paragraph_lines[0]->pieces[k].piece,
 			l->pieces[i].piece);
-		break;
+		if (!strcmp(l->pieces[i].piece,
+			    footnote_paragraphs[j]
+			    .paragraph_lines[0]
+			    ->pieces[k].piece)) {
+		  footnote_line_numbers[j]=lout->line_uid;
+		  break;
+		}
 	      }
 	    }
-	  if (k<footnote_paragraphs[j].paragraph_lines[0]->piece_count)
-	    if (!strcmp(l->pieces[i].piece,
-			footnote_paragraphs[j]
-			.paragraph_lines[0]
-			->pieces[0].piece)) {
-	      footnote_line_numbers[j]=lout->line_uid;
-	      break;
-	    }	  
 	}
       }
-
+	
       // XXX - Use the largest indent specified by any of these
       
       // Add left margin for start of paragraph
