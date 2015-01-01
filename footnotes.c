@@ -131,7 +131,7 @@ int begin_footnote()
 int end_footnote()
 {
   fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
-  fprintf(stderr,"Footnote paragraph is:\n");
+  fprintf(stderr,"Footnote paragraph (%p) is:\n",target_paragraph);
   paragraph_dump(target_paragraph);
   line_dump(target_paragraph->current_line);
   current_line_flush(target_paragraph);

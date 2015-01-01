@@ -449,8 +449,11 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph)
       struct line_pieces *ll=p->paragraph_lines[n];
       int i;
       for(i=0;i<footnote_count;i++)
-	if (ll->line_uid==footnote_line_numbers[i])
-	  paragraph_append(&temp,&footnote_paragraphs[i]);      
+	if (ll->line_uid==footnote_line_numbers[i]) {
+	  fprintf(stderr,"  including footnote: ");
+	  paragraph_dump(&footnote_paragraphs[i]);
+	  paragraph_append(&temp,&footnote_paragraphs[i]);
+	}
     }    
     current_line_flush(&temp);
 
@@ -462,7 +465,8 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph)
     footnotes_total_height=footnotes_height+footnote_sep_vspace;
     fprintf(stderr,"Unrendered footnote block is:\n");
     paragraph_dump(&rendered_footnote_paragraph);
-    fprintf(stderr,"Footnote block is %dpts high (%d lines).\n",
+    fprintf(stderr,"Footnote block (%p) is %dpts high (%d lines).\n",
+	    &rendered_footnote_paragraph,
 	    footnotes_height,temp.line_count);
     if (baseline_y>(page_height-bottom_margin)) {
       fprintf(stderr,"Breaking page %d at %.1fpts to make room for %dpt footnotes block\n",
