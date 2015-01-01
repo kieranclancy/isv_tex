@@ -409,7 +409,7 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph,
   
   struct line_pieces *l=p->paragraph_lines[line_num];
   int break_page=0;
-
+  
   // fprintf(stderr,"Emitting line: "); line_dump(p->paragraph_lines[line_num]);
   
   // Work out maximum line number that we have to take into account for
@@ -445,6 +445,7 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph,
   // line to the clone, then measure its height.
   // - deduct footnote space from remaining space.
   int footnotes_total_height=0;
+  float page_fullness=0;
   if (isBodyParagraph) {
     struct paragraph temp;
     paragraph_init(&temp);
@@ -472,6 +473,11 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph,
 		       *OVERFULL_PAGE_PENALTY_PER_PT);
     }
 
+    page_fullness
+      =100.0
+      *(baseline_y-top_margin)
+      *(page_height-top_margin-bottom_margin);
+    
     paragraph_clear(&temp);
     paragraph_clear(f); free(f);
   }
@@ -524,6 +530,8 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph,
 	crossref_queue_dump("queued crossreferences");
       }
     }
+    
+    page_notify_details(page_fullness,l->tied_to_next_line);
   }
 
   if (break_page) {

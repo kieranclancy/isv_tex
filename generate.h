@@ -1,5 +1,12 @@
 // Penalty for over-full page per point of overflow
 #define OVERFULL_PAGE_PENALTY_PER_PT (1000000.0)
+// Penalty multiplier for under-full pages.
+// The penalty will be (underfullness%)^2, so between 0 and 10,000.
+// We need to scale this up to have the right weigh.
+// Let's scale it up by 1000x for now
+#define UNDERFULL_PAGE_PENALTY_MULTIPLIER (1000.0)
+// Breaking a page on a tied line is really bad
+#define WIDOW_PENALTY (10000000)
 
 #define AL_NONE 0
 #define AL_CENTRED 1
@@ -364,3 +371,5 @@ int page_penalty_add(long long penalty);
 int page_penalty_if_not_start_of_page();
 int page_optimal_render_tokens();
 int page_skip_token_as_subordinate(int token_number);
+int page_notify_details(float fullness,int tied_to_next_line);
+

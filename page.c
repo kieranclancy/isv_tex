@@ -36,6 +36,8 @@
 #include "generate.h"
 
 long long page_penalty=0;
+float page_fullness;
+int page_widow=0;
 
 char *skip_tokens=NULL;
 
@@ -57,6 +59,8 @@ int page_begin()
   page_y=top_margin;
 
   page_penalty=0;
+  page_fullness=0;
+  page_widow=0;
   
   return 0;
 }
@@ -67,9 +71,32 @@ long long page_end(int drawingPage)
   output_accumulated_footnotes();
   output_accumulated_cross_references(target_paragraph->line_count-1,
 				      drawingPage);
-  fprintf(stderr," : score = -%lld",page_penalty);
+
+  if (page_fullness<0||page_fullness>100) {
+    fprintf(stderr,"Page fullness = %.1f%%. This is bad.\n",
+	    page_fullness);
+    exit(-1);
+  }
+  
+  long long fullness_penalty=(100.0-page_fullness)*(100.0-page_fullness)
+    *UNDERFULL_PAGE_PENALTY_MULTIPLIER;
+
+  long long widow_penalty=0;
+  if (page_widow) widow_penalty+=WIDOW_PENALTY;
+
+  page_penalty+=fullness_penalty+widow_penalty;
+  
+  fprintf(stderr," : score = -%lld(%lld,%lld)",
+	  page_penalty,fullness_penalty,widow_penalty);
   
   return page_penalty;
+}
+
+int page_notify_details(float fullness,int tied_to_next_line)
+{
+  page_fullness=fullness;
+  page_widow=tied_to_next_line;
+  return 0;
 }
 
 int page_penalty_add(long long penalty)
