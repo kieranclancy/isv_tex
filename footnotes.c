@@ -70,7 +70,7 @@ int footnotes_reset()
 
 int generate_footnote_mark(int n)
 {
-  fprintf(stderr,"%s(%d)\n",__FUNCTION__,n);
+  //  fprintf(stderr,"%s(%d)\n",__FUNCTION__,n);
   if (n<footnote_alphabet_size) {
     footnote_mark_string[0]=footnote_alphabet[n];
     footnote_mark_string[1]=0;
@@ -98,15 +98,16 @@ char *next_footnote_mark()
 int footnote_mode=0;
 int begin_footnote()
 {
-  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  //  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
 
   // footnote_count has already been incremented, so take one away when working out
   // which paragraph to access.
   target_paragraph=&footnote_paragraphs[footnote_count-1];
   footnote_line_numbers[footnote_count-1]=body_paragraph.current_line->line_uid;
-  fprintf(stderr,"Footnote '%s' is in line #%d (line uid %d). There are %d foot notes.\n",
-	  footnote_mark_string,body_paragraph.line_count,
-	  body_paragraph.current_line->line_uid,footnote_count);
+  if (0)
+    fprintf(stderr,"Footnote '%s' is in line #%d (line uid %d). There are %d foot notes.\n",
+	    footnote_mark_string,body_paragraph.line_count,
+	    body_paragraph.current_line->line_uid,footnote_count);
 
   // Put space before each footnote.  For space at start of line, since when the
   // footnotes get appended together later the spaces may be in the middle of a line.
@@ -130,13 +131,16 @@ int begin_footnote()
 
 int end_footnote()
 {
-  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
-  fprintf(stderr,"Footnote paragraph (%p) is:\n",target_paragraph);
-  paragraph_dump(target_paragraph);
-  line_dump(target_paragraph->current_line);
-  current_line_flush(target_paragraph);
-  fprintf(stderr,"Footnote paragraph is:\n");
-  paragraph_dump(target_paragraph);
+  // fprintf(stderr,"%s()\n",__FUNCTION__);
+
+  if(0) {
+    fprintf(stderr,"Footnote paragraph (%p) is:\n",target_paragraph);
+    paragraph_dump(target_paragraph);
+    line_dump(target_paragraph->current_line);
+    current_line_flush(target_paragraph);
+    fprintf(stderr,"Footnote paragraph is:\n");
+    paragraph_dump(target_paragraph);
+  }
 
   target_paragraph=&body_paragraph;
   footnote_mode=0;
@@ -144,141 +148,14 @@ int end_footnote()
   return 0;
 }
 
-
-int reenumerate_footnotes(struct paragraph *p, int first_remaining_line_uid)
+int output_accumulated_footnotes()
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
 
-  // While there are footnotes we have already output, purge them.
-  fprintf(stderr,"There are %d footnotes.\n",footnote_count);
-  int i;
-  
-  while((footnote_count>0)&&(footnote_line_numbers[0]<first_remaining_line_uid))
-    {
-      fprintf(stderr,"%d foot notes remaining: deleting %d (is < %d)\n",
-	      footnote_count,
-	      footnote_line_numbers[0],first_remaining_line_uid);
-      paragraph_dump(&footnote_paragraphs[0]);
-      fprintf(stderr,"  clearing footnote\n");
-      paragraph_clear(&footnote_paragraphs[0]);
-      int i;
-      // Copy down foot notes
-      for(i=0;i<(footnote_count-1);i++) {
-	footnote_line_numbers[i]=footnote_line_numbers[i+1];
-	bcopy(&footnote_paragraphs[i+1],&footnote_paragraphs[i],
-	      sizeof (struct paragraph));
-      }
-      footnote_count--;
-      // bzero freed slot
-      bzero(&footnote_paragraphs[footnote_count],sizeof(struct paragraph));
-    }
-  if (footnote_count) {
-    fprintf(stderr,"%d foot notes remaining: keeping %d (is > %d)\n",
-	    footnote_count,
-	    footnote_line_numbers[0],first_remaining_line_uid);
-    int i;
-    for(i=1;i<footnote_count;i++)
-      fprintf(stderr,"  and %d (is > %d)\n",
-	      footnote_line_numbers[i],first_remaining_line_uid);
-
-  }
-  
-  // Now that we have only the relevant footnotes left, update the footnote marks
-  // in the footnotes, and in the lines that reference them.
-  // XXX - If the footnote mark becomes wider, it might stick out into the margin.
-  int footnote_number_in_line=0;
-  int footnotemark_typeface_index=set_font("footnotemark");
-
-  // struct paragraph *p=&body_paragraph;
-  fprintf(stderr,"Paragraph of text to have footnote marks updated in:\n");
-  paragraph_dump(p);
-  
-  for(i=0;i<footnote_count;i++)
-    {
-      if (i) {
-	if (footnote_line_numbers[i]==footnote_line_numbers[i-1])
-	  footnote_number_in_line++;
-	else
-	  footnote_number_in_line=0;
-      }
-
-      generate_footnote_mark(i);
-
-      // Update footnote marks in body text
-      int j,k;
-      for(j=0;j<p->line_count;j++) {
-	fprintf(stderr,"  footnote line #%d = %d\n",i,footnote_line_numbers[i]);
-	if (p->paragraph_lines[j]->line_uid==footnote_line_numbers[i])
-	{	  
-	  int position_in_line=-1;
-	  for(k=0;k<p->paragraph_lines[j]->piece_count;k++)
-	    {
-	      if (p->paragraph_lines[j]->pieces[k].font
-		  ==&type_faces[footnotemark_typeface_index])
-		{
-		  position_in_line++;
-		  if (position_in_line==footnote_number_in_line) {
-		    // This is the piece
-		    free(p->paragraph_lines[j]->pieces[k].piece);
-		    p->paragraph_lines[j]->pieces[k].piece
-		      =strdup(footnote_mark_string);
-		    fprintf(stderr,"  footnotemark #%d = '%s'\n",i,footnote_mark_string);
-		  }
-		}
-	    }
-	}
-      }
-
-      // Update footnote marks in footnotes
-      int footnotemarkinfootnote_typeface_index=set_font("footnotemarkinfootnote");
-      struct paragraph *pp=&footnote_paragraphs[i];
-      for(j=0;j<pp->line_count;j++)
-	{	  
-	  for(k=0;k<pp->paragraph_lines[j]->piece_count;k++)
-	    {
-	      if (pp->paragraph_lines[j]->pieces[k].font
-		  ==&type_faces[footnotemarkinfootnote_typeface_index])
-		{
-		  // This is the piece
-		  free(pp->paragraph_lines[j]->pieces[k].piece);
-		  pp->paragraph_lines[j]->pieces[k].piece=strdup(footnote_mark_string);
-		  fprintf(stderr,"  footnotemark #%d = '%s' (piece %d/%d in footnote)\n",
-			  i,footnote_mark_string,
-			  k,pp->paragraph_lines[j]->piece_count);
-		  break;
-		}
-	    }
-	}
-      
-    }
-
-
-  fprintf(stderr,"There are %d footnotes left:\n",footnote_count);
-
-  fprintf(stderr,"Paragraph of text after footnote marks updated:\n");
-  paragraph_dump(p);
-  
-  
-  // Update footnote mark based on number of footnotes remaining
-  generate_footnote_mark(footnote_count-1);
-
-  return 0;
-}
-
-int output_accumulated_footnotes()
-{
-  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
-
-  fprintf(stderr,"Before flushing last line:\n");
-  paragraph_dump(&rendered_footnote_paragraph);
-  
   // Commit any partial last-line in the footnote paragraph.
   if (rendered_footnote_paragraph.current_line) {
     current_line_flush(&rendered_footnote_paragraph);
   }
-
-  fprintf(stderr,"After flushing last line:\n");
-  paragraph_dump(&rendered_footnote_paragraph);
 
   int saved_page_y=page_y;
   int saved_bottom_margin=bottom_margin;
@@ -289,9 +166,6 @@ int output_accumulated_footnotes()
 
   int footnotes_y=page_height-bottom_margin-footnotes_height;
 
-  fprintf(stderr,"footnotes+y=%d-%d-%d\n",
-	  page_height,bottom_margin,footnotes_height);
-  
   page_y=footnotes_y;
   bottom_margin=0;
 
@@ -310,8 +184,6 @@ int output_accumulated_footnotes()
   if (footnotes_height) {
     // Draw horizontal rule
     int rule_y=footnotes_y+footnote_rule_ydelta;
-    fprintf(stderr,"rule_y=%d+%d\n",
-	    footnotes_y,footnote_rule_ydelta);
     crossref_set_ylimit(rule_y);
     int y=page_height-rule_y;
     HPDF_Page_SetRGBStroke(page, 0.0, 0.0, 0.0);
