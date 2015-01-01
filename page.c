@@ -40,8 +40,14 @@ long long page_penalty=0;
 int page_begin()
 {
   footnotes_reset();
+  footnote_mode=0;
+
   crossrefs_reset();
+
   new_empty_page(leftRight,0);
+  
+  paragraph_clear(&body_paragraph);
+  target_paragraph=&body_paragraph;
 
   // XXX - Need to restore style stack as previously saved
   paragraph_clear_style_stack();
