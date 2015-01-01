@@ -93,7 +93,15 @@ int page_optimal_render_tokens()
       fprintf(stderr,"Calculating cost of page: tokens=[%d,%d)\n",
 	      start,end);
       page_begin();
+
+      // We need to know the type-face stack at each point.
+      // When start==0, it is start of the document, so no problem.
+      // Else, we need to fetch the style stack.
+      if (start) paragraph_fetch_style_stack();
       render_tokens(start,end,0);
+      // So that we have a style stack to fetch, we need to have it stowed
+      // away.
+      if (end==start+1) paragraph_stash_style_stack();
       page_end(0);
 
       // Stop when page score is too bad

@@ -411,6 +411,27 @@ int paragraph_append_thinspace(struct paragraph *p,int forceSpaceAtStartOfLine,
 
 struct type_face *type_face_stack[TYPE_FACE_STACK_DEPTH];
 int type_face_stack_pointer=0;
+
+
+struct type_face *stashed_type_face_stack[TYPE_FACE_STACK_DEPTH];
+int stashed_type_face_stack_pointer=0;
+
+int paragraph_stash_style_stack()
+{
+  stashed_type_face_stack_pointer=type_face_stack_pointer;
+  bcopy(&type_face_stack,&stashed_type_face_stack,
+	sizeof(struct type_face *)*TYPE_FACE_STACK_DEPTH);
+  return 0;
+}
+
+int paragraph_fetch_style_stack()
+{
+  type_face_stack_pointer=stashed_type_face_stack_pointer;
+  bcopy(&stashed_type_face_stack,&type_face_stack,
+	sizeof(struct type_face *)*TYPE_FACE_STACK_DEPTH);
+  return 0;
+}
+
 int paragraph_push_style(struct paragraph *p, int font_alignment,int font_index)
 {
   if (0) fprintf(stderr,"%s(): alignment=%d, style=%s\n",__FUNCTION__,
