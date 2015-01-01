@@ -685,10 +685,13 @@ int set_booktab_text(char *text)
   return 0;
 }
 
-int render_tokens()
+int render_tokens(int token_low,int token_high,int drawingPage)
 {
   int i;
 
+  if (token_low<0) token_low=0;
+  if (token_high>token_count) token_high=token_count;
+  
   footnotes_reset();
   
   // Initialise all paragraph structures.
@@ -699,7 +702,7 @@ int render_tokens()
   
   paragraph_clear_style_stack();
   
-  for(i=0;i<token_count;i++)
+  for(i=token_low;i<token_high;i++)
   //  for(i=0;i<50;i++)
     {
       switch(token_types[i]) {
@@ -718,7 +721,7 @@ int render_tokens()
 	  if (break_paragraph) {
 	    // Flush the previous paragraph.
 	    fprintf(stderr,"Breaking paragraph.\n");
-	    paragraph_flush(target_paragraph);
+	    paragraph_flush(target_paragraph,drawingPage);
 	    // Indent the paragraph.
 	  }
 	  paragraph_setup_next_line(target_paragraph);
@@ -780,10 +783,11 @@ int render_tokens()
 	  } else if (!strcasecmp(token_strings[i],"bookheader")) {
 	    // Set booktab text to upper case version of this tag and
 	    // begin a new page
-	    paragraph_flush(target_paragraph);
+	    paragraph_flush(target_paragraph,drawingPage);
 	    output_accumulated_footnotes();
 	    output_accumulated_cross_references(target_paragraph,
-						target_paragraph->line_count-1);
+						target_paragraph->line_count-1,
+						drawingPage);
 	    footnotes_reset();
 	    paragraph_clear_style_stack();
 	    // If we are on a left page, add a blank right page so that
@@ -842,7 +846,7 @@ int render_tokens()
 	  } else if (!strcasecmp(token_strings[i],"passage")) {
 	    // Passage header line	    
 	    int index=set_font("passageheader");
-	    paragraph_flush(target_paragraph);
+	    paragraph_flush(target_paragraph,drawingPage);
 	    paragraph_insert_vspace(target_paragraph,passageheader_vspace,1);
 	    paragraph_push_style(target_paragraph,AL_LEFT,index);
 	    // Require at least one more line after this before page breaking
@@ -1028,7 +1032,7 @@ int render_tokens()
   // Flush out any queued content.
   if (target_paragraph->current_line&&target_paragraph->current_line->piece_count)
     paragraph_append_current_line(target_paragraph);
-  paragraph_flush(target_paragraph);
+  paragraph_flush(target_paragraph,drawingPage);
 
   
   return 0;
@@ -1106,7 +1110,7 @@ int setup_job()
   fprintf(stderr,"Loading cross-reference library.\n");
   crossref_hashtable_init();
   tokenise_file("crossrefs.tex",1);
-  render_tokens();
+  render_tokens(0,token_count,0);
   clear_tokens();
 
   return 0;
@@ -1116,7 +1120,7 @@ int typeset_file(char *file)
 {
   tokenise_file(file,0);
   fprintf(stderr,"Parsed %s\n",file);
-  render_tokens();
+  render_tokens(0,token_count,1);
   clear_tokens();
   fprintf(stderr,"Rendered %s\n",file);
   return 0;

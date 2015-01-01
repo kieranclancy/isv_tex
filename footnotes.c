@@ -148,7 +148,7 @@ int end_footnote()
   return 0;
 }
 
-int output_accumulated_footnotes()
+int output_accumulated_footnotes(int drawingPage)
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
 
@@ -179,7 +179,7 @@ int output_accumulated_footnotes()
 
   paragraph_clear(f); free(f);
   
-  paragraph_flush(&rendered_footnote_paragraph);
+  paragraph_flush(&rendered_footnote_paragraph,drawingPage);
   
   if (footnotes_height) {
     // Draw horizontal rule

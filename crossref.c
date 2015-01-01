@@ -269,7 +269,8 @@ int crossrefs_reposition()
 }
 
 int output_accumulated_cross_references(struct paragraph *p,
-					int max_line_to_render)
+					int max_line_to_render,
+					int drawingPage)
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
 
@@ -304,7 +305,7 @@ int output_accumulated_cross_references(struct paragraph *p,
 	    cr->paragraph_lines[l]->alignment=AL_LEFT;
 	  else
 	    cr->paragraph_lines[l]->alignment=AL_RIGHT;	    
-	  line_emit(cr,l,0);
+	  line_emit(cr,l,0,drawingPage);
 	}
     } 
   }

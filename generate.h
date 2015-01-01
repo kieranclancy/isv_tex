@@ -1,3 +1,6 @@
+// Penalty for over-full page per point of overflow
+#define OVERFULL_PAGE_PENALTY_PER_PT (100000.0)
+
 #define AL_NONE 0
 #define AL_CENTRED 1
 #define AL_LEFT 2
@@ -276,7 +279,7 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
 int paragraph_set_widow_counter(struct paragraph *p,int lines);
 int paragraph_setup_next_line(struct paragraph *p);
 int paragraph_append_current_line(struct paragraph *p);
-int paragraph_flush(struct paragraph *p);
+int paragraph_flush(struct paragraph *p, int drawingPage);
 int paragraph_init(struct paragraph *p);
 #define paragraph_clear(X) _paragraph_clear(X,__FUNCTION__,__FILE__,__LINE__)
 int _paragraph_clear(struct paragraph *p,const char *func,const char *file,int line);
@@ -291,7 +294,8 @@ int paragraph_insert_line(struct paragraph *p,int line_number, struct line_piece
 
 int line_dump(struct line_pieces *l);
 int line_dump_segment(struct line_pieces *l,int start,int end);
-int line_emit(struct paragraph *p, int n, int isBodyParagraph);
+int line_emit(struct paragraph *p,int line_num,int isBodyParagraph,
+	      int drawingPage);
 int line_free(struct line_pieces *l);
 int line_calculate_height(struct line_pieces *l);
 struct line_pieces *line_clone(struct line_pieces *l);
@@ -318,7 +322,8 @@ int footnotes_reset();
 char *next_footnote_mark();
 
 int output_accumulated_cross_references(struct paragraph *p,
-					int last_line_to_render);
+					int max_line_to_render,
+					int drawingPage);
 int crossreference_start();
 int crossreference_end();
 int crossreference_register_verse(struct paragraph *p,
@@ -353,3 +358,7 @@ int unicode_replace(char *text,int *len,
 		    int unicode_point);
 
 struct paragraph *layout_paragraph(struct paragraph *p);
+
+int render_tokens(int token_low,int token_high,int drawingPage);
+
+int page_penalty_add(long long penalty);

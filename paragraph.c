@@ -60,7 +60,7 @@ int _paragraph_clear(struct paragraph *p,const char *func,const char *file,int l
   return 0;
 }
 
-int paragraph_flush(struct paragraph *p_in)
+int paragraph_flush(struct paragraph *p_in,int drawingPage)
 {  
   //  fprintf(stderr,"%s():\n",__FUNCTION__);
 
@@ -117,7 +117,7 @@ int paragraph_flush(struct paragraph *p_in)
   // Actually draw the lines
   int isBodyParagraph=0;
   if (p_in==&body_paragraph) isBodyParagraph=1;
-  for(i=0;i<p->line_count;i++) line_emit(p,i,isBodyParagraph);
+  for(i=0;i<p->line_count;i++) line_emit(p,i,isBodyParagraph,drawingPage);
 
   // Clear out old lines in input
   for(i=0;i<p_in->line_count;i++) line_free(p_in->paragraph_lines[i]);

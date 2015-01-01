@@ -1,6 +1,6 @@
 SRCS=generate.c parse_tex.c paragraph.c line.c \
      footnotes.c crossref.c record.c test.c unicode.c \
-     layout.c
+     layout.c page.c
 
 HEADERS=generate.h Makefile
 

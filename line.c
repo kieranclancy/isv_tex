@@ -403,8 +403,10 @@ int line_recalculate_width(struct line_pieces *l)
   return 0;
 }
 
-int line_emit(struct paragraph *p,int line_num,int isBodyParagraph)
+int line_emit(struct paragraph *p,int line_num,int isBodyParagraph,
+	      int drawingPage)
 {
+  
   struct line_pieces *l=p->paragraph_lines[line_num];
   int break_page=0;
 
@@ -431,6 +433,7 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph)
     fprintf(stderr,"Breaking page %d at %.1fpts to make room for body text\n",
 	    current_page,page_y);
     break_page=1;
+    page_penalty_add((baseline_y-bottom_margin)*OVERFULL_PAGE_PENALTY_PER_PT);
   }
 
   // Does the line plus footnotes require more space than there is?
@@ -472,6 +475,8 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph)
       fprintf(stderr,"Breaking page %d at %.1fpts to make room for %dpt footnotes block\n",
 	      current_page,page_y,footnotes_height);
       break_page=1;
+      page_penalty_add((baseline_y-(page_height-bottom_margin))
+		       *OVERFULL_PAGE_PENALTY_PER_PT);
     }
 
     paragraph_clear(&temp);
@@ -511,6 +516,9 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph)
       fprintf(stderr,"  footnotes_total_height=%dpts\n",footnotes_total_height);
       paragraph_dump(p);
       break_page=1;
+      page_penalty_add(((crossref_height+((crossref_para_count+1)*crossref_min_vspace))
+			-(page_height-footnotes_total_height-bottom_margin-top_margin))
+		       *OVERFULL_PAGE_PENALTY_PER_PT);
     } else {
       fprintf(stderr,"%d cross reference blocks, totalling %dpts high (lines %d..%d)\n",
 	      crossref_para_count,
@@ -519,29 +527,6 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph)
     }
   }
   
-  if (break_page) {
-    // No room on this page. Start a new page.
-
-    // The footnotes that have been collected so far need to be output, then
-    // freed.  Then any remaining footnotes need to be shuffled up the list
-    // and references to them re-enumerated.
-
-    // Cross-references also need to be output.
-    
-    leftRight=-leftRight;
-
-    // Reenumerate footnotes 
-    if (isBodyParagraph) {
-      output_accumulated_footnotes();
-      output_accumulated_cross_references(p,line_num-1);
-      reenumerate_footnotes(p,p->paragraph_lines[line_num]->line_uid);
-      new_empty_page(leftRight,0);
-    }
-    
-    page_y=top_margin;
-    baseline_y=page_y+l->line_height*line_spacing;
-  }
-
   // Add footnotes to footnote paragraph
   if (isBodyParagraph) {
     int i;
@@ -564,10 +549,8 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph)
   line_remove_trailing_space(l);
 
   if (l->alignment==AL_JUSTIFIED) line_remove_leading_space(l);
-  fprintf(stderr,"Final width recalculation: ");
   line_recalculate_width(l);
 
-  fprintf(stderr,"After width recalculation: "); line_dump(p->paragraph_lines[line_num]);
 
   // Add extra spaces to justified lines, except for the last
   // line of a paragraph, and poetry lines.
@@ -577,18 +560,12 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph)
       float points_to_add
 	=l->max_line_width-l->line_width_so_far;
       
-      fprintf(stderr,"Justification requires sharing of %.1fpts.\n",points_to_add);
-      fprintf(stderr,"  used=%.1fpts, max_width=%dpts\n",
-	      l->line_width_so_far,l->max_line_width);
       if (points_to_add>0) {
 	int elastic_pieces=0;
 	for(i=0;i<l->piece_count;i++)
 	  if (l->pieces[i].piece_is_elastic) elastic_pieces++;
 	if (elastic_pieces) {
 	  float slice=points_to_add/elastic_pieces;
-	  fprintf(stderr,
-		  "  There are %d elastic pieces to share this among (%.1fpts each).\n",
-		  elastic_pieces,slice);
 	  for(i=0;i<l->piece_count;i++)
 	    if (l->pieces[i].piece_is_elastic) l->pieces[i].piece_width+=slice;
 	  l->line_width_so_far=l->max_line_width;
@@ -597,76 +574,64 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph)
     }
   }
 
-  fprintf(stderr,"After justification: "); line_dump(p->paragraph_lines[line_num]);
-  
-  // Now draw the pieces
-  l->on_page_y=page_y;
-  HPDF_Page_BeginText (page);
-  HPDF_Page_SetTextRenderingMode (page, HPDF_FILL);
-  float x=0;
-  switch(l->alignment) {
-  case AL_LEFT: case AL_JUSTIFIED: case AL_NONE:
-    // Finally apply any left margin that has been set
-    x+=l->left_margin;
-    if (l->left_margin) {
-      fprintf(stderr,"Applying left margin of %dpts\n",l->left_margin);
+  if (drawingPage) {
+    // Now draw the pieces
+    l->on_page_y=page_y;
+    HPDF_Page_BeginText (page);
+    HPDF_Page_SetTextRenderingMode (page, HPDF_FILL);
+    float x=0;
+    switch(l->alignment) {
+    case AL_LEFT: case AL_JUSTIFIED: case AL_NONE:
+      // Finally apply any left margin that has been set
+      x+=l->left_margin;
+      break;
+    case AL_CENTRED:
+      x=(l->max_line_width-l->line_width_so_far)/2;
+      break;
+    case AL_RIGHT:
+      x=l->max_line_width-l->line_width_so_far;
+      break;
     }
-    break;
-  case AL_CENTRED:
-    x=(l->max_line_width-l->line_width_so_far)/2;
-    fprintf(stderr,"x=%.1f (centre alignment, w=%.1fpt, max w=%d)\n",
-	    x,l->line_width_so_far,l->max_line_width);
-    break;
-  case AL_RIGHT:
-    x=l->max_line_width-l->line_width_so_far;
-    fprintf(stderr,"x=%.1f (right alignment)\n",x);
-    break;
-  default:
-    fprintf(stderr,"x=%.1f (left/justified alignment)\n",x);
+    x-=l->left_hang;
 
-  }
-  x-=l->left_hang;
+    for(i=0;i<l->piece_count;i++) {
+      HPDF_Page_SetFontAndSize(page,l->pieces[i].font->font,l->pieces[i].actualsize);
+      HPDF_Page_SetRGBFill(page,l->pieces[i].font->red,l->pieces[i].font->green,l->pieces[i].font->blue);
+      HPDF_Page_TextOut(page,left_margin+x,y-l->pieces[i].piece_baseline,
+			l->pieces[i].piece);
+      record_text(l->pieces[i].font,l->pieces[i].actualsize,
+		  l->pieces[i].piece,left_margin+x,y-l->pieces[i].piece_baseline,0);
+      x=x+l->pieces[i].piece_width;
+      // Don't adjust line gap for dropchars
+      if (l->pieces[i].font->line_count==1) {
+	if (l->pieces[i].font->linegap>linegap) linegap=l->pieces[i].font->linegap;
+      }
 
-  for(i=0;i<l->piece_count;i++) {
-    HPDF_Page_SetFontAndSize(page,l->pieces[i].font->font,l->pieces[i].actualsize);
-    HPDF_Page_SetRGBFill(page,l->pieces[i].font->red,l->pieces[i].font->green,l->pieces[i].font->blue);
-    HPDF_Page_TextOut(page,left_margin+x,y-l->pieces[i].piece_baseline,
-		      l->pieces[i].piece);
-    record_text(l->pieces[i].font,l->pieces[i].actualsize,
-		l->pieces[i].piece,left_margin+x,y-l->pieces[i].piece_baseline,0);
-    x=x+l->pieces[i].piece_width;
-    // Don't adjust line gap for dropchars
-    if (l->pieces[i].font->line_count==1) {
-      if (l->pieces[i].font->linegap>linegap) linegap=l->pieces[i].font->linegap;
+      // Queue cross-references
+      if (l->pieces[i].crossrefs) crossref_queue(l->pieces[i].crossrefs,page_y);
+      
+      if (!strcmp(l->pieces[i].font->font_nickname,"versenum"))
+	last_verse_on_page=atoi(l->pieces[i].piece);
+      if (!strcmp(l->pieces[i].font->font_nickname,"chapternum"))
+	last_chapter_on_page=atoi(l->pieces[i].piece);
+      
     }
+    HPDF_Page_EndText (page);
+    if (!l->piece_count) linegap=l->line_height;
 
-    // Queue cross-references
-    if (l->pieces[i].crossrefs) crossref_queue(l->pieces[i].crossrefs,page_y);
-
-    if (!strcmp(l->pieces[i].font->font_nickname,"versenum"))
-      last_verse_on_page=atoi(l->pieces[i].piece);
-    if (!strcmp(l->pieces[i].font->font_nickname,"chapternum"))
-      last_chapter_on_page=atoi(l->pieces[i].piece);
-
-  }
-  HPDF_Page_EndText (page);
-  if (!l->piece_count) linegap=l->line_height;
-
-  // Indicate the height of each line
-  if (debug_vspace) {
-    debug_vspace_x^=8;
-    HPDF_Page_SetRGBFill (page, 0.0,0.0,0.0);
-    HPDF_Page_Rectangle(page,
-			32+debug_vspace_x, y,
-			8,linegap*line_spacing);
-    HPDF_Page_Fill(page);
+    // Indicate the height of each line
+    if (debug_vspace) {
+      debug_vspace_x^=8;
+      HPDF_Page_SetRGBFill (page, 0.0,0.0,0.0);
+      HPDF_Page_Rectangle(page,
+			  32+debug_vspace_x, y,
+			  8,linegap*line_spacing);
+      HPDF_Page_Fill(page);
+    }
   }
 
-  float old_page_y=page_y;
   page_y=page_y+linegap*line_spacing;
-  if (0)
-    fprintf(stderr,"Added linegap of %.1f to page_y (= %.1fpts). Next line at %.1fpt\n",
-	    linegap*line_spacing,old_page_y,page_y);
+    
   return 0;
 }
 
