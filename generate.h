@@ -313,7 +313,7 @@ int generate_footnote_mark(int footnote_count);
 int begin_footnote();
 int end_footnote();
 int output_accumulated_footnotes();
-int reenumerate_footnotes(int line_uid);
+int reenumerate_footnotes(struct paragraph *p, int line_uid);
 int footnotes_reset();
 char *next_footnote_mark();
 

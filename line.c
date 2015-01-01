@@ -531,11 +531,10 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph)
     leftRight=-leftRight;
 
     // Reenumerate footnotes 
-
     if (isBodyParagraph) {
       output_accumulated_footnotes();
       output_accumulated_cross_references(p,line_num-1);
-      reenumerate_footnotes(p->paragraph_lines[line_num]->line_uid);
+      reenumerate_footnotes(p,p->paragraph_lines[line_num]->line_uid);
       new_empty_page(leftRight,0);
     }
     

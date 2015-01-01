@@ -145,7 +145,7 @@ int end_footnote()
 }
 
 
-int reenumerate_footnotes(int first_remaining_line_uid)
+int reenumerate_footnotes(struct paragraph *p, int first_remaining_line_uid)
 {
   fprintf(stderr,"%s()\n",__FUNCTION__);
 
@@ -178,6 +178,11 @@ int reenumerate_footnotes(int first_remaining_line_uid)
   // XXX - If the footnote mark becomes wider, it might stick out into the margin.
   int footnote_number_in_line=0;
   int footnotemark_typeface_index=set_font("footnotemark");
+
+  // struct paragraph *p=&body_paragraph;
+  fprintf(stderr,"Paragraph of text to have footnote marks updated in:\n");
+  paragraph_dump(p);
+  
   for(i=0;i<footnote_count;i++)
     {
       if (i) {
@@ -190,9 +195,9 @@ int reenumerate_footnotes(int first_remaining_line_uid)
       generate_footnote_mark(i);
 
       // Update footnote marks in body text
-      struct paragraph *p=&body_paragraph;
       int j,k;
-      for(j=0;j<p->line_count;j++)
+      for(j=0;j<p->line_count;j++) {
+	fprintf(stderr,"  footnote line #%d = %d\n",i,footnote_line_numbers[i]);
 	if (p->paragraph_lines[j]->line_uid==footnote_line_numbers[i])
 	{	  
 	  int position_in_line=-1;
@@ -212,23 +217,24 @@ int reenumerate_footnotes(int first_remaining_line_uid)
 		}
 	    }
 	}
+      }
 
       // Update footnote marks in footnotes
       int footnotemarkinfootnote_typeface_index=set_font("footnotemarkinfootnote");
-      p=&footnote_paragraphs[i];
-      for(j=0;j<p->line_count;j++)
+      struct paragraph *pp=&footnote_paragraphs[i];
+      for(j=0;j<pp->line_count;j++)
 	{	  
-	  for(k=0;k<p->paragraph_lines[j]->piece_count;k++)
+	  for(k=0;k<pp->paragraph_lines[j]->piece_count;k++)
 	    {
-	      if (p->paragraph_lines[j]->pieces[k].font
+	      if (pp->paragraph_lines[j]->pieces[k].font
 		  ==&type_faces[footnotemarkinfootnote_typeface_index])
 		{
 		  // This is the piece
-		  free(p->paragraph_lines[j]->pieces[k].piece);
-		  p->paragraph_lines[j]->pieces[k].piece=strdup(footnote_mark_string);
+		  free(pp->paragraph_lines[j]->pieces[k].piece);
+		  pp->paragraph_lines[j]->pieces[k].piece=strdup(footnote_mark_string);
 		  fprintf(stderr,"  footnotemark #%d = '%s' (piece %d/%d in footnote)\n",
 			  i,footnote_mark_string,
-			  k,p->paragraph_lines[j]->piece_count);
+			  k,pp->paragraph_lines[j]->piece_count);
 		  break;
 		}
 	    }
@@ -238,6 +244,10 @@ int reenumerate_footnotes(int first_remaining_line_uid)
 
 
   fprintf(stderr,"There are %d footnotes left:\n",footnote_count);
+
+  fprintf(stderr,"Paragraph of text after footnote marks updated:\n");
+  paragraph_dump(p);
+  
   
   // Update footnote mark based on number of footnotes remaining
   generate_footnote_mark(footnote_count-1);
