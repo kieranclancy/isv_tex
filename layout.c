@@ -278,10 +278,9 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
   }
   
   fprintf(stderr,">> Optimal long-line layout is:\n");
-  int out_line_number=out->line_count;
   int line_count=0;
   int k;
-  for(k=0;k<pcount;k++) {
+  for(k=pcount-1;k>=0;k--) {
     position=positions[k];
     
     fprintf(stderr,"Segment at position %d..%d (cost %d): ",
@@ -328,27 +327,27 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
 	      =page_width-left_margin-right_margin-paragraph_indent;
       }
       // Add left margin for any dropchar
+      // (but not for the line with the dropchar)
       if (l->pieces[0].font->line_count>1)
-	if (line_count<(num_lines-1))
-	  if ((num_lines-line_count)<=l->pieces[0].font->line_count) {
-	    lout->left_margin=l->pieces[0].natural_width;
-	    lout->max_line_width
-	      =page_width-left_margin-right_margin-l->pieces[0].natural_width;
-	  }
+	if (line_count&&(line_count<l->pieces[0].font->line_count)) {
+	  lout->left_margin=l->pieces[0].natural_width;
+	  lout->max_line_width
+	    =page_width-left_margin-right_margin-l->pieces[0].natural_width;
+	}
       // Similarly adjust margin for poetry
       if (l->poem_level) {
 	int poem_indent=0;
 	poem_indent+=poetry_left_margin;
 	poem_indent+=l->poem_level*poetry_level_indent;
 	// Apply poetry wrap for 2nd and subsequent lines
-	if (line_count<(num_lines-1)) poem_indent+=poetry_wrap_indent;
+	if (line_count) poem_indent+=poetry_wrap_indent;
 	lout->left_margin=poem_indent;
 	lout->max_line_width=page_width-left_margin-poem_indent;
       }
     }
 
     // Insert it into the output paragraph
-    paragraph_insert_line(out,out_line_number,lout);
+    paragraph_insert_line(out,out->line_count,lout);
     fprintf(stderr,"Laid out line: ");
     line_dump(lout);
     
