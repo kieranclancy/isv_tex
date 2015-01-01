@@ -522,8 +522,10 @@ int paragraph_pop_style(struct paragraph *p)
 	=right_margin
 	-crossref_margin_width-crossref_column_width
 	-2;  // plus a little space to ensure some white space
-      l->pieces[l->piece_count-1].natural_width+=max_hang_space;
-      line_recalculate_width(l);
+      if (l) {
+	l->pieces[l->piece_count-1].natural_width+=max_hang_space;
+	line_recalculate_width(l);
+      }
       if (0) {
 	fprintf(stderr,"After closing dropchar text\n");
 	paragraph_dump(target_paragraph);
