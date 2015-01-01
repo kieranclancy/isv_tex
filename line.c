@@ -420,9 +420,11 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph,
   while ((max_line_num<(p->line_count-1))
 	 &&p->paragraph_lines[max_line_num]->tied_to_next_line) {
     combined_line_height+=p->paragraph_lines[++max_line_num]->line_height;
-    if (0) fprintf(stderr,"  dependent line is %.1fpts high:",
-		   p->paragraph_lines[max_line_num]->line_height);
-    line_dump(p->paragraph_lines[max_line_num]);
+    if (0) {
+      fprintf(stderr,"  dependent line is %.1fpts high:",
+	      p->paragraph_lines[max_line_num]->line_height);
+      line_dump(p->paragraph_lines[max_line_num]);
+    }
   }
   if (0)
     fprintf(stderr,"Treating lines %d -- %d as a unit %.1fpts high\n",
