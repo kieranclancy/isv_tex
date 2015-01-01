@@ -41,8 +41,10 @@ int paragraph_init(struct paragraph *p)
   return 0;
 }
 
-int paragraph_clear(struct paragraph *p)
+int _paragraph_clear(struct paragraph *p,const char *func,const char *file,int line)
 {
+  fprintf(stderr,"paragraph_clear(%p) called from %s:%d %s()\n",
+	  p,file,line,func);
 
   // Free any line structures in this paragraph
   int i;

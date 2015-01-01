@@ -278,7 +278,8 @@ int paragraph_setup_next_line(struct paragraph *p);
 int paragraph_append_line(struct paragraph *p,struct line_pieces *line);
 int paragraph_flush(struct paragraph *p);
 int paragraph_init(struct paragraph *p);
-int paragraph_clear(struct paragraph *p);
+#define paragraph_clear(X) _paragraph_clear(X,__FUNCTION__,__FILE__,__LINE__)
+int _paragraph_clear(struct paragraph *p,const char *func,const char *file,int line);
 int paragraph_clone(struct paragraph *dst,struct paragraph *src);
 int paragraph_append(struct paragraph *dst,struct paragraph *src);
 int paragraph_insert_vspace(struct paragraph *p,int points, int tied);
