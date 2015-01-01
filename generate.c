@@ -693,13 +693,13 @@ int render_tokens(int token_low,int token_high,int drawingPage)
   if (token_high>token_count) token_high=token_count;
   
   footnotes_reset();
+
+  if (!token_low) paragraph_clear_style_stack();
   
   // Initialise all paragraph structures.
   paragraph_init(&body_paragraph);
   paragraph_init(&footnote_paragraph);
   for(i=0;i<MAX_VERSES_ON_PAGE;i++) paragraph_init(&cross_reference_paragraphs[i]);
-  
-  paragraph_clear_style_stack();
   
   for(i=token_low;i<token_high;i++)
   //  for(i=0;i<50;i++)

@@ -43,6 +43,8 @@ char *skip_tokens=NULL;
 
 int page_begin()
 {
+  paragraph_clear_style_stack();
+  
   footnotes_reset();
   footnote_mode=0;
 
@@ -125,15 +127,19 @@ int page_optimal_render_tokens()
 	fprintf(stderr,"Calculating cost of page: tokens=[%d,%d): ",
 		start,end);
 	page_begin();
+
+	fflush(stderr);
 	
 	// We need to know the type-face stack at each point.
 	// When start==0, it is start of the document, so no problem.
 	// Else, we need to fetch the style stack.
-	if (start) paragraph_fetch_style_stack();
+	if (start) paragraph_fetch_style_stack(0);
+	else paragraph_clear_style_stack();
+	
 	render_tokens(start,end,0);
 	// So that we have a style stack to fetch, we need to have it stowed
 	// away.
-	if (end==start+1) paragraph_stash_style_stack();
+	if (end==start+1) paragraph_stash_style_stack(1);
 	page_end(0);
 
 	fprintf(stderr,"\n");
@@ -143,6 +149,8 @@ int page_optimal_render_tokens()
 	  break;
       }
     }
+    paragraph_fetch_style_stack(1);
+    paragraph_stash_style_stack(0);
   }
 
   free(skip_tokens);

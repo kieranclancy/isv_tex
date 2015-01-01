@@ -412,25 +412,48 @@ int paragraph_append_thinspace(struct paragraph *p,int forceSpaceAtStartOfLine,
 struct type_face *type_face_stack[TYPE_FACE_STACK_DEPTH];
 int type_face_stack_pointer=0;
 
+struct type_face *stashed_type_face_stack0[TYPE_FACE_STACK_DEPTH];
+int stashed_type_face_stack_pointer0=0;
+struct type_face *stashed_current_font0=NULL;
 
-struct type_face *stashed_type_face_stack[TYPE_FACE_STACK_DEPTH];
-int stashed_type_face_stack_pointer=0;
+struct type_face *stashed_type_face_stack1[TYPE_FACE_STACK_DEPTH];
+int stashed_type_face_stack_pointer1=0;
+struct type_face *stashed_current_font1=NULL;
 
-int paragraph_stash_style_stack()
+int paragraph_stash_style_stack(int n)
 {
-  fprintf(stderr," {stash %d}",type_face_stack_pointer);
-  stashed_type_face_stack_pointer=type_face_stack_pointer;
-  bcopy(&type_face_stack,&stashed_type_face_stack,
-	sizeof(struct type_face *)*TYPE_FACE_STACK_DEPTH);
+  fprintf(stderr," {stash %d:%d}",type_face_stack_pointer,n);
+  if (n==0) {
+    stashed_type_face_stack_pointer0=type_face_stack_pointer;
+    bcopy(&type_face_stack,&stashed_type_face_stack0,
+	  sizeof(struct type_face *)*TYPE_FACE_STACK_DEPTH);
+    stashed_current_font0=current_font;
+  } else {
+    stashed_type_face_stack_pointer1=type_face_stack_pointer;
+    bcopy(&type_face_stack,&stashed_type_face_stack1,
+	  sizeof(struct type_face *)*TYPE_FACE_STACK_DEPTH);
+    stashed_current_font1=current_font;
+  }
   return 0;
 }
 
-int paragraph_fetch_style_stack()
+int paragraph_fetch_style_stack(int n)
 {
-  type_face_stack_pointer=stashed_type_face_stack_pointer;
-  bcopy(&stashed_type_face_stack,&type_face_stack,
-	sizeof(struct type_face *)*TYPE_FACE_STACK_DEPTH);
-  fprintf(stderr," {fetch %d}",type_face_stack_pointer);
+  if (n==0) {
+    type_face_stack_pointer=stashed_type_face_stack_pointer0;
+    bcopy(&stashed_type_face_stack0,&type_face_stack,
+	  sizeof(struct type_face *)*TYPE_FACE_STACK_DEPTH);
+    current_font=stashed_current_font0;
+  } else {
+    type_face_stack_pointer=stashed_type_face_stack_pointer1;
+    bcopy(&stashed_type_face_stack1,&type_face_stack,
+	  sizeof(struct type_face *)*TYPE_FACE_STACK_DEPTH);
+    current_font=stashed_current_font1;
+  }
+  if (!type_face_stack_pointer)
+    current_font=&type_faces[set_font("blackletter")];
+
+  fprintf(stderr," {fetch %d:%d}",type_face_stack_pointer,n);
   return 0;
 }
 
