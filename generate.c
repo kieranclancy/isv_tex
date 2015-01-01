@@ -921,14 +921,17 @@ int render_tokens(int token_low,int token_high,int drawingPage)
 
 	    // Draw the mark.
 	    char *mark=next_footnote_mark();
-	    paragraph_push_style(target_paragraph,target_paragraph->current_line->alignment,set_font("footnotemark"));
+	    int alignment=AL_NONE;
+	    if (target_paragraph->current_line)
+	      alignment=target_paragraph->current_line->alignment;
+	    paragraph_push_style(target_paragraph,alignment,set_font("footnotemark"));
 	    // fprintf(stderr,"Footnote mark is '%s'\n",mark);
 	    paragraph_append_text(target_paragraph,mark,current_font->baseline_delta,
 				  NO_FORCESPACEATSTARTOFLINE,NO_NOTBREAKABLE);
 	    paragraph_pop_style(target_paragraph);
 
 	    // Select footnote font
-	    paragraph_push_style(target_paragraph,target_paragraph->current_line->alignment,set_font("footnote"));
+	    paragraph_push_style(target_paragraph,alignment,set_font("footnote"));
 
 	    // XXX Redirect the foot note text itself to the footnote accumulator.
 	    footnote_stack_depth=type_face_stack_pointer;
