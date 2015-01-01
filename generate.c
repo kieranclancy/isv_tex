@@ -543,6 +543,7 @@ int new_empty_page(int leftRight, int noHeading)
     float text_width, text_height;
 
     if (booktabfont_index==-1) booktabfont_index=set_font_by_name("booktab");
+    else set_font(&type_faces[booktabfont_index]);
     int index = booktabfont_index;
     text_width = HPDF_Page_TextWidth(page,booktab_text);
     int ascender_height=HPDF_Font_GetAscent(type_faces[index].font)*type_faces[index].font_size/1000;
