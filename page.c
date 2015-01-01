@@ -41,16 +41,25 @@ int page_begin()
 {
   footnotes_reset();
   crossrefs_reset();
-  
   new_empty_page(leftRight,0);
+
+  // XXX - Need to restore style stack as previously saved
+  paragraph_clear_style_stack();
+  
   page_y=top_margin;
+
   page_penalty=0;
   
   return 0;
 }
 
-long long page_end()
+long long page_end(int drawingPage)
 {
+  paragraph_flush(&body_paragraph,drawingPage);
+  output_accumulated_footnotes();
+  output_accumulated_cross_references(target_paragraph->line_count-1,
+				      drawingPage);
+  
   return page_penalty;
 }
 
@@ -58,5 +67,11 @@ int page_penalty_add(long long penalty)
 {
   if (page_penalty+penalty>page_penalty)
     page_penalty+=penalty;
+  return 0;
+}
+
+int page_penalty_if_not_start_of_page()
+{
+  // XXX - Apply a large penalty if we are not at the top of a page.
   return 0;
 }

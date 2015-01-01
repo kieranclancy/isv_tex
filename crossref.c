@@ -270,8 +270,7 @@ int crossrefs_reset()
   return 0;
 }
 
-int output_accumulated_cross_references(struct paragraph *p,
-					int max_line_to_render,
+int output_accumulated_cross_references(int max_line_to_render,
 					int drawingPage)
 {
   // fprintf(stderr,"%s()\n",__FUNCTION__);
@@ -314,9 +313,6 @@ int output_accumulated_cross_references(struct paragraph *p,
     } 
   }
   crossref_count=0;
-
-  p->first_crossref_line=max_line_to_render+1;
-  // fprintf(stderr,"first_crossref_line=%d\n",p->first_crossref_line);
 
   page_y=saved_page_y;
   left_margin=saved_left_margin;

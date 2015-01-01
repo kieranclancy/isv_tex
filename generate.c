@@ -781,14 +781,9 @@ int render_tokens(int token_low,int token_high,int drawingPage)
 	    
 	  } else if (!strcasecmp(token_strings[i],"bookheader")) {
 	    // Set booktab text to upper case version of this tag and
-	    // begin a new page
-	    paragraph_flush(target_paragraph,drawingPage);
-	    output_accumulated_footnotes();
-	    output_accumulated_cross_references(target_paragraph,
-						target_paragraph->line_count-1,
-						drawingPage);
-	    footnotes_reset();
-	    paragraph_clear_style_stack();
+	    // begin a new page.  We shouldn't have to do this in the middle of a
+	    // page.  Instead, just ascribe a really big penalty to it.
+	    page_penalty_if_not_start_of_page();
 	    // If we are on a left page, add a blank right page so that
 	    // the book starts on a left page
 	    if (leftRight==LR_RIGHT) {
