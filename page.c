@@ -65,6 +65,7 @@ long long page_end(int drawingPage)
   output_accumulated_footnotes();
   output_accumulated_cross_references(target_paragraph->line_count-1,
 				      drawingPage);
+  fprintf(stderr,"  Page penalty = %lld\n",page_penalty);
   
   return page_penalty;
 }
