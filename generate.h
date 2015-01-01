@@ -327,6 +327,7 @@ int crossref_hashtable_init();
 int crossref_queue(struct paragraph *p, int y);
 int crossref_set_ylimit(int y);
 int crossrefs_reset();
+int crossref_queue_dump(char *msg);
 
 int set_font(char *nickname);
 

@@ -487,6 +487,7 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph,
     // Total height of crossrefs from previous lines on page
     for(n=0;n<crossref_count;n++)
       crossref_height+=crossrefs_queue[n]->total_height;
+
     // Now add height of cross refs on the current line(s) being drawn.
     for(n=line_num;n<=max_line_num;n++) {
       struct line_pieces *ll=p->paragraph_lines[n];
@@ -515,12 +516,19 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph,
 			-(page_height-footnotes_total_height-bottom_margin-top_margin))
 		       *OVERFULL_PAGE_PENALTY_PER_PT);
     } else {
-      if (0)
+      if (0) {
 	fprintf(stderr,"%d cross reference blocks, totalling %dpts high (lines %d..%d)\n",
 		crossref_para_count,
 		crossref_height+((crossref_para_count+1)*crossref_min_vspace),
 		p->first_crossref_line,max_line_num);
+	crossref_queue_dump("queued crossreferences");
+      }
     }
+  }
+
+  if (break_page) {
+    fprintf(stderr,"Page would over fill\n");
+    page_penalty_add(OVERFULL_PAGE_PENALTY_PER_PT*20);
   }
   
   // convert y to libharu coordinate system (y=0 is at the bottom,
@@ -560,11 +568,13 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph,
     }
   }
 
-  if (drawingPage) {
+  {
     // Now draw the pieces
     l->on_page_y=page_y;
-    HPDF_Page_BeginText (page);
-    HPDF_Page_SetTextRenderingMode (page, HPDF_FILL);
+    if (drawingPage) {
+      HPDF_Page_BeginText (page);
+      HPDF_Page_SetTextRenderingMode (page, HPDF_FILL);
+    }
     float x=0;
     switch(l->alignment) {
     case AL_LEFT: case AL_JUSTIFIED: case AL_NONE:
@@ -581,12 +591,14 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph,
     x-=l->left_hang;
 
     for(i=0;i<l->piece_count;i++) {
-      HPDF_Page_SetFontAndSize(page,l->pieces[i].font->font,l->pieces[i].actualsize);
-      HPDF_Page_SetRGBFill(page,l->pieces[i].font->red,l->pieces[i].font->green,l->pieces[i].font->blue);
-      HPDF_Page_TextOut(page,left_margin+x,y-l->pieces[i].piece_baseline,
-			l->pieces[i].piece);
-      record_text(l->pieces[i].font,l->pieces[i].actualsize,
-		  l->pieces[i].piece,left_margin+x,y-l->pieces[i].piece_baseline,0);
+      if (drawingPage) {
+	HPDF_Page_SetFontAndSize(page,l->pieces[i].font->font,l->pieces[i].actualsize);
+	HPDF_Page_SetRGBFill(page,l->pieces[i].font->red,l->pieces[i].font->green,l->pieces[i].font->blue);
+	HPDF_Page_TextOut(page,left_margin+x,y-l->pieces[i].piece_baseline,
+			  l->pieces[i].piece);
+	record_text(l->pieces[i].font,l->pieces[i].actualsize,
+		    l->pieces[i].piece,left_margin+x,y-l->pieces[i].piece_baseline,0);
+      }
       x=x+l->pieces[i].piece_width;
       // Don't adjust line gap for dropchars
       if (l->pieces[i].font->line_count==1) {
@@ -595,18 +607,17 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph,
 
       // Queue cross-references
       if (l->pieces[i].crossrefs) crossref_queue(l->pieces[i].crossrefs,page_y);
-      
+ 
       if (!strcmp(l->pieces[i].font->font_nickname,"versenum"))
 	last_verse_on_page=atoi(l->pieces[i].piece);
       if (!strcmp(l->pieces[i].font->font_nickname,"chapternum"))
-	last_chapter_on_page=atoi(l->pieces[i].piece);
-      
+	last_chapter_on_page=atoi(l->pieces[i].piece);      
     }
-    HPDF_Page_EndText (page);
+    if (drawingPage) HPDF_Page_EndText (page);
     if (!l->piece_count) linegap=l->line_height;
 
     // Indicate the height of each line
-    if (debug_vspace) {
+    if (debug_vspace&&drawingPage) {
       debug_vspace_x^=8;
       HPDF_Page_SetRGBFill (page, 0.0,0.0,0.0);
       HPDF_Page_Rectangle(page,
