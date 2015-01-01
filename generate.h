@@ -1,5 +1,5 @@
 // Penalty for over-full page per point of overflow
-#define OVERFULL_PAGE_PENALTY_PER_PT (100000.0)
+#define OVERFULL_PAGE_PENALTY_PER_PT (1000000.0)
 
 #define AL_NONE 0
 #define AL_CENTRED 1
@@ -359,3 +359,4 @@ int render_tokens(int token_low,int token_high,int drawingPage);
 
 int page_penalty_add(long long penalty);
 int page_penalty_if_not_start_of_page();
+int page_optimal_render_tokens();

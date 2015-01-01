@@ -410,28 +410,30 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph,
   struct line_pieces *l=p->paragraph_lines[line_num];
   int break_page=0;
 
-  fprintf(stderr,"Emitting line: "); line_dump(p->paragraph_lines[line_num]);
+  // fprintf(stderr,"Emitting line: "); line_dump(p->paragraph_lines[line_num]);
   
   // Work out maximum line number that we have to take into account for
   // page fitting, i.e., to prevent orphaned heading lines.
   int max_line_num=line_num;
   float combined_line_height=l->line_height;
-  fprintf(stderr,"  line itself (#%d) is %.1fpts high\n",line_num,l->line_height);
+  // fprintf(stderr,"  line itself (#%d) is %.1fpts high\n",line_num,l->line_height);
   while ((max_line_num<(p->line_count-1))
 	 &&p->paragraph_lines[max_line_num]->tied_to_next_line) {
     combined_line_height+=p->paragraph_lines[++max_line_num]->line_height;
-    fprintf(stderr,"  dependent line is %.1fpts high:",
-	    p->paragraph_lines[max_line_num]->line_height);
+    if (0) fprintf(stderr,"  dependent line is %.1fpts high:",
+		   p->paragraph_lines[max_line_num]->line_height);
     line_dump(p->paragraph_lines[max_line_num]);
   }
-  fprintf(stderr,"Treating lines %d -- %d as a unit %.1fpts high\n",
+  if (0)
+    fprintf(stderr,"Treating lines %d -- %d as a unit %.1fpts high\n",
 	  line_num,max_line_num,combined_line_height);
   
   // Does the line(s) require more space than there is?    
   float baseline_y=page_y+combined_line_height*line_spacing;
   if (baseline_y>(page_height-bottom_margin)) {
-    fprintf(stderr,"Breaking page %d at %.1fpts to make room for body text\n",
-	    current_page,page_y);
+    if (0)
+      fprintf(stderr,"Breaking page %d at %.1fpts to make room for body text\n",
+	      current_page,page_y);
     break_page=1;
     page_penalty_add((baseline_y-bottom_margin)*OVERFULL_PAGE_PENALTY_PER_PT);
   }
@@ -452,14 +454,17 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph,
     baseline_y+=footnotes_height;
     baseline_y+=footnote_sep_vspace;
     footnotes_total_height=footnotes_height+footnote_sep_vspace;
-    fprintf(stderr,"Unrendered footnote block is:\n");
-    paragraph_dump(&footnote_paragraph);
-    fprintf(stderr,"Footnote block (%p) is %dpts high (%d lines).\n",
-	    &footnote_paragraph,
-	    footnotes_height,temp.line_count);
+    if (0) {
+      fprintf(stderr,"Unrendered footnote block is:\n");
+      paragraph_dump(&footnote_paragraph);
+      fprintf(stderr,"Footnote block (%p) is %dpts high (%d lines).\n",
+	      &footnote_paragraph,
+	      footnotes_height,temp.line_count);
+    }
     if (baseline_y>(page_height-bottom_margin)) {
-      fprintf(stderr,"Breaking page %d at %.1fpts to make room for %dpt footnotes block\n",
-	      current_page,page_y,footnotes_height);
+      if (0)
+	fprintf(stderr,"Breaking page %d at %.1fpts to make room for %dpt footnotes block\n",
+		current_page,page_y,footnotes_height);
       break_page=1;
       page_penalty_add((baseline_y-(page_height-bottom_margin))
 		       *OVERFULL_PAGE_PENALTY_PER_PT);
@@ -492,24 +497,27 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph,
 
     if ((crossref_height+((crossref_para_count+1)*crossref_min_vspace))
 	>(page_height-footnotes_total_height-bottom_margin-top_margin)) {
-      fprintf(stderr,"Breaking page %d at %.1fpts to avoid %dpts of cross references for %d verses (only %dpts available for crossrefs)\n",
-	      current_page,page_y,
-	      crossref_height+((crossref_para_count+1)*crossref_min_vspace),
-	      crossref_para_count,
-	      (page_height-footnotes_total_height-bottom_margin-top_margin));
-      fprintf(stderr,"  page_height=%d, bottom_margin=%d, top_margin=%d\n",
-	      page_height,bottom_margin,top_margin);
-      fprintf(stderr,"  footnotes_total_height=%dpts\n",footnotes_total_height);
-      paragraph_dump(p);
+      if (0) {
+	fprintf(stderr,"Breaking page %d at %.1fpts to avoid %dpts of cross references for %d verses (only %dpts available for crossrefs)\n",
+		current_page,page_y,
+		crossref_height+((crossref_para_count+1)*crossref_min_vspace),
+		crossref_para_count,
+		(page_height-footnotes_total_height-bottom_margin-top_margin));
+	fprintf(stderr,"  page_height=%d, bottom_margin=%d, top_margin=%d\n",
+		page_height,bottom_margin,top_margin);
+	fprintf(stderr,"  footnotes_total_height=%dpts\n",footnotes_total_height);
+	paragraph_dump(p);
+      }
       break_page=1;
       page_penalty_add(((crossref_height+((crossref_para_count+1)*crossref_min_vspace))
 			-(page_height-footnotes_total_height-bottom_margin-top_margin))
 		       *OVERFULL_PAGE_PENALTY_PER_PT);
     } else {
-      fprintf(stderr,"%d cross reference blocks, totalling %dpts high (lines %d..%d)\n",
-	      crossref_para_count,
-	      crossref_height+((crossref_para_count+1)*crossref_min_vspace),
-	      p->first_crossref_line,max_line_num);
+      if (0)
+	fprintf(stderr,"%d cross reference blocks, totalling %dpts high (lines %d..%d)\n",
+		crossref_para_count,
+		crossref_height+((crossref_para_count+1)*crossref_min_vspace),
+		p->first_crossref_line,max_line_num);
     }
   }
   
@@ -624,7 +632,7 @@ int line_remove_trailing_space(struct line_pieces *l)
       l->piece_count=i;
       l->line_width_so_far-=l->pieces[i].piece_width;
       free(l->pieces[i].piece); l->pieces[i].piece=NULL;
-      fprintf(stderr,"  Removed trailing space from line\n");
+      // fprintf(stderr,"  Removed trailing space from line\n");
     } else break;
   }
   return 0;
@@ -635,12 +643,13 @@ int line_remove_leading_space(struct line_pieces *l)
   // Remove any trailing spaces from the line
   int i,j;
   for(i=0;i<l->piece_count;i++) {
-    fprintf(stderr,"Considering piece #%d/%d '%s'\n",i,
-	    l->piece_count,
-	    l->pieces[i].piece);
+    if (0)
+      fprintf(stderr,"Considering piece #%d/%d '%s'\n",i,
+	      l->piece_count,
+	      l->pieces[i].piece);
     if ((strcmp(" ",l->pieces[i].piece))&&(strcmp("",l->pieces[i].piece))) break;
     else {
-      fprintf(stderr,"  removing space from start of line.\n");
+      // fprintf(stderr,"  removing space from start of line.\n");
       free(l->pieces[i].piece); l->pieces[i].piece=NULL;
       l->line_width_so_far-=l->pieces[i].piece_width;
     }
@@ -648,14 +657,14 @@ int line_remove_leading_space(struct line_pieces *l)
 
   if (i) {
     // Shuffle remaining pieces down
-    fprintf(stderr,"Shuffling remaining pieces down.\n");
+    // fprintf(stderr,"Shuffling remaining pieces down.\n");
     for(j=0;j<l->piece_count-i;j++) {
       bcopy(&l->pieces[j+i],&l->pieces[j],sizeof(struct piece));
     }
     
     l->piece_count-=i;
     
-    fprintf(stderr,"  Removed %d leading spaces from line\n",i);
+    // fprintf(stderr,"  Removed %d leading spaces from line\n",i);
   }
   return 0;
 }
@@ -734,8 +743,6 @@ struct piece *new_line_piece(char *text,struct type_face *current_font,
   if ((text[0]!=0x20)&&(((unsigned char)text[0])!=0xa0))
     p->piece_is_elastic=0;
   else {
-    if (((unsigned char)text[0])==0xa0)
-      fprintf(stderr,"Marking space (0x%02x) elastic.\n",text[0]);
     p->piece_is_elastic=1;
   }
   p->piece_baseline=baseline;  
