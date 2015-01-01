@@ -39,10 +39,7 @@
 char *footnote_alphabet=NONDECENDING_LETTERS;
 int footnote_alphabet_size=strlen(NONDECENDING_LETTERS);
 
-struct paragraph rendered_footnote_paragraph;
-
-struct paragraph footnote_paragraphs[MAX_FOOTNOTES_ON_PAGE];
-int footnote_line_numbers[MAX_FOOTNOTES_ON_PAGE];
+struct paragraph footnote_paragraph;
 
 int footnote_stack_depth=-1;
 char footnote_mark_string[4]={'a'-1,0,0,0};
@@ -54,12 +51,7 @@ int footnote_rule_ydelta=0;
 
 int footnotes_reset()
 {
-  int i;
-  for(i=0;i<MAX_FOOTNOTES_ON_PAGE;i++) {
-    paragraph_clear(&footnote_paragraphs[i]);
-    footnote_line_numbers[i]=-1;
-  }
-
+  paragraph_clear(&footnote_paragraph);
   generate_footnote_mark(0);
 
   footnote_stack_depth=-1;
@@ -87,9 +79,9 @@ int generate_footnote_mark(int n)
 char *next_footnote_mark()
 {
   generate_footnote_mark(footnote_count++);
-  if(footnote_count>MAX_FOOTNOTES_ON_PAGE) {
+  if(footnote_count>(footnote_alphabet_size*footnote_alphabet_size)) {
     fprintf(stderr,"Too many footnotes on a single page (limit is %d)\n",
-	    MAX_FOOTNOTES_ON_PAGE);
+	    (footnote_alphabet_size*footnote_alphabet_size));
     exit(-1);
   }
   return footnote_mark_string;
@@ -102,12 +94,7 @@ int begin_footnote()
 
   // footnote_count has already been incremented, so take one away when working out
   // which paragraph to access.
-  target_paragraph=&footnote_paragraphs[footnote_count-1];
-  footnote_line_numbers[footnote_count-1]=body_paragraph.current_line->line_uid;
-  if (0)
-    fprintf(stderr,"Footnote '%s' is in line #%d (line uid %d). There are %d foot notes.\n",
-	    footnote_mark_string,body_paragraph.line_count,
-	    body_paragraph.current_line->line_uid,footnote_count);
+  target_paragraph=&footnote_paragraph;
 
   // Put space before each footnote.  For space at start of line, since when the
   // footnotes get appended together later the spaces may be in the middle of a line.
@@ -153,14 +140,14 @@ int output_accumulated_footnotes(int drawingPage)
   fprintf(stderr,"%s()\n",__FUNCTION__);
 
   // Commit any partial last-line in the footnote paragraph.
-  if (rendered_footnote_paragraph.current_line) {
-    current_line_flush(&rendered_footnote_paragraph);
+  if (footnote_paragraph.current_line) {
+    current_line_flush(&footnote_paragraph);
   }
 
   int saved_page_y=page_y;
   int saved_bottom_margin=bottom_margin;
 
-  struct paragraph *f=layout_paragraph(&rendered_footnote_paragraph);
+  struct paragraph *f=layout_paragraph(&footnote_paragraph);
   
   int footnotes_height=paragraph_height(f);
 
@@ -179,9 +166,9 @@ int output_accumulated_footnotes(int drawingPage)
 
   paragraph_clear(f); free(f);
   
-  paragraph_flush(&rendered_footnote_paragraph,drawingPage);
+  paragraph_flush(&footnote_paragraph,drawingPage);
   
-  if (footnotes_height) {
+  if (footnotes_height&&drawingPage) {
     // Draw horizontal rule
     int rule_y=footnotes_y+footnote_rule_ydelta;
     crossref_set_ylimit(rule_y);
@@ -203,7 +190,7 @@ int output_accumulated_footnotes(int drawingPage)
   bottom_margin=saved_bottom_margin;
 
   // Clear footnote block after printing it
-  paragraph_clear(&rendered_footnote_paragraph);
+  paragraph_clear(&footnote_paragraph);
   
   return 0;
 }

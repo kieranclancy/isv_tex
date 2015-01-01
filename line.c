@@ -444,22 +444,8 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph,
   if (isBodyParagraph) {
     struct paragraph temp;
     paragraph_init(&temp);
-    paragraph_clone(&temp,&rendered_footnote_paragraph);
-
-    // Include footnote height of this line, and any lines tied to it.
-    int n;
-    for(n=line_num;n<=max_line_num;n++) {
-      struct line_pieces *ll=p->paragraph_lines[n];
-      int i;
-      for(i=0;i<footnote_count;i++)
-	if (ll->line_uid==footnote_line_numbers[i]) {
-	  fprintf(stderr,"  including footnote: ");
-	  paragraph_dump(&footnote_paragraphs[i]);
-	  paragraph_append(&temp,&footnote_paragraphs[i]);
-	}
-    }    
+    paragraph_clone(&temp,&footnote_paragraph);
     current_line_flush(&temp);
-
     struct paragraph *f=layout_paragraph(&temp);
     
     int footnotes_height=paragraph_height(f);
@@ -467,9 +453,9 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph,
     baseline_y+=footnote_sep_vspace;
     footnotes_total_height=footnotes_height+footnote_sep_vspace;
     fprintf(stderr,"Unrendered footnote block is:\n");
-    paragraph_dump(&rendered_footnote_paragraph);
+    paragraph_dump(&footnote_paragraph);
     fprintf(stderr,"Footnote block (%p) is %dpts high (%d lines).\n",
-	    &rendered_footnote_paragraph,
+	    &footnote_paragraph,
 	    footnotes_height,temp.line_count);
     if (baseline_y>(page_height-bottom_margin)) {
       fprintf(stderr,"Breaking page %d at %.1fpts to make room for %dpt footnotes block\n",
@@ -527,16 +513,6 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph,
     }
   }
   
-  // Add footnotes to footnote paragraph
-  if (isBodyParagraph) {
-    int i;
-    for(i=0;i<footnote_count;i++)
-      if (l->line_uid==footnote_line_numbers[i])
-	paragraph_append(&rendered_footnote_paragraph,&footnote_paragraphs[i]);
-    fprintf(stderr,"Rendered footnote paragraph is now:\n");
-    paragraph_dump(&rendered_footnote_paragraph);
-  }
-
   // convert y to libharu coordinate system (y=0 is at the bottom,
   // and the y position is the base-line of the text to render).
   // Don't apply line_spacing to adjustment, so that extra line spacing

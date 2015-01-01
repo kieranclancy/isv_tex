@@ -223,12 +223,8 @@ extern int verse_label;
 
 extern float page_y;
 extern struct paragraph body_paragraph;
-extern struct paragraph rendered_footnote_paragraph;
+extern struct paragraph footnote_paragraph;
 
-#define MAX_FOOTNOTES_ON_PAGE 256
-extern int footnote_line_numbers[MAX_FOOTNOTES_ON_PAGE];
-extern struct paragraph footnote_paragraphs[MAX_FOOTNOTES_ON_PAGE];
-extern int footnote_line_numbers[MAX_FOOTNOTES_ON_PAGE];
 #define MAX_VERSES_ON_PAGE 256
 extern struct paragraph cross_reference_paragraphs[MAX_VERSES_ON_PAGE];
 extern struct paragraph *target_paragraph;

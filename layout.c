@@ -310,27 +310,7 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
     lout->max_line_width=page_width-left_margin-right_margin;
     for(int i=next_steps[position];i<position;i++) {
       line_append_piece(lout,&l->pieces[i]);
-      if (!strcasecmp(l->pieces[i].font->font_nickname,"footnotemark")) {
-	// update footnote entry to say it is attached to this line UID
-	for(int j=0;j<footnote_count;j++) {
-	  int k;
-	  for(k=0;k<footnote_paragraphs[j].paragraph_lines[0]->piece_count;k++)
-	    {
-	      if (!strcasecmp(footnote_paragraphs[j].paragraph_lines[0]
-			      ->pieces[k].font->font_nickname,
-			      "footnotemarkinfootnote")) {
-		if (!strcmp(l->pieces[i].piece,
-			    footnote_paragraphs[j]
-			    .paragraph_lines[0]
-			    ->pieces[k].piece)) {
-		  footnote_line_numbers[j]=lout->line_uid;
-		  break;
-		}
-	      }
-	    }
-	}
-      }
-	
+      
       // XXX - Use the largest indent specified by any of these
       
       // Add left margin for start of paragraph
