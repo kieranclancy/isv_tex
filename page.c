@@ -86,7 +86,7 @@ int page_optimal_render_tokens()
       fprintf(stderr,"Calculating cost of page: tokens=[%d,%d)\n",
 	      start,end);
       page_begin();
-      render_tokens(start,token_count,0);
+      render_tokens(start,end,0);
       page_end(0);
 
       // Stop when page score is too bad
