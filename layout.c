@@ -264,6 +264,9 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
     position=next_steps[position];
   }
 
+  // Add cost of paragraph to page penalty.
+  page_penalty_add(costs[l->piece_count]);
+  
   
   // Build list of lines by working backwards through the paragraph.
   // Build the list of lines first, then go through them forwards, so that
