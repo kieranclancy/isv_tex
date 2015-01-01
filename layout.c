@@ -301,6 +301,7 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
     // Build line
     struct line_pieces *lout=calloc(sizeof(struct line_pieces),1);
     lout->alignment=l->alignment;
+    lout->tied_to_next_line=l->tied_to_next_line;
     lout->line_uid=line_uid_counter++;
     lout->max_line_width=page_width-left_margin-right_margin;
     for(int i=next_steps[position];i<position;i++) {
