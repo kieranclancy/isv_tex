@@ -633,7 +633,7 @@ int current_line_flush(struct paragraph *para)
     if (para->current_line->piece_count||para->current_line->line_height) {
       if (0) fprintf(stderr,"%d pieces left in %p.\n",
 		     para->current_line->piece_count,para->current_line);
-      paragraph_append_line(para,para->current_line);
+      paragraph_append_current_line(para);
       paragraph_setup_next_line(para);
     }
   }
@@ -1027,7 +1027,7 @@ int render_tokens()
 
   // Flush out any queued content.
   if (target_paragraph->current_line&&target_paragraph->current_line->piece_count)
-    paragraph_append_line(target_paragraph,target_paragraph->current_line);
+    paragraph_append_current_line(target_paragraph);
   paragraph_flush(target_paragraph);
 
   

@@ -153,10 +153,15 @@ int paragraph_flush(struct paragraph *p_in)
    depending on the context.
 
 */
-int paragraph_append_line(struct paragraph *p,struct line_pieces *line)
+int paragraph_append_current_line(struct paragraph *p)
 {
   // fprintf(stderr,"%s()\n",__FUNCTION__);
 
+  if (!p->current_line) {
+    fprintf(stderr,"Attempted to append NULL line to paragraph.\n");
+    exit(-1);
+  }
+  
   if (p->line_count>=MAX_LINES_IN_PARAGRAPH) {
     fprintf(stderr,"Too many lines in paragraph.\n");
     exit(-1);
@@ -173,7 +178,7 @@ int paragraph_setup_next_line(struct paragraph *p)
   fprintf(stderr,"%s()\n",__FUNCTION__);
   
   // Append any line in progress before creating fresh line
-  if (p->current_line) paragraph_append_line(p,p->current_line);
+  if (p->current_line) paragraph_append_current_line(p);
   
   // Allocate structure
   p->current_line=calloc(sizeof(struct line_pieces),1); 

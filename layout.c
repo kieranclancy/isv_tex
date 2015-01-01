@@ -203,6 +203,17 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
   int costs[MAX_LINE_PIECES+1];
   int next_steps[MAX_LINE_PIECES+1];
   int line_counts[MAX_LINE_PIECES+1];
+
+  // Copy empty lines verbatim (mostly present only for vspace)
+  if (l&&(!l->piece_count)) {
+    l=line_clone(l);
+    if (!l||(out->line_count>=MAX_LINE_PIECES)) {
+      fprintf(stderr,"line_clone() returned NULL or too many lines in paragraph\n");
+      exit(-1);
+    }
+    out->paragraph_lines[out->line_count++]=l;
+    return 0;
+  }
   
   // Start out with infinite costs and no steps
   for(a=0;a<=l->piece_count;a++) {

@@ -275,7 +275,7 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
 				int forceSpaceAtStartOfLine, int nobreak);
 int paragraph_set_widow_counter(struct paragraph *p,int lines);
 int paragraph_setup_next_line(struct paragraph *p);
-int paragraph_append_line(struct paragraph *p,struct line_pieces *line);
+int paragraph_append_current_line(struct paragraph *p);
 int paragraph_flush(struct paragraph *p);
 int paragraph_init(struct paragraph *p);
 #define paragraph_clear(X) _paragraph_clear(X,__FUNCTION__,__FILE__,__LINE__)
