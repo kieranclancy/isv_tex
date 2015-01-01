@@ -172,6 +172,16 @@ int reenumerate_footnotes(struct paragraph *p, int first_remaining_line_uid)
       // bzero freed slot
       bzero(&footnote_paragraphs[footnote_count],sizeof(struct paragraph));
     }
+  if (footnote_count) {
+    fprintf(stderr,"%d foot notes remaining: keeping %d (is > %d)\n",
+	    footnote_count,
+	    footnote_line_numbers[0],first_remaining_line_uid);
+    int i;
+    for(i=1;i<footnote_count;i++)
+      fprintf(stderr,"  and %d (is > %d)\n",
+	      footnote_line_numbers[i],first_remaining_line_uid);
+
+  }
   
   // Now that we have only the relevant footnotes left, update the footnote marks
   // in the footnotes, and in the lines that reference them.
