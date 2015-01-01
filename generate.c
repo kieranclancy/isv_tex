@@ -625,7 +625,7 @@ const char *resolve_font(char *font_filename)
 
 int current_line_flush(struct paragraph *para)
 {
-  fprintf(stderr,"%s()\n",__FUNCTION__);
+  // fprintf(stderr,"%s()\n",__FUNCTION__);
 
   if (para->current_line) {
     line_remove_trailing_space(para->current_line);
@@ -708,7 +708,7 @@ int render_tokens(int token_low,int token_high,int drawingPage)
       switch(token_types[i]) {
       case TT_PARAGRAPH:
 	{
-	  fprintf(stderr,"TT_PARAGRAPH\n");
+	  // fprintf(stderr,"TT_PARAGRAPH\n");
 	  int break_paragraph=1;
 	  if (target_paragraph->current_line) {
 	    if (target_paragraph->current_line->tied_to_next_line)
@@ -720,7 +720,7 @@ int render_tokens(int token_low,int token_high,int drawingPage)
 	  }
 	  if (break_paragraph) {
 	    // Flush the previous paragraph.
-	    fprintf(stderr,"Breaking paragraph.\n");
+	    // fprintf(stderr,"Breaking paragraph.\n");
 	    paragraph_flush(target_paragraph,drawingPage);
 	    // Indent the paragraph.
 	  }

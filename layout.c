@@ -290,15 +290,17 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
     position=next_steps[position];
   }
   
-  fprintf(stderr,">> Optimal long-line layout is:\n");
+  // fprintf(stderr,">> Optimal long-line layout is:\n");
   int line_count=0;
   int k;
   for(k=pcount-1;k>=0;k--) {
     position=positions[k];
-    
-    fprintf(stderr,"Segment at position %d..%d (cost %d): ",
-	    next_steps[position],position,costs[position]);
-    line_dump_segment(l,next_steps[position],position);
+
+    if (0) {
+      fprintf(stderr,"Segment at position %d..%d (cost %d): ",
+	      next_steps[position],position,costs[position]);
+      line_dump_segment(l,next_steps[position],position);
+    }
 
     // Build line
     struct line_pieces *lout=calloc(sizeof(struct line_pieces),1);
@@ -317,9 +319,6 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
 	      if (!strcasecmp(footnote_paragraphs[j].paragraph_lines[0]
 			      ->pieces[k].font->font_nickname,
 			      "footnotemarkinfootnote")) {
-		fprintf(stderr,"Found footnotemark '%s' (looking for '%s')\n",
-			footnote_paragraphs[j].paragraph_lines[0]->pieces[k].piece,
-			l->pieces[i].piece);
 		if (!strcmp(l->pieces[i].piece,
 			    footnote_paragraphs[j]
 			    .paragraph_lines[0]
@@ -362,23 +361,25 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
 
     // Insert it into the output paragraph
     paragraph_insert_line(out,out->line_count,lout);
-    fprintf(stderr,"Laid out line: ");
-    line_dump(lout);
+    if (0) {
+      fprintf(stderr,"Laid out line: ");
+      line_dump(lout);
+    }
     
     line_count++;
   }  
   
-  fprintf(stderr,"<<\n");
+  // fprintf(stderr,"<<\n");
   
   return 0;
 }
 
 struct paragraph *layout_paragraph(struct paragraph *p)
 {
-  fprintf(stderr,"%s()\n",__FUNCTION__);
+  // fprintf(stderr,"%s()\n",__FUNCTION__);
 
-  fprintf(stderr,"  page_width=%d, left_margin=%d, right_margin=%d\n",
-	  page_width,left_margin,right_margin);
+  if (0) fprintf(stderr,"  page_width=%d, left_margin=%d, right_margin=%d\n",
+		 page_width,left_margin,right_margin);
   
   int i;
 

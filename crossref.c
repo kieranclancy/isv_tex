@@ -52,10 +52,11 @@ int crossref_margin_width=4;
 int crossreference_start()
 {
   // There is actually nothing that needs to be done here.
-  fprintf(stderr,"Starting to collect cross-references for %s %s:%s\n",
-	  crossreference_book,
-	  crossreference_chapter,
-	  crossreference_verse);
+  if (0)
+    fprintf(stderr,"Starting to collect cross-references for %s %s:%s\n",
+	    crossreference_book,
+	    crossreference_chapter,
+	    crossreference_verse);
 
   saved_left_margin=left_margin;
   saved_right_margin=right_margin;
@@ -131,9 +132,12 @@ int crossreference_end()
 			     atoi(crossreference_verse));
   c->next=crossref_hash_bins[bin];
   crossref_hash_bins[bin]=c;
-  fprintf(stderr,"Crossrefs for %s %d:%d in bin %d\n",
-	  c->src_book,c->src_chapter,c->src_verse,bin);
-  paragraph_dump(c);
+
+  if (0) {
+    fprintf(stderr,"Crossrefs for %s %d:%d in bin %d\n",
+	    c->src_book,c->src_chapter,c->src_verse,bin);
+    paragraph_dump(c);
+  }
 
   paragraph_pop_style(c);
   
@@ -155,8 +159,9 @@ struct paragraph *crossreference_find(char *book,int chapter, int verse)
     if ((!strcasecmp(p->src_book,book))
 	&&(chapter==p->src_chapter)
 	&&(verse==p->src_verse)) {
-      fprintf(stderr,"Found crossref passage for %s %d:%d (%dpts high)\n",
-	      book,chapter,verse,p->total_height);
+      if (0)
+	fprintf(stderr,"Found crossref passage for %s %d:%d (%dpts high)\n",
+		book,chapter,verse,p->total_height);
       return p;
     }
     p=p->next;
@@ -226,21 +231,16 @@ int crossrefs_reposition()
 
   if (!crossref_count) return 0;
 
-  fprintf(stderr,"crossref_y_limit=%d, %dpts from bottom of text area (bottom_margin=%d)\n",
-	  crossref_y_limit,page_height-bottom_margin-crossref_y_limit,bottom_margin);
-  
-  crossref_queue_dump("initial");
   for(i=1;i<crossref_count;i++)
     {
       int prev_bottom=crossrefs_y[i-1]+crossrefs_queue[i-1]->total_height;
       int this_top=crossrefs_y[i];
       int overlap=prev_bottom-this_top+crossref_min_vspace;
       if (overlap>0) {
-	fprintf(stderr,"Moving crossref %d down %dpts\n",i,overlap);
+	//	fprintf(stderr,"Moving crossref %d down %dpts\n",i,overlap);
 	crossrefs_y[i]+=overlap;
       }      
     }
-  crossref_queue_dump("after top down");
 
   // Make sure that cross-refs don't appear beside the footnote paragraph
   if (crossrefs_y[crossref_count-1]+crossrefs_queue[crossref_count-1]->total_height    
@@ -257,14 +257,10 @@ int crossrefs_reposition()
       int next_top=crossrefs_y[i+1];
       int overlap=this_bottom-next_top+crossref_min_vspace;
       if (overlap>0) {
-	fprintf(stderr,"Moving crossref %d up %dpts (this_bottom=%d, next_top=%d)\n",
-		i,overlap,this_bottom,next_top);
 	crossrefs_y[i]-=overlap;
       }
     }
 
-  crossref_queue_dump("after bottom up");
-  
   return 0;
 }
 
@@ -272,7 +268,7 @@ int output_accumulated_cross_references(struct paragraph *p,
 					int max_line_to_render,
 					int drawingPage)
 {
-  fprintf(stderr,"%s()\n",__FUNCTION__);
+  // fprintf(stderr,"%s()\n",__FUNCTION__);
 
   // Place cross-reference column in space on opposite side to the
   // booktab
@@ -296,9 +292,11 @@ int output_accumulated_cross_references(struct paragraph *p,
 
     struct paragraph *cr=crossrefs_queue[n];
     {
-      fprintf(stderr,"Drawing cross-references for %s %d:%d\n",
-	      cr->src_book,cr->src_chapter,cr->src_verse);
-      paragraph_dump(cr);
+      if (0) {
+	fprintf(stderr,"Drawing cross-references for %s %d:%d\n",
+		cr->src_book,cr->src_chapter,cr->src_verse);
+	paragraph_dump(cr);
+      }
       for(l=0;l<cr->line_count;l++)
 	{
 	  if (leftRight==LR_RIGHT)
@@ -312,7 +310,7 @@ int output_accumulated_cross_references(struct paragraph *p,
   crossref_count=0;
 
   p->first_crossref_line=max_line_to_render+1;
-  fprintf(stderr,"first_crossref_line=%d\n",p->first_crossref_line);
+  // fprintf(stderr,"first_crossref_line=%d\n",p->first_crossref_line);
 
   page_y=saved_page_y;
   left_margin=saved_left_margin;

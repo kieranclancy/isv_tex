@@ -43,8 +43,9 @@ int paragraph_init(struct paragraph *p)
 
 int _paragraph_clear(struct paragraph *p,const char *func,const char *file,int line)
 {
-  fprintf(stderr,"paragraph_clear(%p) called from %s:%d %s()\n",
-	  p,file,line,func);
+  if (0)
+    fprintf(stderr,"paragraph_clear(%p) called from %s:%d %s()\n",
+	    p,file,line,func);
 
   // Free any line structures in this paragraph
   int i;
@@ -175,7 +176,7 @@ int paragraph_append_current_line(struct paragraph *p)
 int line_uid_counter=0;
 int paragraph_setup_next_line(struct paragraph *p)
 {
-  fprintf(stderr,"%s()\n",__FUNCTION__);
+  // fprintf(stderr,"%s()\n",__FUNCTION__);
   
   // Append any line in progress before creating fresh line
   if (p->current_line) paragraph_append_current_line(p);
@@ -199,7 +200,7 @@ int paragraph_setup_next_line(struct paragraph *p)
 #ifdef NOTDEFINED
   // If there is a dropchar margin in effect, then apply it.
   if (p->drop_char_margin_line_count>0) {
-    if (1) fprintf(stderr,
+    if (0) fprintf(stderr,
 		   "Applying dropchar margin of %dpt (%d more lines, including this one)\n",
 		   p->drop_char_left_margin,p->drop_char_margin_line_count);
     p->current_line->max_line_width
@@ -219,11 +220,11 @@ int paragraph_setup_next_line(struct paragraph *p)
 
 int paragraph_set_widow_counter(struct paragraph *p,int lines)
 {
-  fprintf(stderr,"%s() ENTER\n",__FUNCTION__);
+  // fprintf(stderr,"%s() ENTER\n",__FUNCTION__);
   if (!p->current_line) paragraph_setup_next_line(p);
   p->current_line->tied_to_next_line=1;
-  fprintf(stderr,"Tied line to next (line %d) (widow counter)\n",p->line_count);
-  fprintf(stderr,"%s() EXIT\n",__FUNCTION__);
+  // fprintf(stderr,"Tied line to next (line %d) (widow counter)\n",p->line_count);
+  // fprintf(stderr,"%s() EXIT\n",__FUNCTION__);
   return 0;
 }
 
@@ -283,7 +284,7 @@ int paragraph_append_text(struct paragraph *p,char *text,int baseline,
 			  int forceSpaceAtStartOfLine,
 			  int nobreak)
 {  
-  fprintf(stderr,"%s(\"%s\")\n",__FUNCTION__,text);
+  // fprintf(stderr,"%s(\"%s\")\n",__FUNCTION__,text);
 
   // Don't put verse number immediately following dropchar
   if (p->current_line&&(p->current_line->piece_count==1))
@@ -367,7 +368,7 @@ int paragraph_append_text(struct paragraph *p,char *text,int baseline,
 int paragraph_append_space(struct paragraph *p,
 			   int forceSpaceAtStartOfLine, int nobreak)
 {
-  fprintf(stderr,"%s()\n",__FUNCTION__);
+  // fprintf(stderr,"%s()\n",__FUNCTION__);
 
   // Don't put spaces after dropchars
   if (p->current_line&&(p->current_line->piece_count==1))
@@ -389,7 +390,7 @@ int paragraph_append_space(struct paragraph *p,
 int paragraph_append_thinspace(struct paragraph *p,int forceSpaceAtStartOfLine,
 			       int nobreak)
 {
-  fprintf(stderr,"%s()\n",__FUNCTION__);
+  // fprintf(stderr,"%s()\n",__FUNCTION__);
   // Checkpoint where we are up to, in case we need to split the line.
   // We don't want to break on a thin space, so we need to go back to the
   // previous elastic space
@@ -412,8 +413,8 @@ struct type_face *type_face_stack[TYPE_FACE_STACK_DEPTH];
 int type_face_stack_pointer=0;
 int paragraph_push_style(struct paragraph *p, int font_alignment,int font_index)
 {
-  fprintf(stderr,"%s(): alignment=%d, style=%s\n",__FUNCTION__,
-	  font_alignment,type_faces[font_index].font_nickname);
+  if (0) fprintf(stderr,"%s(): alignment=%d, style=%s\n",__FUNCTION__,
+		 font_alignment,type_faces[font_index].font_nickname);
 
   if ((!p->current_line)
       ||(p->current_line->piece_count
@@ -421,7 +422,7 @@ int paragraph_push_style(struct paragraph *p, int font_alignment,int font_index)
 	 &&p->current_line->alignment!=AL_NONE))
     {
       // Change of alignment - start on new line
-      fprintf(stderr,"Creating new line due to alignment change.\n");
+      // fprintf(stderr,"Creating new line due to alignment change.\n");
       paragraph_setup_next_line(p);
     }    
   p->current_line->alignment=font_alignment;
@@ -447,11 +448,11 @@ int paragraph_push_style(struct paragraph *p, int font_alignment,int font_index)
 
 int paragraph_insert_vspace(struct paragraph *p,int points,int tied)
 {
-  fprintf(stderr,"%s(%dpt)\n",__FUNCTION__,points);
+  // fprintf(stderr,"%s(%dpt)\n",__FUNCTION__,points);
   paragraph_setup_next_line(p);
   p->current_line->line_height=points;
   p->current_line->tied_to_next_line=tied;
-  if (tied) fprintf(stderr,"Tied line to next (line %d) (via vspace)\n",p->line_count);
+  // if (tied) fprintf(stderr,"Tied line to next (line %d) (via vspace)\n",p->line_count);
 
   current_line_flush(p);
   return 0;
@@ -459,10 +460,10 @@ int paragraph_insert_vspace(struct paragraph *p,int points,int tied)
 
 int paragraph_pop_style(struct paragraph *p)
 {
-  fprintf(stderr,"%s()\n",__FUNCTION__);
+  // fprintf(stderr,"%s()\n",__FUNCTION__);
 
   if (type_face_stack_pointer==footnote_stack_depth) {
-    fprintf(stderr,"Ending footnote collection mode.\n");
+    // fprintf(stderr,"Ending footnote collection mode.\n");
     end_footnote();
     footnote_stack_depth=-1;
   }
@@ -477,8 +478,10 @@ int paragraph_pop_style(struct paragraph *p)
 	-2;  // plus a little space to ensure some white space
       l->pieces[l->piece_count-1].natural_width+=max_hang_space;
       line_recalculate_width(l);
-      fprintf(stderr,"After closing dropchar text\n");
-      paragraph_dump(target_paragraph);
+      if (0) {
+	fprintf(stderr,"After closing dropchar text\n");
+	paragraph_dump(target_paragraph);
+      }
     }
     // Add vertical space after certain type faces
     if (!strcasecmp(current_font->font_nickname,"booktitle"))
@@ -496,7 +499,7 @@ int paragraph_pop_style(struct paragraph *p)
 
 int paragraph_clear_style_stack()
 {
-  fprintf(stderr,"%s()\n",__FUNCTION__);
+  // fprintf(stderr,"%s()\n",__FUNCTION__);
   current_font=&type_faces[set_font("blackletter")];
   type_face_stack_pointer=0;
   return 0;
@@ -508,7 +511,7 @@ int paragraph_clear_style_stack()
 */
 int paragraph_clone(struct paragraph *dst,struct paragraph *src)
 {
-  fprintf(stderr,"%s():\n",__FUNCTION__);
+  //  fprintf(stderr,"%s():\n",__FUNCTION__);
   
   int i;
 
@@ -546,8 +549,8 @@ int paragraph_append(struct paragraph *dst,struct paragraph *src)
   int i,j;
 
   for(i=0;i<src->line_count;i++) {
-    fprintf(stderr,"  Appending ");
-    line_dump(src->paragraph_lines[i]);
+    // fprintf(stderr,"  Appending ");
+    // line_dump(src->paragraph_lines[i]);
 	  
     if (!src->paragraph_lines[i]->piece_count) {
       // Empty lines are vspace markers, so just re-add the vspace
