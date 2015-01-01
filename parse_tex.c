@@ -208,7 +208,7 @@ int tokenise_file(char *filename, int crossreference_parsing)
 	      if (token_len) next_file_token(p,token_type,token_len,token_text);
 	      token_text[0]=0; token_len=0; token_type=TT_TEXT;
 	      next_file_token(p,TT_NONBREAKINGSPACE,0,token_text);
-	      fprintf(stderr,"Inserting non-breaking space before em-dash\n");
+	      // fprintf(stderr,"Inserting non-breaking space before em-dash\n");
 	    }
 	  }
 	if (token_type==TT_TAG&&(!strcmp(token_text,"allowbrea"))&&(file[i]=='k'))
