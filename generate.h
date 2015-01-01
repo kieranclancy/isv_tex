@@ -1,5 +1,5 @@
 // Penalty for over-full page per point of overflow
-#define OVERFULL_PAGE_PENALTY_PER_PT (1000000.0)
+#define OVERFULL_PAGE_PENALTY_PER_PT (40000000.0)
 // Penalty multiplier for under-full pages.
 // The penalty will be (underfullness%)^2, so between 0 and 10,000.
 // We need to scale this up to have the right weigh.
