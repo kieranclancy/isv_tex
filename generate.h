@@ -314,6 +314,8 @@ int paragraph_dump(struct paragraph *p);
 int current_line_flush(struct paragraph *p);
 int paragraph_insert_line(struct paragraph *p,int line_number, struct line_pieces *l);
 struct paragraph *new_paragraph();
+int paragraph_free(struct paragraph *p);
+
 
 int line_dump(struct line_pieces *l);
 int line_dump_segment(struct line_pieces *l,int start,int end);

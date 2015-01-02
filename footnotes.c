@@ -39,7 +39,9 @@
 char *footnote_alphabet=NONDECENDING_LETTERS;
 int footnote_alphabet_size=strlen(NONDECENDING_LETTERS);
 
-struct paragraph footnote_paragraph;
+#define MAX_FOOTNOTES 65536
+struct paragraph *footnote_paragraphs[MAX_FOOTNOTES];
+int footnote_total_count=0;
 
 int footnote_stack_depth=-1;
 char footnote_mark_string[4]={'a'-1,0,0,0};
@@ -51,11 +53,16 @@ int footnote_rule_ydelta=0;
 
 int footnotes_reset()
 {
-  paragraph_clear(&footnote_paragraph);
   generate_footnote_mark(0);
 
   footnote_stack_depth=-1;
   footnote_count=0;
+  
+  for(int i=0;i<footnote_total_count;i++) {
+    paragraph_free(footnote_paragraphs[i]);
+  }
+  
+  footnote_total_count=0;
 
   return 0;
 }
@@ -89,13 +96,14 @@ char *next_footnote_mark()
 
 int footnotemarkinfootnotefont_index=-1;
 int footnote_mode=0;
+
 int begin_footnote(int token_number)
 {
   //  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
 
   // footnote_count has already been incremented, so take one away when working out
   // which paragraph to access.
-  target_paragraph=&footnote_paragraph;
+  target_paragraph=new_paragraph();
 
   // Put space before each footnote.  For space at start of line, since when the
   // footnotes get appended together later the spaces may be in the middle of a line.
@@ -105,12 +113,15 @@ int begin_footnote(int token_number)
 					  FORCESPACEATSTARTOFLINE,NO_NOTBREAKABLE,
 					  token_number);
 
+  // We replace footnote marks when generating all possible footnote paragraphs later.
+  // So for now, just leave footnote_count=0
+  
   // Draw footnote mark at start of footnote
   if (footnotemarkinfootnotefont_index==-1)
     footnotemarkinfootnotefont_index=set_font_by_name("footnotemarkinfootnote");
   paragraph_push_style(target_paragraph,AL_JUSTIFIED,
 		       footnotemarkinfootnotefont_index);
-  generate_footnote_mark(footnote_count-1);
+  generate_footnote_mark(0);
   // Don't allow footnote marks to appear at the end of a line
   paragraph_append_text(target_paragraph,footnote_mark_string,0,
 			NO_FORCESPACEATSTARTOFLINE,NOTBREAKABLE,token_number);
@@ -124,6 +135,12 @@ int end_footnote()
 {
   // fprintf(stderr,"%s()\n",__FUNCTION__);
 
+  if (footnote_total_count>=MAX_FOOTNOTES) {
+    fprintf(stderr,"Too many footnotes. Increase MAX_FOOTNOTESS.\n");
+    exit(-1);
+  }
+  footnote_paragraphs[footnote_total_count++]=target_paragraph;
+  
   if(0) {
     fprintf(stderr,"Footnote paragraph (%p) is:\n",target_paragraph);
     paragraph_dump(target_paragraph);
@@ -140,6 +157,13 @@ int end_footnote()
 }
 
 int output_accumulated_footnotes(int drawingPage)
+{
+  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
+  return 0;
+}
+
+#ifdef NOTDEFINED
+int output_accumulated_footnotes_old(int drawingPage)
 {
   // fprintf(stderr,"%s()\n",__FUNCTION__);
 
@@ -198,3 +222,4 @@ int output_accumulated_footnotes(int drawingPage)
   
   return 0;
 }
+#endif

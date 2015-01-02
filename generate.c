@@ -725,7 +725,6 @@ int render_tokens(int token_low,int token_high,int drawingPage)
   
   // Initialise all paragraph structures.
   paragraph_init(&body_paragraph);
-  paragraph_init(&footnote_paragraph);
   for(i=0;i<MAX_VERSES_ON_PAGE;i++) paragraph_init(&cross_reference_paragraphs[i]);
   
   for(i=token_low;i<token_high;i++)

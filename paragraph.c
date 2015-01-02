@@ -62,6 +62,13 @@ int _paragraph_clear(struct paragraph *p,const char *func,const char *file,int l
   return 0;
 }
 
+int paragraph_free(struct paragraph *p)
+{
+  paragraph_clear(p);
+  free(p);
+  return 0;
+}
+
 time_t last_paragraph_report_time=0;
 int paragraph_count=0;
 

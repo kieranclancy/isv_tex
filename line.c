@@ -410,141 +410,8 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph,
 {
   
   struct line_pieces *l=p->paragraph_lines[line_num];
-  int break_page=0;
   
   // fprintf(stderr,"Emitting line: "); line_dump(p->paragraph_lines[line_num]);
-  
-  // Work out maximum line number that we have to take into account for
-  // page fitting, i.e., to prevent orphaned heading lines.
-  int max_line_num=line_num;
-  float combined_line_height=l->line_height;
-  // fprintf(stderr,"  line itself (#%d) is %.1fpts high\n",line_num,l->line_height);
-  while ((max_line_num<(p->line_count-1))
-	 &&p->paragraph_lines[max_line_num]->tied_to_next_line) {
-    combined_line_height+=p->paragraph_lines[++max_line_num]->line_height;
-    if (0) {
-      fprintf(stderr,"  dependent line is %.1fpts high:",
-	      p->paragraph_lines[max_line_num]->line_height);
-      line_dump(p->paragraph_lines[max_line_num]);
-    }
-  }
-  if (0)
-    fprintf(stderr,"Treating lines %d -- %d as a unit %.1fpts high\n",
-	  line_num,max_line_num,combined_line_height);
-  
-  // Does the line(s) require more space than there is?    
-  float baseline_y=page_y+combined_line_height*line_spacing;
-  if (baseline_y>(page_height-bottom_margin)) {
-    if (0)
-      fprintf(stderr,"Breaking page %d at %.1fpts to make room for body text\n",
-	      current_page,page_y);
-    break_page=1;
-    page_penalty_add((baseline_y-bottom_margin)*OVERFULL_PAGE_PENALTY_PER_PT);
-  }
-
-  // Does the line plus footnotes require more space than there is?
-  // - clone footnote paragraph and then append footnotes referenced in this
-  // line to the clone, then measure its height.
-  // - deduct footnote space from remaining space.
-  int footnotes_total_height=0;
-  float page_fullness=0;
-  if (isBodyParagraph) {
-    struct paragraph temp;
-    paragraph_init(&temp);
-    paragraph_clone(&temp,&footnote_paragraph);
-    current_line_flush(&temp);
-    struct paragraph *f=layout_paragraph(&temp,drawingPage);
-    
-    int footnotes_height=paragraph_height(f);
-    baseline_y+=footnotes_height;
-    baseline_y+=footnote_sep_vspace;
-    footnotes_total_height=footnotes_height+footnote_sep_vspace;
-    if (0) {
-      fprintf(stderr,"Unrendered footnote block is:\n");
-      paragraph_dump(&footnote_paragraph);
-      fprintf(stderr,"Footnote block (%p) is %dpts high (%d lines).\n",
-	      &footnote_paragraph,
-	      footnotes_height,temp.line_count);
-    }
-    if (baseline_y>(page_height-bottom_margin)) {
-      if (0)
-	fprintf(stderr,"Breaking page %d at %.1fpts to make room for %dpt footnotes block\n",
-		current_page,page_y,footnotes_height);
-      break_page=1;
-      page_penalty_add((baseline_y-(page_height-bottom_margin))
-		       *OVERFULL_PAGE_PENALTY_PER_PT);
-    }
-
-    page_fullness
-      =100.0
-      *(baseline_y-top_margin)
-      /(page_height-top_margin-bottom_margin);
-    if (0) fprintf(stderr,
-		   " <baseline_y=%.1f,top_margin=%d,"
-		   " page_height=%d,top_margin=%d, bottom_margin=%d>",
-		   baseline_y,top_margin,
-		   page_height,top_margin,bottom_margin);
-    
-    paragraph_clear(&temp);
-    paragraph_clear(f); free(f);
-  }
-
-  // Does the line plus its cross-references require more space than there is?
-  // - add height of cross-references for any verses in this line to height of
-  // all cross-references and make sure that it can fit above the cross-references.
-  if (isBodyParagraph) {
-    int crossref_height=0;
-    int crossref_para_count=crossref_count;
-    int n,i;
-
-    // Total height of crossrefs from previous lines on page
-    for(n=0;n<crossref_count;n++)
-      crossref_height+=crossrefs_queue[n]->total_height;
-
-    // Now add height of cross refs on the current line(s) being drawn.
-    for(n=line_num;n<=max_line_num;n++) {
-      struct line_pieces *ll=p->paragraph_lines[n];
-      for(i=0;i<ll->piece_count;i++)
-	if (ll->pieces[i].crossrefs) {
-	  crossref_height+=ll->pieces[i].crossrefs->total_height;
-	  crossref_para_count++;
-	}
-    }
-
-    if ((crossref_height+((crossref_para_count+1)*crossref_min_vspace))
-	>(page_height-footnotes_total_height-bottom_margin-top_margin)) {
-      if (0) {
-	fprintf(stderr,"Breaking page %d at %.1fpts to avoid %dpts of cross references for %d verses (only %dpts available for crossrefs)\n",
-		current_page,page_y,
-		crossref_height+((crossref_para_count+1)*crossref_min_vspace),
-		crossref_para_count,
-		(page_height-footnotes_total_height-bottom_margin-top_margin));
-	fprintf(stderr,"  page_height=%d, bottom_margin=%d, top_margin=%d\n",
-		page_height,bottom_margin,top_margin);
-	fprintf(stderr,"  footnotes_total_height=%dpts\n",footnotes_total_height);
-	paragraph_dump(p);
-      }
-      break_page=1;
-      page_penalty_add(((crossref_height+((crossref_para_count+1)*crossref_min_vspace))
-			-(page_height-footnotes_total_height-bottom_margin-top_margin))
-		       *OVERFULL_PAGE_PENALTY_PER_PT);
-    } else {
-      if (0) {
-	fprintf(stderr,"%d cross reference blocks, totalling %dpts high (lines %d..%d)\n",
-		crossref_para_count,
-		crossref_height+((crossref_para_count+1)*crossref_min_vspace),
-		p->first_crossref_line,max_line_num);
-	crossref_queue_dump("queued crossreferences");
-      }
-    }
-    
-    page_notify_details(page_fullness,l->tied_to_next_line);
-  }
-
-  if (break_page) {
-    // fprintf(stderr,"Page would over fill\n");
-    page_penalty_add(OVERFULL_PAGE_PENALTY_PER_PT*20);
-  }
   
   // convert y to libharu coordinate system (y=0 is at the bottom,
   // and the y position is the base-line of the text to render).
@@ -619,9 +486,6 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph,
       if (l->pieces[i].font->line_count==1) {
 	if (l->pieces[i].font->linegap>linegap) linegap=l->pieces[i].font->linegap;
       }
-
-      // Queue cross-references
-      if (l->pieces[i].crossrefs) crossref_queue(l->pieces[i].crossrefs,page_y);
  
       if (!strcmp(l->pieces[i].font->font_nickname,"versenum"))
 	last_verse_on_page=atoi(l->pieces[i].piece);
