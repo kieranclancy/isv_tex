@@ -276,24 +276,14 @@ int tokenise_file(char *filename, int crossreference_parsing)
 	break;
 	// Thin space
       case ',':
-#ifdef NO_UNICODE
 	parse_state = PS_NORMAL;
 	token_text[token_len]=0;
-	if (token_len)
-	  next_file_token(p,token_type,token_len,token_text);
+	if (token_len) next_file_token(p,token_type,token_len,token_text);
 
 	token_text[0]=0;
 	next_file_token(p,TT_THINSPACE,0,token_text);
 	token_type= TT_TEXT;
 	token_len=0;
-#else
-	// Add non-breaking thin-space unicode point (0x202f)
-	// Well, libharu doesn't support it, so we have to settle for a
-	// regular non-breaking space (0xa0)
-	token_text[token_len++]=0xC2;
-	token_text[token_len++]=0xA0;
-	token_text[token_len]=0;
-#endif
 	break;
       default:
 	// not an escape character, so assume it is a label
