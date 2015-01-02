@@ -139,8 +139,7 @@ int crossref_precalc_heights()
     if (index<0) index+=MAX_VERSES_ON_PAGE;
     float this_ref_height=recently_added_crossrefs[index]->total_height;
     height+=this_ref_height+crossref_min_vspace;
-    if (height<=page_height) {
-      // Record this set.
+    if (0) 
       fprintf(stderr,"Crossrefs from %s %d:%d - %s %d:%d = %.1fpts high.\n",
 	      recently_added_crossrefs[index]->src_book,
 	      recently_added_crossrefs[index]->src_chapter,
@@ -149,8 +148,17 @@ int crossref_precalc_heights()
 	      c->src_chapter,
 	      c->src_verse,
 	      height);
-    } else {
+    // Record this set.
+    struct crossref_height_record *r=calloc(sizeof(struct crossref_height_record),1);
+    r->next=c->crossref_heights;
+    r->first_cross_ref=recently_added_crossrefs[index];
+    r->total_height=height;
+    
+    if (height>page_height) {
       // Too tall -- no point looking any further.
+      // (Note that we will have recorded the first one that is too tall.
+      //  This is intentional, as it means we will know the first verse number
+      //  which cannot be included on a full page.
       break;
     }
   }
