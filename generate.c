@@ -953,12 +953,18 @@ int render_tokens(int token_low,int token_high,int drawingPage)
 	    // 1. Insert a footnote mark here.
 	    // 2. Redirect contents of tag to footnote block
 	    // The major complication is that we don't know at this time what the
-	    // foot note mark will be, because we may defer this line to the next
-	    // page.  One solution to this is to just go through a-z continuously,
-	    // and don't reset to a on each page. This is simple, and effective.
+	    // foot note mark will be, because page breaks are worked out later by
+	    // the page optimiser.  For now, we will use the widest double-character
+	    // footnote mark, so that there will always be enough space.
+	    // The trade-off is that some lines may end up being under-full when
+	    // actually rendered, which may result in paragraph layouts differing
+	    // during rednering compared with the costs actually calculated.  This
+	    // could result in a paragraph taking one less line, or the last line of
+	    // a paragraph being shorter than it otherwise would have been.  Neither
+	    // are ideal, but the problem is difficult to work around otherwise.
 
 	    // Draw the mark.
-	    char *mark=next_footnote_mark();
+	    char *mark="mm";
 	    int alignment=AL_NONE;
 	    if (target_paragraph->current_line)
 	      alignment=target_paragraph->current_line->alignment;
