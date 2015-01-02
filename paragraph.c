@@ -71,6 +71,8 @@ int paragraph_free(struct paragraph *p)
 
 time_t last_paragraph_report_time=0;
 int paragraph_count=0;
+#define MAX_PARAGRAPHS 65536
+struct paragraph *body_paragraphs[MAX_PARAGRAPHS];
 
 int paragraph_flush(struct paragraph *p_in,int drawingPage)
 {  
@@ -79,6 +81,17 @@ int paragraph_flush(struct paragraph *p_in,int drawingPage)
   // First flush the current line
   current_line_flush(p_in);
 
+  if (paragraph_count>=MAX_PARAGRAPHS) {
+    fprintf(stderr,"Too many paragraphs. Increase MAX_PARAGRAPHS.\n");
+    exit(-1);
+  }
+  
+  struct paragraph *p=new_paragraph();
+  paragraph_clone(p,p_in);
+  paragraph_clear(p_in);
+
+  body_paragraphs[paragraph_count++]=p;
+  
   paragraph_count++;
   if (last_paragraph_report_time<time(0)) {
     last_paragraph_report_time=time(0);
