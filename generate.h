@@ -165,8 +165,6 @@ struct paragraph {
   int poem_level;
   int poem_subsequent_line;
 
-  int last_char_is_a_full_stop;
-
   int first_crossref_line;
 
   // Pointer to next paragraph in hash bin
@@ -296,6 +294,7 @@ int paragraph_height(struct paragraph *p);
 int paragraph_dump(struct paragraph *p);
 int current_line_flush(struct paragraph *p);
 int paragraph_insert_line(struct paragraph *p,int line_number, struct line_pieces *l);
+struct paragraph *new_paragraph();
 
 int line_dump(struct line_pieces *l);
 int line_dump_segment(struct line_pieces *l,int start,int end);
@@ -316,7 +315,7 @@ struct piece *new_line_piece(char *text,struct type_face *current_font,
 			     float size,float text_width,
 			     struct paragraph *crossrefs,float baseline,
 			     int nobreak);
-
+struct line_pieces *new_line();
 
 int generate_footnote_mark(int footnote_count);
 int begin_footnote();

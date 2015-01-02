@@ -778,3 +778,25 @@ struct piece *new_line_piece(char *text,struct type_face *current_font,
   p->piece_baseline=baseline;  
   return p;
 }
+
+struct line_pieces *new_line()
+{
+  struct line_pieces *l=malloc(sizeof(struct line_pieces));
+  l->line_uid=-1;
+  l->max_line_width=0;
+  l->left_margin=0;
+  l->poem_level=0;
+  l->left_hang=0;
+  l->right_hang=0;
+  l->alignment=0;
+  l->piece_count=0;
+  l->line_width_so_far=0;
+  l->checkpoint=0;
+  l->line_height=0;
+  l->ascent=0;
+  l->descent=0;
+  l->on_page_y=0;
+  l->freed=0;
+  
+  return l;
+}

@@ -310,7 +310,7 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
     }
 
     // Build line
-    struct line_pieces *lout=calloc(sizeof(struct line_pieces),1);
+    struct line_pieces *lout=new_line();
     lout->alignment=l->alignment;
     lout->tied_to_next_line=l->tied_to_next_line;
     lout->line_uid=line_uid_counter++;
@@ -374,7 +374,7 @@ struct paragraph *layout_paragraph(struct paragraph *p)
   // be either the entire paragraph, or a block of text in the paragraph
   // that can all be flowed together.
 
-  struct paragraph *out=calloc(sizeof(struct paragraph),1);
+  struct paragraph *out=new_paragraph();calloc(sizeof(struct paragraph),1);
 
   if (p->src_book) out->src_book=strdup(p->src_book);
   out->src_chapter=p->src_chapter;

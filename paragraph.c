@@ -295,12 +295,6 @@ int paragraph_append_text(struct paragraph *p,char *text,int baseline,
 
     }
 
-  
-  // Keep track of whether the last character is a full stop so that we can
-  // apply double spacing between sentences (if desired).
-  if (text[strlen(text)-1]=='.') p->last_char_is_a_full_stop=1;
-  else p->last_char_is_a_full_stop=0;
-
   // Checkpoint where we are up to, in case we need to split the line
   line_set_checkpoint(p->current_line);
   
@@ -682,4 +676,22 @@ int paragraph_insert_line(struct paragraph *p,int line_number, struct line_piece
   p->line_count++;
   
   return 0;
+}
+
+
+struct paragraph *new_paragraph()
+{
+  struct paragraph *p=malloc(sizeof(struct paragraph));
+  p->line_count=0;
+  p->current_line=0;
+  p->drop_char_left_margin=0;
+  p->drop_char_margin_line_count=0;
+  p->poem_level=0;
+  p->poem_subsequent_line=0;
+  p->first_crossref_line=0;
+  p->src_book=NULL;
+  p->src_chapter=0;
+  p->src_verse=0;
+  p->total_height=0;
+  return p;
 }
