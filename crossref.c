@@ -119,6 +119,44 @@ int crossref_total_count=0;
 int crossref_next=0;
 time_t crossref_last_report_time=0;
 
+/*
+  Calculate the height of the set of possible cross-references that
+  include the most recently recorded cross-reference paragraph.
+*/
+int crossref_precalc_heights()
+{
+  int n=MAX_VERSES_ON_PAGE;
+  if (crossref_total_count<n) n=crossref_total_count;
+
+  int index=crossref_next-1;
+  if (index<0) index+=MAX_VERSES_ON_PAGE;
+  struct paragraph *c=recently_added_crossrefs[index];
+  
+  int j;
+  float height=0;
+  for(j=1;j<=n;j++) {
+    index=crossref_next-j;
+    if (index<0) index+=MAX_VERSES_ON_PAGE;
+    float this_ref_height=recently_added_crossrefs[index]->total_height;
+    height+=this_ref_height+crossref_min_vspace;
+    if (height<=page_height) {
+      // Record this set.
+      fprintf(stderr,"Crossrefs from %s %d:%d - %s %d:%d = %.1fpts high.\n",
+	      recently_added_crossrefs[index]->src_book,
+	      recently_added_crossrefs[index]->src_chapter,
+	      recently_added_crossrefs[index]->src_verse,
+	      c->src_book,
+	      c->src_chapter,
+	      c->src_verse,
+	      height);
+    } else {
+      // Too tall -- no point looking any further.
+      break;
+    }
+  }
+  return 0;
+}
+
 int crossreference_end()
 {
   // Clone paragraph, set info, and add into hash table of
@@ -151,6 +189,7 @@ int crossreference_end()
   recently_added_crossrefs[crossref_next++]=c;
   if (crossref_next>=MAX_VERSES_ON_PAGE) crossref_next=0;
   crossref_total_count++;
+  crossref_precalc_heights();
   if (time(0)>crossref_last_report_time) {
     crossref_last_report_time=time(0);
     fprintf(stderr,"\rRead %d cross-reference entries.",crossref_total_count);
