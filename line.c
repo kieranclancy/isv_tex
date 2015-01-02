@@ -97,8 +97,6 @@ int line_calculate_height(struct line_pieces *l)
       int descender_depth
 	=HPDF_Font_GetDescent(l->pieces[i].font->font)
 	*l->pieces[i].font->font_size/1000;
-      if (0) fprintf(stderr,"  '%s' is %.1fpt wide.\n",
-		     l->pieces[i].piece,l->pieces[i].piece_width);
       if (descender_depth<0) descender_depth=-descender_depth;
       // Don't count the space used by dropchars, since it gets covered by
       // the extra line(s) of the dropchar.

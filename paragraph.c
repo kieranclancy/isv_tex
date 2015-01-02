@@ -522,7 +522,7 @@ int paragraph_pop_style(struct paragraph *p)
 	-2;  // plus a little space to ensure some white space
       if (l) {
 	l->pieces[l->piece_count-1].natural_width+=max_hang_space;
-	line_recalculate_width(l);
+	// line_recalculate_width(l);
       }
       if (0) {
 	fprintf(stderr,"After closing dropchar text\n");

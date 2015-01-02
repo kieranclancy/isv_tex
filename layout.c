@@ -37,12 +37,32 @@
 
 int footnotemark_index=-1;
 
+float cumulative_widths[MAX_LINE_PIECES+1];
+
+int precalc_cumulative_widths(struct line_pieces *l)
+{
+  cumulative_widths[0]=l->pieces[0].piece_width;
+  for(int i=1;i<l->piece_count;i++)
+    cumulative_widths[i]=cumulative_widths[i-1]+l->pieces[i].piece_width;
+  return 0;
+}
+
+float get_basic_width_of_line_segment(struct line_pieces *l,int start,int end,
+				      float *cumulative_widths)
+{
+  // for(i=start;i<end;i++) line_width+=l->pieces[i].piece_width;
+  if (start)
+    return cumulative_widths[end-1]-cumulative_widths[start-1];
+  else
+    return cumulative_widths[end-1];
+}
+
 int layout_calculate_segment_cost(struct paragraph *p,
 				  struct line_pieces *l,
-				  int start,int end, int line_count)
+				  int start,int end, int line_count,
+				  float *cumulative_widths)
 {
   float line_width=0;
-  float piece_width=0;
   
   int i;
 
@@ -50,54 +70,14 @@ int layout_calculate_segment_cost(struct paragraph *p,
     footnotemark_index=set_font_by_name("footnotemark");
   
   // Calculate width of the segment.
-  for(i=start;i<end;i++) {
-    piece_width=l->pieces[i].natural_width;
-    
-    if ((i>start)  // make sure there is a previous piece
-	&&l->pieces[i].font==&type_faces[footnotemark_index]) {
-      // This is a footnote mark.
-      // Check if the preceeding piece ends in any low punctuation marks.
-      // If so, then discount the width of that piece by the width of such
-      // punctuation. If the width of the discount is wider than this footnotemark,
-      // then increase the width of this footnotemark so that the end of text
-      // position is advanced correctly.
-      //      fprintf(stderr,"hanging footnotemark over punctuation: ");
-      //      line_dump(l);
-      char *text=l->pieces[i-1].piece;
-      int o=strlen(text);
-      char *hang_text=NULL;
-      while(o>0) {
-	switch(text[o-1]) {	    
-	case '.': case ',':
-	case '-': case ' ': 
-	  hang_text=&text[--o];
-	  continue;
-	}
-	break;
-      }
-      set_font(l->pieces[i-1].font);
-      float hang_width=0;
-      if (hang_text) hang_width=HPDF_Page_TextWidth(page,hang_text);
-      // Discount the width of this piece based on hang_width
-      if (hang_width>piece_width) piece_width=0;
-      else piece_width=piece_width-hang_width;
-
-      // fprintf(stderr,"  This is the punctuation over which we are hanging the footnotemark: [%s] (%.1fpts)\n",hang_text,hang_width);
-      // fprintf(stderr,"Line after hanging footnote over punctuation: ");
-      // line_dump_segment(l,start,end);
-    }
-
-    // XXX - Ignore width of any leading or trailing spaces
-    
-    line_width+=piece_width;
-
-  }
+  // (.piece_width already incorporates any hanging)
+  line_width=get_basic_width_of_line_segment(l,start,end,cumulative_widths);
 
   // Related to the above, we must discount the width of a dropchar if it is
   // followed by left-hangable material.  This only applies to absolute 2nd
   // piece.
   if ((l->pieces[0].font->line_count>1)
-      &&(i==1)
+      &&(start==1)
       &&(line_count<=(l->pieces[0].font->line_count-1)))
     {
       float discount=0;
@@ -186,6 +166,48 @@ int layout_calculate_segment_cost(struct paragraph *p,
   return penalty;
 }
 
+
+int precalc_hang_width(struct line_pieces *l,int i)
+{
+  int piece_width=l->pieces[i].natural_width;
+    
+    if (i  // make sure there is a previous piece
+	&&l->pieces[i].font==&type_faces[footnotemark_index]) {
+      // This is a footnote mark.
+      // Check if the preceeding piece ends in any low punctuation marks.
+      // If so, then discount the width of that piece by the width of such
+      // punctuation. If the width of the discount is wider than this footnotemark,
+      // then increase the width of this footnotemark so that the end of text
+      // position is advanced correctly.
+      //      fprintf(stderr,"hanging footnotemark over punctuation: ");
+      //      line_dump(l);
+      char *text=l->pieces[i-1].piece;
+      int o=strlen(text);
+      char *hang_text=NULL;
+      while(o>0) {
+	switch(text[o-1]) {	    
+	case '.': case ',':
+	case '-': case ' ': 
+	  hang_text=&text[--o];
+	  continue;
+	}
+	break;
+      }
+      set_font(l->pieces[i-1].font);
+      float hang_width=0;
+      if (hang_text) hang_width=HPDF_Page_TextWidth(page,hang_text);
+      // Discount the width of this piece based on hang_width
+      if (hang_width>piece_width) piece_width=0;
+      else piece_width=piece_width-hang_width;
+
+      // fprintf(stderr,"  This is the punctuation over which we are hanging the footnotemark: [%s] (%.1fpts)\n",hang_text,hang_width);
+      // fprintf(stderr,"Line after hanging footnote over punctuation: ");
+      // line_dump_segment(l,start,end);
+    }
+    l->pieces[i].piece_width=piece_width;
+    return 0;
+}
+
 /*
   To layout a long line, we need to know the cost of every
   possible section of the line, and populate a dynamic programming
@@ -231,12 +253,17 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
   // Cost from start to start is 0
   costs[0]=0; next_steps[0]=1;
 
+  // pre-calculate hang width of every piece
+  for(a=0;a<l->piece_count;a++) precalc_hang_width(l,a);
+  precalc_cumulative_widths(l);
+  
   // Calculate costs of every possible segment
   for(a=0;a<l->piece_count;a++) {    
     for(b=a+1;b<=l->piece_count;b++) {
       int line_count=0;
       line_count=line_counts[a];
-      int segment_cost=layout_calculate_segment_cost(p,l,a,b,line_count);
+      int segment_cost=layout_calculate_segment_cost(p,l,a,b,line_count,
+						     cumulative_widths);
       if (segment_cost==-1) break;  
       if (0) fprintf(stderr,"  segment cost of %d..%d is %d (combined cost = %d)\n",
 		     a,b,segment_cost,segment_cost+costs[a]);
