@@ -1086,10 +1086,11 @@ int render_tokens(int token_low,int token_high,int drawingPage)
     }
 
   // Flush out any queued content.
+  last_paragraph_report_time=0;
   if (target_paragraph->current_line&&target_paragraph->current_line->piece_count)
     paragraph_append_current_line(target_paragraph);
   paragraph_flush(target_paragraph,drawingPage);
-
+  fprintf(stderr,"\n");
   
   return 0;
 }

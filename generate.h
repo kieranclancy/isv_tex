@@ -278,6 +278,7 @@ extern int line_uid_counter;
 #define LR_RIGHT 1
 #define LR_NEITHER 0
 extern int leftRight;
+extern time_t last_paragraph_report_time;
 
 int include_show_stack();
 int tokenise_file(char *filename, int crossreference_parsing);
