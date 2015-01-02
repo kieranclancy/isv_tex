@@ -67,7 +67,7 @@ int crossreference_start()
   left_margin=0;
   right_margin=page_width-crossref_column_width;
 
-  target_paragraph=calloc(sizeof(struct paragraph),1);
+  target_paragraph=new_paragraph();
   paragraph_clear(target_paragraph);
 
   if (crossrefmarkerfont_index==-1)

@@ -374,7 +374,7 @@ struct paragraph *layout_paragraph(struct paragraph *p)
   // be either the entire paragraph, or a block of text in the paragraph
   // that can all be flowed together.
 
-  struct paragraph *out=new_paragraph();calloc(sizeof(struct paragraph),1);
+  struct paragraph *out=new_paragraph();
 
   if (p->src_book) out->src_book=strdup(p->src_book);
   out->src_chapter=p->src_chapter;

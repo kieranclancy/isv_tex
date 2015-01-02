@@ -182,7 +182,7 @@ int paragraph_setup_next_line(struct paragraph *p)
   if (p->current_line) paragraph_append_current_line(p);
   
   // Allocate structure
-  p->current_line=calloc(sizeof(struct line_pieces),1); 
+  p->current_line=new_line();
 
   p->current_line->line_uid=line_uid_counter++;
 

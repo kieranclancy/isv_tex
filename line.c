@@ -57,7 +57,7 @@ int line_clone_piece(struct piece *p,struct piece *clone)
 /* Clone a line */
 struct line_pieces *line_clone(struct line_pieces *l)
 {
-  struct line_pieces *clone=calloc(sizeof(struct line_pieces),1);
+  struct line_pieces *clone=malloc(sizeof(struct line_pieces));
 
   // Copy contents of original line to clone
   bcopy(l,clone,sizeof(struct line_pieces));
