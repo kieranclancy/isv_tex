@@ -153,6 +153,17 @@ struct line_pieces {
   int freed;
 };
 
+struct crossref_height_record {
+  struct crossref_height_record *next;
+
+  // First cross-reference paragraph included in this
+  // total.
+  struct paragraph *first_cross_ref;
+
+  // Height of set of cross-references
+  int total_height;
+};
+
 // Current paragraph
 struct paragraph {
   int line_count;
@@ -173,6 +184,9 @@ struct paragraph {
   // Pointer to next paragraph in hash bin
   // (used for fast searching for cross-reference paragraphs)  
   struct paragraph *next;
+
+  // Array used to quickly find preceeding verse cross-references
+  struct crossref_height_record *crossref_heights;
   
   // Source info (used for identifying crossreference paragraphs)
   char *src_book;
