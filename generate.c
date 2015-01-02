@@ -782,40 +782,30 @@ int render_tokens(int token_low,int token_high,int drawingPage)
 	    // to simplify the state control machinery
 	    i++; if (token_types[i]!=TT_TEXT) {
 	      fprintf(stderr,"\\crossref must be followed by {book}{chapter}{verse}{cross-reference list} (step %d, saw token type %d)\n",__LINE__,token_types[i]); exit(-1); }
-	    page_skip_token_as_subordinate(i);
 	    crossreference_book=strdup(token_strings[i]);
 	    i++; if (token_types[i]!=TT_ENDTAG) {
 	      fprintf(stderr,"\\crossref must be followed by {book}{chapter}{verse}{cross-reference list} (step %d, saw token type %d)\n",__LINE__,token_types[i]); exit(-1); }
-	    page_skip_token_as_subordinate(i);
 	    i++; if (token_types[i]!=TT_TAG||token_strings[i]) {
 	      fprintf(stderr,"\\crossref must be followed by {book}{chapter}{verse}{cross-reference list} (step %d, saw token type %d)\n",__LINE__,token_types[i]); exit(-1); }
-	    page_skip_token_as_subordinate(i);
 	    i++; if (token_types[i]!=TT_TEXT) {
 	      fprintf(stderr,"\\crossref must be followed by {book}{chapter}{verse}{cross-reference list} (step %d, saw token type %d)\n",__LINE__,token_types[i]); exit(-1); }
-	    page_skip_token_as_subordinate(i);
 	    crossreference_chapter=strdup(token_strings[i]);
 	    i++; if (token_types[i]!=TT_ENDTAG) {
 	      fprintf(stderr,"\\crossref must be followed by {book}{chapter}{verse}{cross-reference list} (step %d, saw token type %d)\n",__LINE__,token_types[i]); exit(-1); }
-	    page_skip_token_as_subordinate(i);
 	    i++; if (token_types[i]!=TT_TAG||token_strings[i]) {
 	      fprintf(stderr,"\\crossref must be followed by {book}{chapter}{verse}{cross-reference list} (step %d, saw token type %d)\n",__LINE__,token_types[i]); exit(-1); }
-	    page_skip_token_as_subordinate(i);
 	    i++; if (token_types[i]!=TT_TEXT) {
 	      fprintf(stderr,"\\crossref must be followed by {book}{chapter}{verse}{cross-reference list} (step %d, saw token type %d)\n",__LINE__,token_types[i]); exit(-1); }
-	    page_skip_token_as_subordinate(i);
 	    crossreference_verse=strdup(token_strings[i]);
 	    i++; if (token_types[i]!=TT_ENDTAG) {
 	      fprintf(stderr,"\\crossref must be followed by {book}{chapter}{verse}{cross-reference list} (step %d, saw token type %d)\n",__LINE__,token_types[i]); exit(-1); }
-	    page_skip_token_as_subordinate(i);
 	    i++; if (token_types[i]!=TT_TAG||token_strings[i]) {
 	      fprintf(stderr,"\\crossref must be followed by {book}{chapter}{verse}{cross-reference list} (step %d, saw token type %d)\n",__LINE__,token_types[i]); exit(-1); }
-	    page_skip_token_as_subordinate(i);
 	    // Begin crossreference, unless the crossreference entry is empty.
 	    if (token_types[i+1]!=TT_ENDTAG)
 	      crossreference_start(i);
 	    else {
 	      i++;
-	      page_skip_token_as_subordinate(i);
 	    }	    
 	  } else if (!strcasecmp(token_strings[i],"bookheader")) {
 	    // Set booktab text to upper case version of this tag and
@@ -826,13 +816,11 @@ int render_tokens(int token_low,int token_high,int drawingPage)
 	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
 	      exit(-1);
 	    }
-	    page_skip_token_as_subordinate(i);
 	    set_booktab_text(token_strings[i]);
 	    i++; if (token_types[i]!=TT_ENDTAG) {
 	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
 	      exit(-1);
 	    }
-	    page_skip_token_as_subordinate(i);
 	  } else if (!strcasecmp(token_strings[i],"labelbook")) {
 	    // Remember short name of book for inserting entries from the
 	    // cross-reference database.
@@ -841,13 +829,11 @@ int render_tokens(int token_low,int token_high,int drawingPage)
 	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
 	      exit(-1);
 	    }
-	    page_skip_token_as_subordinate(i);
 	    short_book_name=strdup(token_strings[i]);
 	    i++; if (token_types[i]!=TT_ENDTAG) {
 	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
 	      exit(-1);
 	    }
-	    page_skip_token_as_subordinate(i);
 	  } else if (!strcasecmp(token_strings[i],"labelchapt")) {
 	    // Remember short name of book for inserting entries from the
 	    // cross-reference database.
@@ -855,13 +841,11 @@ int render_tokens(int token_low,int token_high,int drawingPage)
 	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
 	      exit(-1);
 	    }
-	    page_skip_token_as_subordinate(i);
 	    chapter_label=atoi(token_strings[i]);
 	    i++; if (token_types[i]!=TT_ENDTAG) {
 	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
 	      exit(-1);
 	    }
-	    page_skip_token_as_subordinate(i);
 	  } else if (!strcasecmp(token_strings[i],"bookpretitle")) {
 	    // Book title header line
 	    if (bookpretitlefont_index==-1)
@@ -1015,7 +999,6 @@ int render_tokens(int token_low,int token_high,int drawingPage)
 	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
 	      exit(-1);
 	    }
-	    page_skip_token_as_subordinate(i);
 	    if (!strcasecmp(token_strings[i],"poetry")) {
 	      target_paragraph->poem_level=0;
 	      paragraph_insert_vspace(target_paragraph,poetry_vspace,0);
@@ -1030,13 +1013,11 @@ int render_tokens(int token_low,int token_high,int drawingPage)
 	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
 	      exit(-1);
 	    }
-	    page_skip_token_as_subordinate(i);
 	  } else if (!strcasecmp(token_strings[i],"begin")) {
 	    i++; if (token_types[i]!=TT_TEXT) {
 	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
 	      exit(-1);
 	    }
-	    page_skip_token_as_subordinate(i);
 	    if (!strcasecmp(token_strings[i],"poetry")) {
 	      target_paragraph->poem_level=0;
 	      paragraph_insert_vspace(target_paragraph,poetry_vspace,0);
@@ -1048,7 +1029,6 @@ int render_tokens(int token_low,int token_high,int drawingPage)
 	      fprintf(stderr,"\%s must be followed by {value}\n",token_strings[i-1]);
 	      exit(-1);
 	    }
-	    page_skip_token_as_subordinate(i);
 	  } else {	    
 	    fprintf(stderr,"Warning: unknown tag \"\\%s\" (%d styles on the stack.)\n",
 		    token_strings[i],type_face_stack_pointer);

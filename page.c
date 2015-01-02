@@ -39,8 +39,6 @@ long long page_penalty=0;
 float page_fullness;
 int page_widow=0;
 
-char *skip_tokens=NULL;
-
 int page_begin()
 {
   paragraph_clear_style_stack();
@@ -116,50 +114,10 @@ int page_penalty_if_not_start_of_page()
 
 int page_optimal_render_tokens()
 {
-  int start,end;
+  // Generate set of all paragraphs and lines that we need to optimise over.
+  render_tokens(0,token_count,0);
 
-  skip_tokens=calloc(sizeof(char),(token_count+1));
-
-  // Generate every possible page, and record the score.
-  for(start=0;start<(token_count-1);start++) {
-    if (!skip_tokens[start]) {
-      for(end=start+1;end<token_count;end++) {
-	fprintf(stderr,"Calculating cost of page: tokens=[%d,%d): ",
-		start,end);
-	page_begin();
-
-	fflush(stderr);
-	
-	// We need to know the type-face stack at each point.
-	// When start==0, it is start of the document, so no problem.
-	// Else, we need to fetch the style stack.
-	if (start) paragraph_fetch_style_stack(0);
-	else paragraph_clear_style_stack();
-	
-	render_tokens(start,end,0);
-	// So that we have a style stack to fetch, we need to have it stowed
-	// away.
-	if (end==start+1) paragraph_stash_style_stack(1);
-	page_end(0);
-
-	fprintf(stderr,"\n");
-	
-	// Stop when page score is too bad
-	if (page_penalty>(OVERFULL_PAGE_PENALTY_PER_PT*16))
-	  break;
-      }
-    }
-    paragraph_fetch_style_stack(1);
-    paragraph_stash_style_stack(0);
-  }
-
-  free(skip_tokens);
+  // Now generate costs and heights for every line of every paragraph
   
-  return 0;
-}
-
-int page_skip_token_as_subordinate(int token_number)
-{
-  if (skip_tokens) skip_tokens[token_number]=1;
   return 0;
 }
