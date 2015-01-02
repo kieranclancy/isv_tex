@@ -100,6 +100,9 @@ struct piece {
 #define NO_NOTBREAKABLE 0
 #define NOTBREAKABLE 1
   int nobreak;
+
+  // Token number from which this piece comes
+  int token_number;
 };
 
 struct line_pieces {
@@ -270,13 +273,14 @@ int new_empty_page(int page_face, int noHeading);
 int paragraph_clear_style_stack();
 int paragraph_push_style(struct paragraph *p, int font_alignment,int font_index);
 int paragraph_append_thinspace(struct paragraph *p,int forceSpaceAtStartOfLine,
-			       int nobreak);
+			       int nobreak, int token_number);
 int paragraph_append_space(struct paragraph *p, int forceSpaceAtStartOfLine,
-			   int nobreak);
+			   int nobreak, int token_number);
 int paragraph_append_text(struct paragraph *p,char *text,int baseline,
-			  int forceSpaceAtStartOfLine, int nobreak);
+			  int forceSpaceAtStartOfLine, int nobreak, int token_number);
 int paragraph_append_characters(struct paragraph *p,char *text,int size,int baseline,
-				int forceSpaceAtStartOfLine, int nobreak);
+				int forceSpaceAtStartOfLine, int nobreak,
+				int token_number);
 int paragraph_set_widow_counter(struct paragraph *p,int lines);
 int paragraph_setup_next_line(struct paragraph *p);
 int paragraph_append_current_line(struct paragraph *p);
@@ -314,11 +318,11 @@ float calc_left_hang(struct line_pieces *l,int left_hang_piece);
 struct piece *new_line_piece(char *text,struct type_face *current_font,
 			     float size,float text_width,
 			     struct paragraph *crossrefs,float baseline,
-			     int nobreak);
+			     int nobreak, int token_number);
 struct line_pieces *new_line();
 
 int generate_footnote_mark(int footnote_count);
-int begin_footnote();
+int begin_footnote(int token_number);
 int end_footnote();
 int output_accumulated_footnotes();
 int reenumerate_footnotes(struct paragraph *p, int line_uid);
@@ -327,7 +331,7 @@ char *next_footnote_mark();
 
 int output_accumulated_cross_references(int max_line_to_render,
 					int drawingPage);
-int crossreference_start();
+int crossreference_start(int token_number);
 int crossreference_end();
 int crossreference_register_verse(struct paragraph *p,
 				  char *book,int chapter, int verse);

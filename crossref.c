@@ -52,7 +52,7 @@ int crossref_margin_width=4;
 int crossrefmarkerfont_index=-1;
 int crossreffont_index=-1;
 
-int crossreference_start()
+int crossreference_start(int token_number)
 {
   // There is actually nothing that needs to be done here.
   if (0)
@@ -77,14 +77,14 @@ int crossreference_start()
   // Begin cross-reference paragraph with marker
   if (crossreference_chapter>0) {
     paragraph_append_text(target_paragraph,crossreference_chapter,0,
-			  NO_FORCESPACEATSTARTOFLINE,NOTBREAKABLE); 
+			  NO_FORCESPACEATSTARTOFLINE,NOTBREAKABLE,token_number); 
     paragraph_append_text(target_paragraph,":",0,
-			  NO_FORCESPACEATSTARTOFLINE,NOTBREAKABLE); 
+			  NO_FORCESPACEATSTARTOFLINE,NOTBREAKABLE,token_number); 
   }
   paragraph_append_text(target_paragraph,crossreference_verse,0,
-			NO_FORCESPACEATSTARTOFLINE,NO_NOTBREAKABLE); 
+			NO_FORCESPACEATSTARTOFLINE,NO_NOTBREAKABLE,token_number); 
   paragraph_append_text(target_paragraph," ",0,
-			NO_FORCESPACEATSTARTOFLINE,NO_NOTBREAKABLE); 
+			NO_FORCESPACEATSTARTOFLINE,NO_NOTBREAKABLE,token_number); 
 
   paragraph_pop_style(target_paragraph);
   if (crossreffont_index==-1)

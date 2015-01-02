@@ -229,7 +229,8 @@ int paragraph_set_widow_counter(struct paragraph *p,int lines)
 }
 
 int paragraph_append_characters(struct paragraph *p,char *text,int size,int baseline,
-				int forceSpaceAtStartOfLine, int nobreak)
+				int forceSpaceAtStartOfLine, int nobreak,
+				int token_number)
 {
   // fprintf(stderr,"%s(\"%s\",%d)\n",__FUNCTION__,text,size);
   
@@ -272,7 +273,7 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
   
   line_append_piece(p->current_line,
 		    new_line_piece(text,current_font,size,text_width,NULL,baseline,
-				   nobreak));
+				   nobreak,token_number));
 
   // Mark line as poetry if required.
   p->current_line->poem_level=p->poem_level;
@@ -282,7 +283,7 @@ int paragraph_append_characters(struct paragraph *p,char *text,int size,int base
 
 int paragraph_append_text(struct paragraph *p,char *text,int baseline,
 			  int forceSpaceAtStartOfLine,
-			  int nobreak)
+			  int nobreak, int token_number)
 {  
   // fprintf(stderr,"%s(\"%s\")\n",__FUNCTION__,text);
 
@@ -322,12 +323,12 @@ int paragraph_append_text(struct paragraph *p,char *text,int baseline,
 		  paragraph_append_characters(p,chars,current_font->smallcaps,
 					      baseline+current_font->baseline_delta,
 					      forceSpaceAtStartOfLine,
-					      nobreak_flag);
+					      nobreak_flag, token_number);
 		else
 		  paragraph_append_characters(p,chars,current_font->font_size,
 					      baseline+current_font->baseline_delta,
 					      forceSpaceAtStartOfLine,
-					      nobreak_flag);
+					      nobreak_flag, token_number);
 		i=j;
 		count=0;
 		break;
@@ -338,11 +339,13 @@ int paragraph_append_text(struct paragraph *p,char *text,int baseline,
 	  if (islower)
 	    paragraph_append_characters(p,chars,current_font->smallcaps,
 					baseline+current_font->baseline_delta,
-					forceSpaceAtStartOfLine,nobreak);
+					forceSpaceAtStartOfLine,nobreak,
+					token_number);
 	  else
 	    paragraph_append_characters(p,chars,current_font->font_size,
 					baseline+current_font->baseline_delta,
-					forceSpaceAtStartOfLine,nobreak);
+					forceSpaceAtStartOfLine,nobreak,
+					token_number);
 	  break;
 	}
       }
@@ -350,7 +353,7 @@ int paragraph_append_text(struct paragraph *p,char *text,int baseline,
     // Regular text. Render as one piece.
     paragraph_append_characters(p,text,current_font->font_size,
 				baseline+current_font->baseline_delta,
-				forceSpaceAtStartOfLine,nobreak);
+				forceSpaceAtStartOfLine,nobreak, token_number);
   }
     
   return 0;
@@ -360,7 +363,8 @@ int paragraph_append_text(struct paragraph *p,char *text,int baseline,
    space that can be expanded if required for justified text.
 */
 int paragraph_append_space(struct paragraph *p,
-			   int forceSpaceAtStartOfLine, int nobreak)
+			   int forceSpaceAtStartOfLine, int nobreak,
+			   int token_number)
 {
   // fprintf(stderr,"%s()\n",__FUNCTION__);
 
@@ -376,13 +380,13 @@ int paragraph_append_space(struct paragraph *p,
   // Checkpoint where we are up to, in case we need to split the line
   line_set_checkpoint(p->current_line);
   paragraph_append_characters(p," ",current_font->font_size,0,
-			      forceSpaceAtStartOfLine,nobreak);
+			      forceSpaceAtStartOfLine,nobreak, token_number);
   return 0;
 }
 
 // Thin space.  Append a normal space, then revise it's width down to 1/2
 int paragraph_append_thinspace(struct paragraph *p,int forceSpaceAtStartOfLine,
-			       int nobreak)
+			       int nobreak, int token_number)
 {
   // fprintf(stderr,"%s()\n",__FUNCTION__);
   // Checkpoint where we are up to, in case we need to split the line.
@@ -390,7 +394,7 @@ int paragraph_append_thinspace(struct paragraph *p,int forceSpaceAtStartOfLine,
   // previous elastic space
   line_set_checkpoint(p->current_line);
   paragraph_append_characters(p," ",current_font->font_size,0,
-			      forceSpaceAtStartOfLine,nobreak);
+			      forceSpaceAtStartOfLine,nobreak, token_number);
   // If the thin-space isn't added to the line, don't go causing a segfault.
   if (p->current_line->piece_count) {
     p->current_line->pieces[p->current_line->piece_count-1].piece_width/=2;
@@ -627,7 +631,8 @@ int paragraph_append(struct paragraph *dst,struct paragraph *src)
 				      src->paragraph_lines[i]->pieces[j].actualsize,
 				      src->paragraph_lines[i]->pieces[j].piece_baseline,
 				      NO_FORCESPACEATSTARTOFLINE,
-				      src->paragraph_lines[i]->pieces[j].nobreak);
+				      src->paragraph_lines[i]->pieces[j].nobreak,
+				      src->paragraph_lines[i]->pieces[j].token_number);
 	  current_font = preserved_current_font;
 	}
     }

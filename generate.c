@@ -758,17 +758,17 @@ int render_tokens(int token_low,int token_high,int drawingPage)
       case TT_SPACE:
 	paragraph_append_space(target_paragraph,
 			       NO_FORCESPACEATSTARTOFLINE,
-			       NO_NOTBREAKABLE);
+			       NO_NOTBREAKABLE,i);
 	break;
       case TT_NONBREAKINGSPACE:
 	fprintf(stderr,"Saw nonbreakingspace\n");
 	paragraph_append_space(target_paragraph,
-			       FORCESPACEATSTARTOFLINE,NOTBREAKABLE);
+			       FORCESPACEATSTARTOFLINE,NOTBREAKABLE,i);
 	break;
       case TT_THINSPACE:
 	paragraph_append_thinspace(target_paragraph,
 				   NO_FORCESPACEATSTARTOFLINE,
-				   NO_NOTBREAKABLE);
+				   NO_NOTBREAKABLE,i);
 	break;
       case TT_TAG:
 	if (token_strings[i]) {
@@ -812,7 +812,7 @@ int render_tokens(int token_low,int token_high,int drawingPage)
 	    page_skip_token_as_subordinate(i);
 	    // Begin crossreference, unless the crossreference entry is empty.
 	    if (token_types[i+1]!=TT_ENDTAG)
-	      crossreference_start();
+	      crossreference_start(i);
 	    else {
 	      i++;
 	      page_skip_token_as_subordinate(i);
@@ -942,7 +942,7 @@ int render_tokens(int token_low,int token_high,int drawingPage)
 				 target_paragraph->current_line->alignment,
 				 set_font(current_font));
 	    paragraph_append_text(target_paragraph,unicodeToUTF8(0x2026),0,
-				  NO_FORCESPACEATSTARTOFLINE,NO_NOTBREAKABLE);
+				  NO_FORCESPACEATSTARTOFLINE,NO_NOTBREAKABLE,i);
 	  } else if (!strcasecmp(token_strings[i],"divine")) {
 	    if (divinefont_index==-1)
 	      divinefont_index=set_font_by_name("divine");
@@ -985,7 +985,7 @@ int render_tokens(int token_low,int token_high,int drawingPage)
 				 footnotemarkfont_index);
 	    // fprintf(stderr,"Footnote mark is '%s'\n",mark);
 	    paragraph_append_text(target_paragraph,mark,current_font->baseline_delta,
-				  NO_FORCESPACEATSTARTOFLINE,NO_NOTBREAKABLE);
+				  NO_FORCESPACEATSTARTOFLINE,NO_NOTBREAKABLE,i);
 	    paragraph_pop_style(target_paragraph);
 
 	    // Select footnote font
@@ -995,7 +995,7 @@ int render_tokens(int token_low,int token_high,int drawingPage)
 
 	    // XXX Redirect the foot note text itself to the footnote accumulator.
 	    footnote_stack_depth=type_face_stack_pointer;
-	    begin_footnote();	    
+	    begin_footnote(i);
 	    
 	    // Poem line indenting. Set default left margin for lines.
 	  } else if (!strcasecmp(token_strings[i],"poeml")) {
@@ -1080,7 +1080,7 @@ int render_tokens(int token_low,int token_high,int drawingPage)
 	  int nobreak=NO_NOTBREAKABLE;
 	  if (!strcmp(current_font->font_nickname,"versenum")) nobreak=NOTBREAKABLE;
 	  paragraph_append_text(target_paragraph,token_strings[i],0,
-				NO_FORCESPACEATSTARTOFLINE,nobreak);
+				NO_FORCESPACEATSTARTOFLINE,nobreak,i);
 	  // Attach verse number to this line if necessary.
 	  if (next_token_is_verse_number) {
 	    next_token_is_verse_number=0;

@@ -89,7 +89,7 @@ char *next_footnote_mark()
 
 int footnotemarkinfootnotefont_index=-1;
 int footnote_mode=0;
-int begin_footnote()
+int begin_footnote(int token_number)
 {
   //  fprintf(stderr,"%s(): STUB\n",__FUNCTION__);
 
@@ -102,7 +102,8 @@ int begin_footnote()
   // We use 4 normal spaces so that justification will scale the space appropriately.
   int i;
   for(i=0;i<4;i++) paragraph_append_space(target_paragraph,
-					  FORCESPACEATSTARTOFLINE,NO_NOTBREAKABLE);
+					  FORCESPACEATSTARTOFLINE,NO_NOTBREAKABLE,
+					  token_number);
 
   // Draw footnote mark at start of footnote
   if (footnotemarkinfootnotefont_index==-1)
@@ -112,7 +113,7 @@ int begin_footnote()
   generate_footnote_mark(footnote_count-1);
   // Don't allow footnote marks to appear at the end of a line
   paragraph_append_text(target_paragraph,footnote_mark_string,0,
-			NO_FORCESPACEATSTARTOFLINE,NOTBREAKABLE);
+			NO_FORCESPACEATSTARTOFLINE,NOTBREAKABLE,token_number);
   paragraph_pop_style(target_paragraph);
 
   footnote_mode=1;
