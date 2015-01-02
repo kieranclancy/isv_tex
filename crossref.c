@@ -122,7 +122,7 @@ int crossreference_end()
   current_line_flush(c_raw);
 
   // Layout the paragraph
-  struct paragraph *c=layout_paragraph(c_raw);
+  struct paragraph *c=layout_paragraph(c_raw,1);
 
   // Now free c_raw
   paragraph_clear(c_raw); free(c_raw);

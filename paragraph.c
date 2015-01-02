@@ -69,7 +69,7 @@ int paragraph_flush(struct paragraph *p_in,int drawingPage)
   current_line_flush(p_in);
 
   // Put line-breaks into paragraph to fit column width as required.
-  struct paragraph *p=layout_paragraph(p_in);
+  struct paragraph *p=layout_paragraph(p_in,drawingPage);
   
   // XXX mark last line terminal (so that it doesn't get justified).
 

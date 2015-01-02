@@ -363,7 +363,7 @@ int unicode_replace(char *text,int *len,
 		    int offset,int number_of_chars_to_replace,
 		    int unicode_point);
 
-struct paragraph *layout_paragraph(struct paragraph *p);
+struct paragraph *layout_paragraph(struct paragraph *p, int drawingPage);
 
 int render_tokens(int token_low,int token_high,int drawingPage);
 

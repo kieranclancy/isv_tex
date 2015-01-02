@@ -142,6 +142,8 @@ int output_accumulated_footnotes(int drawingPage)
 {
   // fprintf(stderr,"%s()\n",__FUNCTION__);
 
+  if (!drawingPage) return 0;
+  
   // Commit any partial last-line in the footnote paragraph.
   if (footnote_paragraph.current_line) {
     current_line_flush(&footnote_paragraph);
@@ -150,7 +152,7 @@ int output_accumulated_footnotes(int drawingPage)
   int saved_page_y=page_y;
   int saved_bottom_margin=bottom_margin;
 
-  struct paragraph *f=layout_paragraph(&footnote_paragraph);
+  struct paragraph *f=layout_paragraph(&footnote_paragraph,drawingPage);
   
   int footnotes_height=paragraph_height(f);
 

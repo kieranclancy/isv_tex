@@ -222,7 +222,8 @@ int precalc_hang_width(struct line_pieces *l,int i)
      width when drop-characters are involved.
 
 */
-int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
+int layout_line(struct paragraph *p,int line_number,struct paragraph *out,
+		int drawingPage)
 {
   struct line_pieces *l=p->paragraph_lines[line_number];
   
@@ -323,72 +324,74 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out)
     positions[pcount++]=position;
     position=next_steps[position];
   }
-  
-  // fprintf(stderr,">> Optimal long-line layout is:\n");
-  int line_count=0;
-  int k;
-  for(k=pcount-1;k>=0;k--) {
-    position=positions[k];
 
-    if (0) {
-      fprintf(stderr,"Segment at position %d..%d (cost %d): ",
-	      next_steps[position],position,costs[position]);
-      line_dump_segment(l,next_steps[position],position);
-    }
-
-    // Build line
-    struct line_pieces *lout=new_line();
-    lout->alignment=l->alignment;
-    lout->tied_to_next_line=l->tied_to_next_line;
-    lout->line_uid=line_uid_counter++;
-    lout->max_line_width=page_width-left_margin-right_margin;
-    for(int i=next_steps[position];i<position;i++) {
-      line_append_piece(lout,&l->pieces[i]);
+  {
+    // fprintf(stderr,">> Optimal long-line layout is:\n");
+    int line_count=0;
+    int k;
+    for(k=pcount-1;k>=0;k--) {
+      position=positions[k];
       
-      // XXX - Use the largest indent specified by any of these
-      
-      // Add left margin for start of paragraph
-      if ((line_number==0)&&(next_steps[position]<1)) {
-	lout->left_margin=paragraph_indent;
-	    lout->max_line_width
-	      =page_width-left_margin-right_margin-paragraph_indent;
+      if (0) {
+	fprintf(stderr,"Segment at position %d..%d (cost %d): ",
+		next_steps[position],position,costs[position]);
+	line_dump_segment(l,next_steps[position],position);
       }
-      // Add left margin for any dropchar
-      // (but not for the line with the dropchar)
-      if (l->pieces[0].font->line_count>1)
-	if (line_count&&(line_count<l->pieces[0].font->line_count)) {
-	  lout->left_margin=l->pieces[0].natural_width;
+      
+      // Build line
+      struct line_pieces *lout=new_line();
+      lout->alignment=l->alignment;
+      lout->tied_to_next_line=l->tied_to_next_line;
+      lout->line_uid=line_uid_counter++;
+      lout->max_line_width=page_width-left_margin-right_margin;
+      for(int i=next_steps[position];i<position;i++) {
+	line_append_piece(lout,&l->pieces[i]);
+	
+	// XXX - Use the largest indent specified by any of these
+	
+	// Add left margin for start of paragraph
+	if ((line_number==0)&&(next_steps[position]<1)) {
+	  lout->left_margin=paragraph_indent;
 	  lout->max_line_width
-	    =page_width-left_margin-right_margin-l->pieces[0].natural_width;
+	    =page_width-left_margin-right_margin-paragraph_indent;
 	}
-      // Similarly adjust margin for poetry
-      if (l->poem_level) {
-	int poem_indent=0;
-	poem_indent+=poetry_left_margin;
-	poem_indent+=l->poem_level*poetry_level_indent;
-	// Apply poetry wrap for 2nd and subsequent lines
-	if (line_count) poem_indent+=poetry_wrap_indent;
-	lout->left_margin=poem_indent;
-	lout->max_line_width=page_width-left_margin-poem_indent;
+	// Add left margin for any dropchar
+	// (but not for the line with the dropchar)
+	if (l->pieces[0].font->line_count>1)
+	  if (line_count&&(line_count<l->pieces[0].font->line_count)) {
+	    lout->left_margin=l->pieces[0].natural_width;
+	    lout->max_line_width
+	      =page_width-left_margin-right_margin-l->pieces[0].natural_width;
+	  }
+	// Similarly adjust margin for poetry
+	if (l->poem_level) {
+	  int poem_indent=0;
+	  poem_indent+=poetry_left_margin;
+	  poem_indent+=l->poem_level*poetry_level_indent;
+	  // Apply poetry wrap for 2nd and subsequent lines
+	  if (line_count) poem_indent+=poetry_wrap_indent;
+	  lout->left_margin=poem_indent;
+	  lout->max_line_width=page_width-left_margin-poem_indent;
+	}
       }
+      
+      // Insert it into the output paragraph
+      paragraph_insert_line(out,out->line_count,lout);
+      if (0) {
+	fprintf(stderr,"Laid out line: ");
+	line_dump(lout);
+      }
+      
+      line_count++;
     }
-
-    // Insert it into the output paragraph
-    paragraph_insert_line(out,out->line_count,lout);
-    if (0) {
-      fprintf(stderr,"Laid out line: ");
-      line_dump(lout);
-    }
-    
-    line_count++;
-  }  
+  }
   
   // fprintf(stderr,"<<\n");
   
   return 0;
 }
 
-struct paragraph *layout_paragraph(struct paragraph *p)
+struct paragraph *layout_paragraph(struct paragraph *p, int drawingPage)
 {
   // fprintf(stderr,"%s()\n",__FUNCTION__);
 
@@ -408,7 +411,7 @@ struct paragraph *layout_paragraph(struct paragraph *p)
   out->src_verse=p->src_verse;
 
   // Lay out each line
-  for(i=0;i<p->line_count;i++) layout_line(p,i,out);
+  for(i=0;i<p->line_count;i++) layout_line(p,i,out,drawingPage);
 
   return out;
 }

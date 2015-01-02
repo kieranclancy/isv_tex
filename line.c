@@ -453,7 +453,7 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph,
     paragraph_init(&temp);
     paragraph_clone(&temp,&footnote_paragraph);
     current_line_flush(&temp);
-    struct paragraph *f=layout_paragraph(&temp);
+    struct paragraph *f=layout_paragraph(&temp,drawingPage);
     
     int footnotes_height=paragraph_height(f);
     baseline_y+=footnotes_height;
