@@ -760,7 +760,7 @@ int render_tokens(int token_low,int token_high,int drawingPage)
 			       NO_NOTBREAKABLE,i);
 	break;
       case TT_NONBREAKINGSPACE:
-	fprintf(stderr,"Saw nonbreakingspace\n");
+	// fprintf(stderr,"Saw nonbreakingspace\n");
 	paragraph_append_space(target_paragraph,
 			       FORCESPACEATSTARTOFLINE,NOTBREAKABLE,i);
 	break;
