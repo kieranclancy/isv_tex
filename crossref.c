@@ -30,6 +30,7 @@
 #include <unistd.h>
 #include <math.h>
 #include <ctype.h>
+#include <time.h>
 #include "ft2build.h"
 #include FT_FREETYPE_H
 #include "hpdf.h"
@@ -113,6 +114,11 @@ int crossref_calc_hash(char *book,int chapter,int verse)
   return hash;
 }
 
+struct paragraph *recently_added_crossrefs[MAX_VERSES_ON_PAGE];
+int crossref_total_count=0;
+int crossref_next=0;
+time_t crossref_last_report_time=0;
+
 int crossreference_end()
 {
   // Clone paragraph, set info, and add into hash table of
@@ -140,6 +146,18 @@ int crossreference_end()
   c->next=crossref_hash_bins[bin];
   crossref_hash_bins[bin]=c;
 
+  // Remember recently added cross-references so that we can calculate the
+  // height of each possible set of cross-references
+  recently_added_crossrefs[crossref_next++]=c;
+  if (crossref_next>=MAX_VERSES_ON_PAGE) crossref_next=0;
+  crossref_total_count++;
+  if (time(0)>crossref_last_report_time) {
+    crossref_last_report_time=time(0);
+    fprintf(stderr,"\rRead %d cross-reference entries.",crossref_total_count);
+    fflush(stderr);
+  }
+  
+  
   if (0) {
     fprintf(stderr,"Crossrefs for %s %d:%d in bin %d\n",
 	    c->src_book,c->src_chapter,c->src_verse,bin);

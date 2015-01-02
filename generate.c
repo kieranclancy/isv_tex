@@ -1182,6 +1182,8 @@ int setup_job()
   crossref_hashtable_init();
   tokenise_file("crossrefs.tex",1);
   render_tokens(0,token_count,0);
+  // Tidy up output after cross-reference generation reports.
+  fprintf(stderr,"\n");
   clear_tokens();
 
   return 0;

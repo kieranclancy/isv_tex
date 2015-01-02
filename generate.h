@@ -173,6 +173,7 @@ struct paragraph {
   // Pointer to next paragraph in hash bin
   // (used for fast searching for cross-reference paragraphs)  
   struct paragraph *next;
+  
   // Source info (used for identifying crossreference paragraphs)
   char *src_book;
   int src_chapter;
