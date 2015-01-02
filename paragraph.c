@@ -30,6 +30,7 @@
 #include <unistd.h>
 #include <math.h>
 #include <ctype.h>
+#include <time.h>
 #include "ft2build.h"
 #include FT_FREETYPE_H
 #include "hpdf.h"
@@ -61,10 +62,28 @@ int _paragraph_clear(struct paragraph *p,const char *func,const char *file,int l
   return 0;
 }
 
+time_t last_paragraph_report_time=0;
+int paragraph_count=0;
+
 int paragraph_flush(struct paragraph *p_in,int drawingPage)
 {  
   //  fprintf(stderr,"%s():\n",__FUNCTION__);
 
+  // First flush the current line
+  current_line_flush(p_in);
+
+  paragraph_count++;
+  if (last_paragraph_report_time<time(0)) {
+    last_paragraph_report_time=time(0);
+    fprintf(stderr,"\rGathered %d paragraphs.",paragraph_count);
+    fflush(stderr);
+  }
+  
+  return 0;
+}
+
+#ifdef NOTDEFINED
+int paragraph_flush_old(struct paragraph *p_in,int drawingPage)
   // First flush the current line
   current_line_flush(p_in);
 
@@ -131,6 +150,7 @@ int paragraph_flush(struct paragraph *p_in,int drawingPage)
   
   return 0;
 }
+#endif
 
 /* To build a paragraph we need to build lines, and then to know 
    which lines are inseparable and those which can be separated, i.e.,
