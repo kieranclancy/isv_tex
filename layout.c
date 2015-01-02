@@ -37,7 +37,6 @@
 
 int footnotemark_index=-1;
 
-
 int layout_calculate_segment_cost(struct paragraph *p,
 				  struct line_pieces *l,
 				  int start,int end, int line_count)
@@ -47,7 +46,8 @@ int layout_calculate_segment_cost(struct paragraph *p,
   
   int i;
 
-  if (footnotemark_index==-1) footnotemark_index=set_font_by_name("footnotemark");
+  if (footnotemark_index==-1)
+    footnotemark_index=set_font_by_name("footnotemark");
   
   // Calculate width of the segment.
   for(i=start;i<end;i++) {
@@ -174,8 +174,8 @@ int layout_calculate_segment_cost(struct paragraph *p,
     if (((unsigned char)l->pieces[i].piece[0])==',') penalty+=1000000;
     if (((unsigned char)l->pieces[i].piece[0])=='.') penalty+=1000000;
     if (((unsigned char)l->pieces[i].piece[0])=='\'') penalty+=1000000;
-    
-    if (!strcasecmp(l->pieces[i].font->font_nickname,"footnotemark"))
+
+    if (l->pieces[i].font==&type_faces[footnotemark_index])
       penalty+=1000000;
 
     // Don't allow line breaks following non-breakable pieces
