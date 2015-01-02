@@ -192,6 +192,7 @@ int paragraph_append_current_line(struct paragraph *p)
   
   if (p->line_count>=MAX_LINES_IN_PARAGRAPH) {
     fprintf(stderr,"Too many lines in paragraph.\n");
+    paragraph_dump(p);
     exit(-1);
   }
 
