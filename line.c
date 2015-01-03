@@ -611,10 +611,23 @@ int line_set_checkpoint(struct line_pieces *l)
   return 0;
 }
 
+extern int footnotemark_index;
+
 int line_append_piece(struct line_pieces *l,struct piece *p)
 {
   bcopy(p,&l->pieces[l->piece_count],sizeof(struct piece));
   l->pieces[l->piece_count++].piece=strdup(p->piece);
+  switch ((unsigned char)p->piece[0]) {
+  case 0xa0: case ',': case '.': case '\'':
+    // Don't allow line breaks before these characters.
+    // XXX What about unicode closing book quotes etc?
+    if (l->piece_count>1) l->pieces[l->piece_count-2].nobreak=1;
+  }
+  if (footnotemark_index==-1)
+    footnotemark_index=set_font_by_name("footnotemark");
+  if (p->font==&type_faces[footnotemark_index])
+    if (l->piece_count>1) l->pieces[l->piece_count-2].nobreak=1;
+  
   return 0;
 }
 

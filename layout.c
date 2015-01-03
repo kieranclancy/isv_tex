@@ -174,6 +174,11 @@ int layout_calculate_segment_cost(struct paragraph *p,
   while((i<end)&&(l->pieces[i].piece[0]==' ')) i++;
 
   if (i<end) {
+
+    // line_append_piece sets the nobreak flag on the preceeding piece
+    // if it shouldn't be split for any reason.  That way we don't need
+    // to keep recalculating stuff in here.
+#ifdef NOT_DEFINED
     // Don't allow breaking of non-breakable spaces
     // Or starting lines with various sorts of punctuation
     switch((unsigned char)l->pieces[i].piece[0]) {
@@ -184,7 +189,7 @@ int layout_calculate_segment_cost(struct paragraph *p,
     // Or with footnote marks
     if (l->pieces[i].font==&type_faces[footnotemark_index])
       penalty+=1000000;
-
+#endif
     // Don't allow line breaks following non-breakable pieces
     if ((i>start)&&l->pieces[i-1].nobreak) penalty+=1000000;
   }
