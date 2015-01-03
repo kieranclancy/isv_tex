@@ -149,8 +149,12 @@ struct line_pieces {
   // (used to try to match position of cross-references)
   int on_page_y;
 
+  // Structure to keep track of the scores and heights of optimal
+  // layouts of all possible contiguous segments of the line.
+  struct line_metrics *metrics;
+  
   // DEBUG check whether line has been freed previously
-  int freed;
+  int freed;  
 };
 
 struct crossref_height_record {
@@ -316,14 +320,14 @@ int current_line_flush(struct paragraph *p);
 int paragraph_insert_line(struct paragraph *p,int line_number, struct line_pieces *l);
 struct paragraph *new_paragraph();
 int paragraph_free(struct paragraph *p);
-
+int paragraph_analyse(struct paragraph *p);
 
 int line_dump(struct line_pieces *l);
 int line_dump_segment(struct line_pieces *l,int start,int end);
 int line_emit(struct paragraph *p,int line_num,int isBodyParagraph,
 	      int drawingPage);
 int line_free(struct line_pieces *l);
-int line_calculate_height(struct line_pieces *l);
+int line_calculate_height(struct line_pieces *l, int start, int end);
 struct line_pieces *line_clone(struct line_pieces *l);
 int line_apply_poetry_margin(struct paragraph *p,struct line_pieces *current_line);
 int dropchar_margin_check(struct paragraph *p,struct line_pieces *l);
@@ -338,6 +342,7 @@ struct piece *new_line_piece(char *text,struct type_face *current_font,
 			     struct paragraph *crossrefs,float baseline,
 			     int nobreak, int token_number);
 struct line_pieces *new_line();
+int line_analyse(struct paragraph *p,int line_number);
 
 int generate_footnote_mark(int footnote_count);
 int begin_footnote(int token_number);
@@ -386,6 +391,9 @@ int unicode_replace(char *text,int *len,
 		    int unicode_point);
 
 struct paragraph *layout_paragraph(struct paragraph *p, int drawingPage);
+int layout_line(struct paragraph *p, int line_number,
+		int start, int end,
+		struct paragraph *out, int drawingPage);
 
 int render_tokens(int token_low,int token_high,int drawingPage);
 

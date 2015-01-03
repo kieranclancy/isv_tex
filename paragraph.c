@@ -90,9 +90,11 @@ int paragraph_flush(struct paragraph *p_in,int drawingPage)
   paragraph_clone(p,p_in);
   paragraph_clear(p_in);
 
-  body_paragraphs[paragraph_count++]=p;
+  paragraph_analyse(p);
   
+  body_paragraphs[paragraph_count++]=p;  
   paragraph_count++;
+
   if (last_paragraph_report_time<time(0)) {
     last_paragraph_report_time=time(0);
     fprintf(stderr,"\rGathered %d paragraphs.",paragraph_count);
@@ -102,89 +104,11 @@ int paragraph_flush(struct paragraph *p_in,int drawingPage)
   return 0;
 }
 
-#ifdef NOTDEFINED
-int paragraph_flush_old(struct paragraph *p_in,int drawingPage)
-  // First flush the current line
-  current_line_flush(p_in);
-
-  // Put line-breaks into paragraph to fit column width as required.
-  struct paragraph *p=layout_paragraph(p_in,drawingPage);
-  
-  // XXX mark last line terminal (so that it doesn't get justified).
-
-  /* Write lines of paragraph to PDF, generating new pages as required.
-     Here the challenge is knowing that the line will fit.
-     We can fairly easily measure the height of the line itself to see that
-     it will fit.  The trick is making sure that there is room for the line 
-     plus any inseperable lines fit, too. Also, there has to be room for the
-     marginal cross-references, and also the footnotes at the bottom.
-
-     The footnotes are merged in a single footnote paragraph, which makes
-     determining the space for them dependent on what has already been
-     rendered on this page.
-
-     The marginal notes should appear next to the corresponding verses,
-     unless some verses have too many, in which case we have to do some
-     vertical sliding to try to make them fit, if possible.
-
-     For now, we will ignore all of that, and just emit the lines if there is
-     physical space for the line.  This requires only pre-processing each line
-     to determine the maximum extents of that line.
-  */  
-  int i;
-  for(i=0;i<p->line_count;i++) line_calculate_height(p->paragraph_lines[i]);
-
-  // Keep first two and last two lines together to stop orphans and widows.
-  if (p->line_count>1) {
-    p->paragraph_lines[0]->tied_to_next_line=1;
-    p->paragraph_lines[p->line_count-2]->tied_to_next_line=1;    
-  }
-  // Also keep the first two lines of text following a passage header or passage
-  // info header.
-  int countdown=0;
-  for(i=0;i<p->line_count;i++) {
-    int isHeading=0;
-    if (p->paragraph_lines[i]->piece_count) {
-      if (!strcasecmp(p->paragraph_lines[i]->pieces[0].font->font_nickname,"passageheader"))
-	isHeading=1;
-      if (!strcasecmp(p->paragraph_lines[i]->pieces[0].font->font_nickname,"passageinfo"))
-	isHeading=1;
-      if (countdown) p->paragraph_lines[i]->tied_to_next_line=1;
-      if (isHeading) countdown=2; else if (countdown>0) countdown--;
-    }
-  }
-
-  // Actually draw the lines
-  int isBodyParagraph=0;
-  if (p_in==&body_paragraph) isBodyParagraph=1;
-  for(i=0;i<p->line_count;i++) line_emit(p,i,isBodyParagraph,drawingPage);
-
-  // Clear out old lines in input
-  for(i=0;i<p_in->line_count;i++) line_free(p_in->paragraph_lines[i]);
-  p_in->line_count=0;
-
-  // ... and also in the laid-out version of the paragraph
-  for(i=0;i<p->line_count;i++) line_free(p->paragraph_lines[i]);
-  p->line_count=0;
-  free(p);
-  
-  return 0;
-}
-#endif
-
 /* To build a paragraph we need to build lines, and then to know 
    which lines are inseparable and those which can be separated, i.e.,
    what the separable units of the paragraph are.
-   With this information the paragraph can be written by seeing if each
-   separable unit in turn can fit on the current page. If not, the page
-   gets flushed, and the process continues on the next (initially empty)
-   page.
 
    At the next lower level we need to assemble lines from the incoming words.
-   This works by computing the dimenstions of each word, and seeing if it
-   can fit on the current line.  If so, then good, else the previous line is
-   finalised (which may involve adjusting the horizontal spacing if centring
-   or justification is applied.
 
    Line assembly has a few corner cases to handle.  First, some smallcaps
    output is emulated using the capital characters of a regular font, in
@@ -694,11 +618,12 @@ int paragraph_height(struct paragraph *p)
   int i;
   
   for(i=0;i<p->line_count;i++) {
-    line_calculate_height(p->paragraph_lines[i]);
+    line_calculate_height(p->paragraph_lines[i],
+			  0,p->paragraph_lines[i]->piece_count);
     height+=p->paragraph_lines[i]->line_height;
   }
   if (p->current_line) {
-    line_calculate_height(p->current_line);
+    line_calculate_height(p->current_line,0,p->current_line->piece_count);
     height+=p->current_line->line_height;
   }
   
@@ -741,4 +666,11 @@ struct paragraph *new_paragraph()
   p->total_height=0;
   p->crossref_heights=NULL;
   return p;
+}
+
+int paragraph_analyse(struct paragraph *p)
+{
+  int i;
+  for(i=0;i<p->line_count;i++) line_analyse(p,i);
+  return 0;
 }

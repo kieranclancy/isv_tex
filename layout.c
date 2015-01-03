@@ -222,8 +222,9 @@ int precalc_hang_width(struct line_pieces *l,int i)
      width when drop-characters are involved.
 
 */
-int layout_line(struct paragraph *p,int line_number,struct paragraph *out,
-		int drawingPage)
+int layout_line(struct paragraph *p, int line_number,
+		int start, int end,
+		struct paragraph *out, int drawingPage)
 {
   struct line_pieces *l=p->paragraph_lines[line_number];
   
@@ -259,8 +260,8 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out,
   precalc_cumulative_widths(l);
   
   // Calculate costs of every possible segment
-  for(a=0;a<l->piece_count;a++) {    
-    for(b=a+1;b<=l->piece_count;b++) {
+  for(a=start;a<l->piece_count;a++) {    
+    for(b=a+1;b<=end;b++) {
       int line_count=0;
       line_count=line_counts[a];
       int segment_cost=layout_calculate_segment_cost(p,l,a,b,line_count,
@@ -280,8 +281,8 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out,
 
   // Count number of lines in optimal layout.
   int num_lines=0;
-  int position=l->piece_count;
-  while(position>0) {
+  int position=end;
+  while(position>start) {
     if (next_steps[position]>=position) {
       fprintf(stderr,"Circular path in %s(): next_steps[%d]=%d\n",
 	      __FUNCTION__,position,next_steps[position]);
@@ -297,7 +298,7 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out,
   }
 
   // Add cost of paragraph to page penalty.
-  page_penalty_add(costs[l->piece_count]);
+  page_penalty_add(costs[end]);
   
   
   // Build list of lines by working backwards through the paragraph.
@@ -307,15 +308,15 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out,
   // to optimal page boundary selection only the footnotes for the current
   // page will be rendered on the current page).
 
-  int positions[l->piece_count+1];
+  int positions[end+1];
   int pcount=0;
-  position=l->piece_count;
-  while(position>0) {
-    if (position<0||next_steps[position]<0||costs[position]==0x70000000) {
+  position=end;
+  while(position>start) {
+    if (position<start||next_steps[position]<start||costs[position]==0x70000000) {
       // Illegal step.
       // Dump path
       fprintf(stderr,"Path contains illegal step at #%d\n",position);
-      for(int i=0;i<=l->piece_count;i++) {
+      for(int i=start;i<=end;i++) {
 	fprintf(stderr,"%d..%d : cost %d (next step=0x%08x)\n",
 		next_steps[i],i,costs[i],next_steps[i]);
       }
@@ -388,7 +389,7 @@ int layout_line(struct paragraph *p,int line_number,struct paragraph *out,
   
   // fprintf(stderr,"<<\n");
   
-  return 0;
+  return costs[end];
 }
 
 struct paragraph *layout_paragraph(struct paragraph *p, int drawingPage)
@@ -411,7 +412,10 @@ struct paragraph *layout_paragraph(struct paragraph *p, int drawingPage)
   out->src_verse=p->src_verse;
 
   // Lay out each line
-  for(i=0;i<p->line_count;i++) layout_line(p,i,out,drawingPage);
+  for(i=0;i<p->line_count;i++)
+    layout_line(p,i,
+		0,p->paragraph_lines[i]->piece_count,
+		out,drawingPage);
 
   return out;
 }

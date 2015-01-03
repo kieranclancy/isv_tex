@@ -69,7 +69,7 @@ struct line_pieces *line_clone(struct line_pieces *l)
   return clone;
 }
 
-int line_calculate_height(struct line_pieces *l)
+int line_calculate_height(struct line_pieces *l, int start, int end)
 {
   int max=-1; int min=0;
   int linegap=0;
@@ -87,7 +87,7 @@ int line_calculate_height(struct line_pieces *l)
     return 0;
   }
   
-  for(i=0;i<l->piece_count;i++)
+  for(i=start;i<end;i++)
     {
       // Get ascender height of font
       int ascender_height
@@ -659,7 +659,28 @@ struct line_pieces *new_line()
   l->ascent=0;
   l->descent=0;
   l->on_page_y=0;
+  l->metrics=NULL;
   l->freed=0;
   
   return l;
+}
+
+int line_analyse(struct paragraph *p,int line_number)
+{
+  int start,end;
+  
+  struct paragraph *out=new_paragraph();
+
+  for(start=0;start<p->paragraph_lines[line_number]->piece_count;start++)
+    for(end=start+1;end<=p->paragraph_lines[line_number]->piece_count;end++) {
+      int penalty=layout_line(p,line_number,start,end,out,0);
+      float height=paragraph_height(out);
+      fprintf(stderr,"%d..%d : height=%.1f, penalty=%d\n",
+	      start,end,height,penalty);
+      paragraph_clear(out);
+    }
+
+  paragraph_free(out);
+  
+  return 0;
 }
