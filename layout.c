@@ -253,7 +253,9 @@ int layout_line(struct paragraph *p, int line_number,
     line_counts[a]=0;
   }
   // Cost from start to start is 0
-  costs[0]=0; next_steps[0]=1;
+  for(a=0;a<=start;a++) {
+    costs[a]=0; next_steps[a]=a-1;
+  }
 
   // pre-calculate hang width of every piece
   for(a=0;a<l->piece_count;a++) precalc_hang_width(l,a);
