@@ -100,6 +100,7 @@ int layout_calculate_segment_cost(struct paragraph *p,
 
   // Skip leading spaces
   while((start<end)&&(l->pieces[start].piece_is_elastic)) start++;
+  while(((end-1)>start)&&(l->pieces[end-1].piece_is_elastic)) end--;
   
   // Calculate width of the segment.
   // (.piece_width already incorporates any hanging)
