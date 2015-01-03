@@ -97,7 +97,7 @@ int paragraph_flush(struct paragraph *p_in,int drawingPage)
 
   if (last_paragraph_report_time<time(0)) {
     last_paragraph_report_time=time(0);
-    fprintf(stderr,"\rGathered %d paragraphs.",paragraph_count);
+    fprintf(stderr,"\rAnalysed %d paragraphs.",paragraph_count);
     fflush(stderr);
   }
   
