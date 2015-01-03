@@ -58,25 +58,34 @@ float get_basic_width_of_line_segment(struct line_pieces *l,int start,int end,
 }
 
 #define MAX_TOTAL 1024
-int *fullness_lists[MAX_TOTAL]={NULL};
+int *emptiness_lists[MAX_TOTAL]={NULL};
 
-int calc_fullness(int used,int total)
+int calc_emptiness(int used,int total)
 {
   if (total<0||total>=MAX_TOTAL) {
-    fprintf(stderr,"calc_fullness() called with invalid arg(s): %d,%d\n",
+    fprintf(stderr,"calc_emptiness() called with invalid arg(s): %d,%d\n",
 	    used,total);
     exit(-1);
   }
   
-  if(!fullness_lists[total]) {
-    fullness_lists[total]=malloc(sizeof(int)*(total*2));
-    for(int i=0;i<total*2;i++)
-      fullness_lists[total][i]=100.0*i/total;
+  if(!emptiness_lists[total]) {
+    emptiness_lists[total]=malloc(sizeof(int)*(total+1));
+    for(int i=0;i<=total;i++)
+      emptiness_lists[total][i]=100-(100.0*i/total);
   }
 
-  if (used>=total*2) used=total*2;
+  if (used>=total) used=total;
   if (used<0) used=0;
-  return fullness_lists[total][used];
+  return emptiness_lists[total][used];
+}
+
+int emptiness_penalty[101];
+
+int layout_precalc_emptiness_penalties()
+{
+  int i;
+  for(i=0;i<101;i++) emptiness_penalty[i]=i*i;
+  return 0;
 }
 
 int layout_calculate_segment_cost(struct paragraph *p,
@@ -147,19 +156,15 @@ int layout_calculate_segment_cost(struct paragraph *p,
   }
   
   // Fail if line is too wide for column
-  if (line_width>column_width) return -1;
-  
-  // Else work out penalty based on fullness of line
-  int fullness=calc_fullness(line_width,column_width);
-  if (0) fprintf(stderr,"    line_width=%.1fpts, column_width=%.1fpts, fullness=%d%%\n",
-	  line_width,column_width,fullness);
-  int penalty=(100-fullness)*(100-fullness);
-
-  // No penalty for short lines in the last line of a paragraph
-#ifdef NOTDEFINED
-  if (p->line_count&&l==p->paragraph_lines[p->line_count-1])
-    if (end==l->piece_count) penalty=0;
-#endif
+  int penalty=0;
+  if (line_width>column_width) penalty+=1000000;
+  else {
+    // Else work out penalty based on fullness of line
+    int emptiness=calc_emptiness(line_width,column_width);
+    if (0) fprintf(stderr,"    line_width=%.1fpts, column_width=%.1fpts, emptiness=%d%%\n",
+		   line_width,column_width,emptiness);
+    penalty=emptiness_penalty[emptiness];
+  }
 
   // Then adjust penalty for bad things, like starting the line with punctuation
   // or a non-breaking space.
@@ -170,21 +175,20 @@ int layout_calculate_segment_cost(struct paragraph *p,
 
   if (i<end) {
     // Don't allow breaking of non-breakable spaces
-    if (((unsigned char)l->pieces[i].piece[0])==0xa0) penalty+=1000000;
     // Or starting lines with various sorts of punctuation
-    
-    if (((unsigned char)l->pieces[i].piece[0])==',') penalty+=1000000;
-    if (((unsigned char)l->pieces[i].piece[0])=='.') penalty+=1000000;
-    if (((unsigned char)l->pieces[i].piece[0])=='\'') penalty+=1000000;
-
+    switch((unsigned char)l->pieces[i].piece[0]) {
+    case 0xa0: case ',': case '.': case '\'':
+      penalty+=1000000;
+      break;
+    }
+    // Or with footnote marks
     if (l->pieces[i].font==&type_faces[footnotemark_index])
       penalty+=1000000;
 
     // Don't allow line breaks following non-breakable pieces
-    if (i&&l->pieces[i-1].nobreak) penalty+=1000000;
+    if ((i>start)&&l->pieces[i-1].nobreak) penalty+=1000000;
   }
 
-  
   return penalty;
 }
 
@@ -282,6 +286,8 @@ int layout_line(struct paragraph *p, int line_number,
   // pre-calculate hang width of every piece
   for(a=0;a<l->piece_count;a++) precalc_hang_width(l,a);
   precalc_cumulative_widths(l);
+
+  layout_precalc_emptiness_penalties();
   
   // Calculate costs of every possible segment
   for(a=start;a<l->piece_count;a++) {    
