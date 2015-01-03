@@ -95,11 +95,11 @@ int paragraph_flush(struct paragraph *p_in,int drawingPage)
   body_paragraphs[paragraph_count++]=p;  
   paragraph_count++;
 
-  if (last_paragraph_report_time<time(0)) {
+  //  if (last_paragraph_report_time<time(0)) {
     last_paragraph_report_time=time(0);
     fprintf(stderr,"\rAnalysed %d paragraphs.",paragraph_count);
     fflush(stderr);
-  }
+    //  }
   
   return 0;
 }
