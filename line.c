@@ -684,6 +684,8 @@ int line_analyse(struct paragraph *p,int line_number)
   
   struct paragraph *out=new_paragraph();
 
+  layout_line_precalc(p->paragraph_lines[line_number]);
+  
   for(start=0;start<p->paragraph_lines[line_number]->piece_count;start++)
     for(end=start+1;end<=p->paragraph_lines[line_number]->piece_count;end++) {
       int penalty=layout_line(p,line_number,start,end,out,0);
