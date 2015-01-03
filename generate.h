@@ -391,6 +391,7 @@ int unicode_replace(char *text,int *len,
 		    int unicode_point);
 
 struct paragraph *layout_paragraph(struct paragraph *p, int drawingPage);
+int layout_line_precalc(struct line_pieces *l);
 int layout_line(struct paragraph *p, int line_number,
 		int start, int end,
 		struct paragraph *out, int drawingPage);

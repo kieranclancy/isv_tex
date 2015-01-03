@@ -445,10 +445,23 @@ struct paragraph *layout_paragraph(struct paragraph *p, int drawingPage)
   out->src_verse=p->src_verse;
 
   // Lay out each line
-  for(i=0;i<p->line_count;i++)
+  for(i=0;i<p->line_count;i++) {
+
+    layout_line_precalc(p->paragraph_lines[i]);
+    
     layout_line(p,i,
 		0,p->paragraph_lines[i]->piece_count,
 		out,drawingPage);
+  }
 
   return out;
+}
+
+int layout_line_precalc(struct line_pieces *l)
+{
+  // pre-calculate hang width of every piece
+  for(int a=0;a<l->piece_count;a++) precalc_hang_width(l,a);
+  precalc_cumulative_widths(l);
+  layout_precalc_emptiness_penalties();
+  return 0;
 }
