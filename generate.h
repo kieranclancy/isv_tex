@@ -65,9 +65,6 @@ struct type_face {
 
   HPDF_Font font;
 
-  int ascent;
-  int descent;
-
   // points between lines (read from libfreetype)
   int linegap;
 };
@@ -96,7 +93,7 @@ struct piece {
   // (used for placing super- and sub-scripts).
   int piece_baseline;
   struct paragraph *crossrefs;
-
+  
   // if non-zero, do not break after this piece
 #define NO_FORCESPACEATSTARTOFLINE 0
 #define FORCESPACEATSTARTOFLINE 1
