@@ -274,6 +274,8 @@ int layout_line(struct paragraph *p, int line_number,
   
   // Calculate costs of every possible segment
   for(a=start;a<end;a++) {
+    int line_count=line_counts[a];
+    int costa=costs[a];
     // Ignore segments that begin on a space, or follow a non-breaking piece
     if ((!l->pieces[a].piece_is_elastic)
 	&&((!start)
@@ -283,19 +285,17 @@ int layout_line(struct paragraph *p, int line_number,
 		a,(a>0)?l->pieces[a-1].nobreak:0,l->pieces[a].piece_is_elastic);
       
       for(b=a+1;b<=end;b++) {
-	int line_count=0;
-	line_count=line_counts[a];
 	int segment_cost=layout_calculate_segment_cost(p,l,a,b,line_count,
 						       cumulative_widths);
 	if (segment_cost==-1) break;  
 	if (0) fprintf(stderr,"  segment cost of %d..%d is %d (combined cost = %d)\n",
 		       a,b,segment_cost,segment_cost+costs[a]);
 	// Stop looking when line segment is too long
-	if (segment_cost+costs[a]<costs[b]) {
+	if (segment_cost+costa<costs[b]) {
 	  // fprintf(stderr,"    this beats the old cost of %d\n",costs[b]);
-	  costs[b]=segment_cost+costs[a];
+	  costs[b]=segment_cost+costa;
 	  next_steps[b]=a;
-	  line_counts[b]=line_counts[a]+1;
+	  line_counts[b]=line_count+1;
 	}
       }
     } else {
@@ -306,7 +306,7 @@ int layout_line(struct paragraph *p, int line_number,
 		a,(a>0)?l->pieces[a-1].nobreak:0,l->pieces[a].piece_is_elastic);
       costs[a+1]=costs[a];
       next_steps[a+1]=a;
-      line_counts[a+1]=line_counts[a];
+      line_counts[a+1]=line_count;
     }    
   }
 
