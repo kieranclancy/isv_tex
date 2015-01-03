@@ -95,10 +95,11 @@ int layout_calculate_segment_cost(struct paragraph *p,
 {
   float line_width=0;
   
-  int i;
-
   if (footnotemark_index==-1)
     footnotemark_index=set_font_by_name("footnotemark");
+
+  // Skip leading spaces
+  while((start<end)&&(l->pieces[start].piece_is_elastic)) start++;
   
   // Calculate width of the segment.
   // (.piece_width already incorporates any hanging)
@@ -169,11 +170,7 @@ int layout_calculate_segment_cost(struct paragraph *p,
   // Then adjust penalty for bad things, like starting the line with punctuation
   // or a non-breaking space.
 
-  // Skip leading spaces
-  i=start;
-  while((i<end)&&(l->pieces[i].piece[0]==' ')) i++;
-
-  if (i<end) {
+  if (start<end) {
 
     // line_append_piece sets the nobreak flag on the preceeding piece
     // if it shouldn't be split for any reason.  That way we don't need
@@ -181,17 +178,17 @@ int layout_calculate_segment_cost(struct paragraph *p,
 #ifdef NOT_DEFINED
     // Don't allow breaking of non-breakable spaces
     // Or starting lines with various sorts of punctuation
-    switch((unsigned char)l->pieces[i].piece[0]) {
+    switch((unsigned char)l->pieces[start].piece[0]) {
     case 0xa0: case ',': case '.': case '\'':
       penalty+=1000000;
       break;
     }
     // Or with footnote marks
-    if (l->pieces[i].font==&type_faces[footnotemark_index])
+    if (l->pieces[start].font==&type_faces[footnotemark_index])
       penalty+=1000000;
 #endif
     // Don't allow line breaks following non-breakable pieces
-    if ((i>start)&&l->pieces[i-1].nobreak) penalty+=1000000;
+    if (start&&l->pieces[start-1].nobreak) penalty+=1000000;
   }
 
   return penalty;
