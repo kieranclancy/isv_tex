@@ -57,6 +57,28 @@ float get_basic_width_of_line_segment(struct line_pieces *l,int start,int end,
     return cumulative_widths[end-1];
 }
 
+#define MAX_TOTAL 1024
+int *fullness_lists[MAX_TOTAL]={NULL};
+
+int calc_fullness(int used,int total)
+{
+  if (total<0||total>=MAX_TOTAL) {
+    fprintf(stderr,"calc_fullness() called with invalid arg(s): %d,%d\n",
+	    used,total);
+    exit(-1);
+  }
+  
+  if(!fullness_lists[total]) {
+    fullness_lists[total]=malloc(sizeof(int)*(total*2));
+    for(int i=0;i<total*2;i++)
+      fullness_lists[total][i]=100.0*i/total;
+  }
+
+  if (used>=total*2) used=total*2;
+  if (used<0) used=0;
+  return fullness_lists[total][used];
+}
+
 int layout_calculate_segment_cost(struct paragraph *p,
 				  struct line_pieces *l,
 				  int start,int end, int line_count,
@@ -128,8 +150,8 @@ int layout_calculate_segment_cost(struct paragraph *p,
   if (line_width>column_width) return -1;
   
   // Else work out penalty based on fullness of line
-  float fullness=line_width*100.0/column_width;
-  if (0) fprintf(stderr,"    line_width=%.1fpts, column_width=%.1fpts, fullness=%.1f%%\n",
+  int fullness=calc_fullness(line_width,column_width);
+  if (0) fprintf(stderr,"    line_width=%.1fpts, column_width=%.1fpts, fullness=%d%%\n",
 	  line_width,column_width,fullness);
   int penalty=(100-fullness)*(100-fullness);
 

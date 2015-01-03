@@ -65,6 +65,9 @@ struct type_face {
 
   HPDF_Font font;
 
+  int ascent;
+  int descent;
+
   // points between lines (read from libfreetype)
   int linegap;
 };
