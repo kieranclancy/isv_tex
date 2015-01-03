@@ -675,8 +675,8 @@ int line_analyse(struct paragraph *p,int line_number)
     for(end=start+1;end<=p->paragraph_lines[line_number]->piece_count;end++) {
       int penalty=layout_line(p,line_number,start,end,out,0);
       float height=paragraph_height(out);
-      fprintf(stderr,"%d..%d : height=%.1f, penalty=%d\n",
-	      start,end,height,penalty);
+      if (0) fprintf(stderr,"%d..%d : height=%.1f, penalty=%d\n",
+		     start,end,height,penalty);
       paragraph_clear(out);
     }
 
