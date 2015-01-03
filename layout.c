@@ -99,8 +99,9 @@ int layout_calculate_segment_cost(struct paragraph *p,
     footnotemark_index=set_font_by_name("footnotemark");
 
   // Skip leading spaces
-  while((start<end)&&(l->pieces[start].piece_is_elastic)) start++;
-  while(((end-1)>start)&&(l->pieces[end-1].piece_is_elastic)) end--;
+  // (This is now done for us in layout_line()
+  // while((start<end)&&(l->pieces[start].piece_is_elastic)) start++;
+  // while(((end-1)>start)&&(l->pieces[end-1].piece_is_elastic)) end--;
   
   // Calculate width of the segment.
   // (.piece_width already incorporates any hanging)
@@ -168,30 +169,9 @@ int layout_calculate_segment_cost(struct paragraph *p,
     penalty=emptiness_penalty[emptiness];
   }
 
-  // Then adjust penalty for bad things, like starting the line with punctuation
-  // or a non-breaking space.
-
-  if (start<end) {
-
-    // line_append_piece sets the nobreak flag on the preceeding piece
-    // if it shouldn't be split for any reason.  That way we don't need
-    // to keep recalculating stuff in here.
-#ifdef NOT_DEFINED
-    // Don't allow breaking of non-breakable spaces
-    // Or starting lines with various sorts of punctuation
-    switch((unsigned char)l->pieces[start].piece[0]) {
-    case 0xa0: case ',': case '.': case '\'':
-      penalty+=1000000;
-      break;
-    }
-    // Or with footnote marks
-    if (l->pieces[start].font==&type_faces[footnotemark_index])
-      penalty+=1000000;
-#endif
-    // Don't allow line breaks following non-breakable pieces
-    if (start&&l->pieces[start-1].nobreak) penalty+=1000000;
-  }
-
+  // layout_line() makes sure we don't get given anything that is illegal,
+  // e.g., begins following a nonbreaking piece.
+  
   return penalty;
 }
 
@@ -293,23 +273,41 @@ int layout_line(struct paragraph *p, int line_number,
   layout_precalc_emptiness_penalties();
   
   // Calculate costs of every possible segment
-  for(a=start;a<l->piece_count;a++) {    
-    for(b=a+1;b<=end;b++) {
-      int line_count=0;
-      line_count=line_counts[a];
-      int segment_cost=layout_calculate_segment_cost(p,l,a,b,line_count,
-						     cumulative_widths);
-      if (segment_cost==-1) break;  
-      if (0) fprintf(stderr,"  segment cost of %d..%d is %d (combined cost = %d)\n",
-		     a,b,segment_cost,segment_cost+costs[a]);
-      // Stop looking when line segment is too long
-      if (segment_cost+costs[a]<costs[b]) {
-	// fprintf(stderr,"    this beats the old cost of %d\n",costs[b]);
-	costs[b]=segment_cost+costs[a];
-	next_steps[b]=a;
-	line_counts[b]=line_counts[a]+1;
+  for(a=start;a<end;a++) {
+    // Ignore segments that begin on a space, or follow a non-breaking piece
+    if ((!l->pieces[a].piece_is_elastic)
+	&&((!start)
+	   ||(!l->pieces[a-1].nobreak))) {
+      if (0)
+	fprintf(stderr,"Examining starting point at piece #%d: nobreak=%d, elastic=%d\n",
+		a,(a>0)?l->pieces[a-1].nobreak:0,l->pieces[a].piece_is_elastic);
+      
+      for(b=a+1;b<=end;b++) {
+	int line_count=0;
+	line_count=line_counts[a];
+	int segment_cost=layout_calculate_segment_cost(p,l,a,b,line_count,
+						       cumulative_widths);
+	if (segment_cost==-1) break;  
+	if (0) fprintf(stderr,"  segment cost of %d..%d is %d (combined cost = %d)\n",
+		       a,b,segment_cost,segment_cost+costs[a]);
+	// Stop looking when line segment is too long
+	if (segment_cost+costs[a]<costs[b]) {
+	  // fprintf(stderr,"    this beats the old cost of %d\n",costs[b]);
+	  costs[b]=segment_cost+costs[a];
+	  next_steps[b]=a;
+	  line_counts[b]=line_counts[a]+1;
+	}
       }
-    }
+    } else {
+      // If we are skipping a starting point, then we need to indicate a zero cost
+      // for briding over it.
+      if (0)
+	fprintf(stderr,"Skipping starting point at piece #%d: nobreak=%d, elastic=%d\n",
+		a,(a>0)?l->pieces[a-1].nobreak:0,l->pieces[a].piece_is_elastic);
+      costs[a+1]=costs[a];
+      next_steps[a+1]=a;
+      line_counts[a+1]=line_counts[a];
+    }    
   }
 
   // Count number of lines in optimal layout.
@@ -348,11 +346,13 @@ int layout_line(struct paragraph *p, int line_number,
     if (position<start||next_steps[position]<start||costs[position]==0x70000000) {
       // Illegal step.
       // Dump path
-      fprintf(stderr,"Path contains illegal step at #%d\n",position);
+      fprintf(stderr,"Path contains illegal step at #%d in range %d..%d\n",
+	      position,start,end);
       for(int i=start;i<=end;i++) {
 	fprintf(stderr,"%d..%d : cost %d (next step=0x%08x)\n",
 		next_steps[i],i,costs[i],next_steps[i]);
       }
+      line_dump(l);
       exit(-1);   
     }
     positions[pcount++]=position;
