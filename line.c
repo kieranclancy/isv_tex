@@ -684,6 +684,10 @@ int line_analyse(struct paragraph *p,int line_number)
   
   struct paragraph *out=new_paragraph();
 
+  // Look for cached metrics for this line
+  char *cachefilename=hash_line(p->paragraph_lines[line_number]);
+  fprintf(stderr,"Looking for cache file in %s\n",cachefilename);
+  
   layout_line_precalc(p->paragraph_lines[line_number]);
   
   for(start=0;start<p->paragraph_lines[line_number]->piece_count;start++)
