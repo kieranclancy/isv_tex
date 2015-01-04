@@ -174,6 +174,8 @@ int read_profile(char *file)
   line[0]=0; fgets(line,1024,f);
   while(line[0])
     {
+      hash_configline(line);
+      
       line_num++;
       char key[1024],value[1024];
       if (line[0]!='#'&&line[0]!='\r'&&line[0]!='\n') {
@@ -1107,6 +1109,7 @@ int main(int argc,char **argv)
   if (!strcasecmp(argv[1],"test")) return(run_tests(argv[2]));
 
   read_profile(argv[2]);
+  hash_configend();
 
   setup_job();
 

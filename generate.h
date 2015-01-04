@@ -404,3 +404,5 @@ int page_optimal_render_tokens();
 int page_skip_token_as_subordinate(int token_number);
 int page_notify_details(float fullness,int tied_to_next_line);
 
+int hash_configend();
+int hash_configline(char *line);
