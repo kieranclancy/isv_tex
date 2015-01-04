@@ -131,6 +131,8 @@ char *hash_line(struct line_pieces *l)
   for(i=0;i<SHA_DIGEST_LENGTH;i++) {    
     sprintf(&line_hash[i*3],"%02x%c",md[i],(i<3)?'/':'-');
   }
+  // Remove trailing - from filename
+  line_hash[SHA_DIGEST_LENGTH*3-1]=0;
   
   return line_hash;
 }
