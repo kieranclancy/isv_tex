@@ -60,7 +60,9 @@
 
 int config_sha_inited=0;
 SHA_CTX config_sha;
+
 char config_hash[SHA_DIGEST_LENGTH*2+1]={0};
+char line_hash[SHA_DIGEST_LENGTH*3+1]={0};
 
 int hash_configline(char *line)
 {
@@ -85,4 +87,50 @@ int hash_configend()
     sprintf(&config_hash[i*2],"%02x",md[i]);
   fprintf(stderr,"Config hash is %s\n",config_hash);
   return 0;
+}
+
+unsigned char font_to_index(struct type_face *f)
+{
+  int i;
+  for(i=0;type_faces[i].font_nickname;i++)
+    if (f==&type_faces[i]) return i;
+  return 0xff;
+}
+
+char *hash_line(struct line_pieces *l)
+{
+  SHA1_Init(&config_sha);
+  SHA1_Update(&config_sha,config_hash,strlen(config_hash));
+  int i;
+  SHA1_Update(&config_sha,&l->max_line_width,sizeof(l->max_line_width));
+  SHA1_Update(&config_sha,&l->left_margin,sizeof(l->left_margin));
+  SHA1_Update(&config_sha,&l->poem_level,sizeof(l->poem_level));
+  SHA1_Update(&config_sha,&l->left_hang,sizeof(l->left_hang));
+  SHA1_Update(&config_sha,&l->right_hang,sizeof(l->right_hang));
+  SHA1_Update(&config_sha,&l->alignment,sizeof(l->alignment));
+  SHA1_Update(&config_sha,&l->piece_count,sizeof(l->piece_count));
+  for(i=0;i<l->piece_count;i++) {
+    unsigned char font_index=font_to_index(l->pieces[i].font);
+    SHA1_Update(&config_sha,&font_index,sizeof(font_index));
+    SHA1_Update(&config_sha,&l->pieces[i].actualsize,
+		sizeof(l->pieces[i].actualsize));
+    SHA1_Update(&config_sha,&l->pieces[i].piece_width,
+		sizeof(l->pieces[i].piece_width));
+    SHA1_Update(&config_sha,&l->pieces[i].natural_width,
+		sizeof(l->pieces[i].natural_width));
+    SHA1_Update(&config_sha,&l->pieces[i].piece_is_elastic,
+		sizeof(l->pieces[i].piece_is_elastic));
+    SHA1_Update(&config_sha,&l->pieces[i].piece_baseline,
+		sizeof(l->pieces[i].piece_baseline));
+    SHA1_Update(&config_sha,&l->pieces[i].nobreak,
+		sizeof(l->pieces[i].nobreak));  
+  }
+
+  unsigned char md[SHA_DIGEST_LENGTH];
+  SHA1_Final(md,&config_sha);
+  for(i=0;i<SHA_DIGEST_LENGTH;i++) {    
+    sprintf(&line_hash[i*3],"%02x%c",md[i],(i<3)?'/':'-');
+  }
+  
+  return line_hash;
 }

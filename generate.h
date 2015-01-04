@@ -406,3 +406,4 @@ int page_notify_details(float fullness,int tied_to_next_line);
 
 int hash_configend();
 int hash_configline(char *line);
+char *hash_line(struct line_pieces *l);
