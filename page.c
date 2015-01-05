@@ -113,6 +113,19 @@ int page_penalty_if_not_start_of_page()
   return 0;
 }
 
+struct page_option_record {
+  int start_index;
+  
+  int start_para;
+  int start_line;
+  int start_piece;
+
+  int page_count;
+
+  long long penalty;
+  float height;
+};
+
 int page_optimal_render_tokens()
 {
   /* Generate set of all paragraphs and lines that we need to optimise over.
@@ -135,10 +148,21 @@ int page_optimal_render_tokens()
   int end_piece=0;
 
   int start_position_count=0;
+
+  struct page_option_record backtrace[token_count];
+
+  for(int i=0;i<token_count;i++) {
+    backtrace[i].start_index=-1;
+    backtrace[i].start_para=-1;
+    backtrace[i].start_line=-1;
+    backtrace[i].start_piece=-1;
+    backtrace[i].page_count=-1;
+    backtrace[i].penalty=-1;
+    backtrace[i].height=-1;
+  }
+  
   
   while(1) {
-    start_position_count++;
-
     fprintf(stderr,"\rAnalysing page start position %d:                 ",
 	    start_position_count);
     fflush(stderr);
@@ -166,6 +190,8 @@ int page_optimal_render_tokens()
 
       long long best_penalty=0x7ffffff;
       float best_height=-1;
+
+      int end_position=start_position_count;
       
       while(1) {
 	// Work out cost to here.
@@ -240,7 +266,9 @@ int page_optimal_render_tokens()
 	    end_para++;
 	  }
 	  if (end_para>=paragraph_count) break;
-	}	
+	}
+
+	end_position++;
       }
 
       fprintf(stderr,"Analysing page start position %d ("
@@ -266,6 +294,8 @@ int page_optimal_render_tokens()
       }
     }
     if (start_para>=paragraph_count) break;
+
+    start_position_count++;
   }
 
   fprintf(stderr,"Analysed all %d possible page starting positions.\n",
