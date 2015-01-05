@@ -31,6 +31,7 @@
 #include <math.h>
 #include <ctype.h>
 #include <assert.h>
+#include <sys/stat.h>
 #include "ft2build.h"
 #include FT_FREETYPE_H
 #include "hpdf.h"
@@ -681,6 +682,28 @@ struct line_pieces *new_line()
 
 int line_metrics_write(char *filename,struct line_metrics *m)
 {
+
+  // Make subdirectories if required
+  for(int i=0;i<=3;i++) {
+    filename[6+(3*i)-1]=0;
+    mkdir(filename,0777);
+    filename[6+(3*i)-1]='/';
+  }
+  
+  unlink(filename);
+  FILE *f=fopen(filename,"w");
+
+  int start,end;
+
+  fprintf(f,"%d\n",m->line_pieces);
+  for(start=0;start<m->line_pieces;start++)
+    for(end=start+1;end<=m->line_pieces;end++)
+      fprintf(f,"%d:%f\n",
+	      m->starts[start][end].penalty,
+	      m->starts[start][end].height);
+
+  fclose(f);
+  
   return 0;
 }
 

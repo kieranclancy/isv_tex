@@ -62,7 +62,7 @@ int config_sha_inited=0;
 SHA_CTX config_sha;
 
 char config_hash[SHA_DIGEST_LENGTH*2+1]={0};
-char line_hash[SHA_DIGEST_LENGTH*3+1]={0};
+char line_hash[SHA_DIGEST_LENGTH*3+6+1]={0};
 
 int hash_configline(char *line)
 {
@@ -128,8 +128,9 @@ char *hash_line(struct line_pieces *l)
 
   unsigned char md[SHA_DIGEST_LENGTH];
   SHA1_Final(md,&config_sha);
+  sprintf(line_hash,"cache/");
   for(i=0;i<SHA_DIGEST_LENGTH;i++) {    
-    sprintf(&line_hash[i*3],"%02x%c",md[i],(i<3)?'/':'-');
+    sprintf(&line_hash[6+i*3],"%02x%c",md[i],(i<3)?'/':'-');
   }
   // Remove trailing - from filename
   line_hash[SHA_DIGEST_LENGTH*3-1]=0;
