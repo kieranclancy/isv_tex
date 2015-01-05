@@ -128,8 +128,31 @@ int page_optimal_render_tokens()
   int end_para=0;
   int end_line=0;
   int end_piece=0;
-  
 
+  int start_position_count=0;
+  
+  while(1) {
+    start_position_count++;
+
+    // Advance to next starting point
+    if (!body_paragraphs[start_para]->line_count) {
+      start_para++;
+    } else {
+      start_piece++;
+      if (start_piece
+	  >=body_paragraphs[start_para]->paragraph_lines[start_line]->piece_count) {
+	start_piece=0; start_line++;
+      }
+      if (start_line>=body_paragraphs[start_para]->line_count) {
+	start_line=0;
+	start_para++;
+      }
+    }
+    if (start_para>=paragraph_count) break;
+  }
+
+  fprintf(stderr,"Analysed all %d possible page starting positions.\n",
+	  start_position_count);
   
   return 0;
 }
