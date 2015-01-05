@@ -71,7 +71,6 @@ int paragraph_free(struct paragraph *p)
 
 time_t last_paragraph_report_time=0;
 int paragraph_count=0;
-#define MAX_PARAGRAPHS 65536
 struct paragraph *body_paragraphs[MAX_PARAGRAPHS];
 
 int paragraph_flush(struct paragraph *p_in,int drawingPage)
