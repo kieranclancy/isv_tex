@@ -105,6 +105,16 @@ struct piece {
   int token_number;
 };
 
+struct line_metric {
+  int penalty;
+  float height;
+};
+
+struct line_metrics {
+  int line_pieces;
+  struct line_metric *starts[];
+};
+
 struct line_pieces {
 #define MAX_LINE_PIECES 1024
   int line_uid;
@@ -343,6 +353,7 @@ struct piece *new_line_piece(char *text,struct type_face *current_font,
 			     int nobreak, int token_number);
 struct line_pieces *new_line();
 int line_analyse(struct paragraph *p,int line_number);
+int line_metrics_initialise(struct line_metrics *m,int line_pieces);
 
 int generate_footnote_mark(int footnote_count);
 int begin_footnote(int token_number);
