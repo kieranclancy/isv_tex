@@ -692,7 +692,8 @@ int line_metrics_write(char *filename,struct line_metrics *m)
   
   unlink(filename);
   FILE *f=fopen(filename,"w");
-
+  assert(f);
+  
   int start,end;
 
   fprintf(f,"%d\n",m->line_pieces);
@@ -709,15 +710,39 @@ int line_metrics_write(char *filename,struct line_metrics *m)
 
 int line_metrics_read(char *filename,struct line_metrics *m)
 {
-  return -1;
+  FILE *f=fopen(filename,"r");
+  if (!f) return -1;
+
+  char line[1024];
+
+  int vi;
+  float vf;
+
+  // Read line_pieces
+  line[0]=0; fgets(line,1024,f);
+  if (!line[0]) { fclose(f); return -1; }
+  if (sscanf(line,"%d",&vi)!=1) { fclose(f); return -1; }
+  if (vi!=m->line_pieces) { fclose(f); return -1; }
+
+  // Now read each tuple
+  int start,end;
+  for(start=0;start<m->line_pieces;start++)
+    for(end=start+1;end<=m->line_pieces;end++) {
+      line[0]=0; fgets(line,1024,f);
+      if (!line[0]) { fclose(f); return -1; }
+      if (sscanf(line,"%d:%f",&vi,&vf)!=2) { fclose(f); return -1; }
+      m->starts[start][end].penalty=vi;
+      m->starts[start][end].height=vf;      
+    }
+  
+  fclose(f); 
+  return 0;
 }
 
 int line_analyse(struct paragraph *p,int line_number)
 {
   int start,end;
   
-  struct paragraph *out=new_paragraph();
-
   // Look for cached metrics for this line
   char *cachefilename=hash_line(p->paragraph_lines[line_number]);
   fprintf(stderr,"Looking for cache file in %s\n",cachefilename);
@@ -729,7 +754,9 @@ int line_analyse(struct paragraph *p,int line_number)
     // No valid cache -- so calculate line metrics
     
     layout_line_precalc(p->paragraph_lines[line_number]);
-    
+
+    struct paragraph *out=new_paragraph();
+
     for(start=0;start<p->paragraph_lines[line_number]->piece_count;start++)
       for(end=start+1;end<=p->paragraph_lines[line_number]->piece_count;end++) {
 	int penalty=layout_line(p,line_number,start,end,out,0);
@@ -752,12 +779,13 @@ int line_analyse(struct paragraph *p,int line_number)
 	
 	paragraph_clear(out);
       }
-    
-    paragraph_free(out);
-
+    paragraph_free(out);    
+  
     // Record metrics for next time so that we don't have to recalculate each time
     // unless the line or configuration has changed.
     line_metrics_write(cachefilename,m);
+  } else {
+    fprintf(stderr,"  Using cached metrics.\n");
   }
 
   p->paragraph_lines[line_number]->metrics=m;
