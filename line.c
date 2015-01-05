@@ -678,6 +678,11 @@ struct line_pieces *new_line()
   return l;
 }
 
+int line_metrics_write(char *filename,struct line_metrics *m)
+{
+  return 0;
+}
+
 int line_analyse(struct paragraph *p,int line_number)
 {
   int start,end;
@@ -708,6 +713,12 @@ int line_analyse(struct paragraph *p,int line_number)
     }
 
   paragraph_free(out);
+
+  p->paragraph_lines[line_number]->metrics=m;
+
+  // Record metrics for next time so that we don't have to recalculate each time
+  // unless the line or configuration has changed.
+  line_metrics_write(cachefilename,m);
   
   return 0;
 }
@@ -715,7 +726,9 @@ int line_analyse(struct paragraph *p,int line_number)
 int line_metrics_initialise(struct line_metrics *m,int line_pieces)
 {
   int i;
-  for(i=0;i<line_pieces;i++) m->starts[i]=calloc(sizeof(int),line_pieces-i);
+  m->starts=calloc(sizeof(int *),1+line_pieces);
+  
+  for(i=0;i<=line_pieces;i++) m->starts[i]=calloc(sizeof(int),1+line_pieces-i);
 
   m->line_pieces=line_pieces;
   return 0;

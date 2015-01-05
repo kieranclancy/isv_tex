@@ -112,7 +112,7 @@ struct line_metric {
 
 struct line_metrics {
   int line_pieces;
-  struct line_metric *starts[];
+  struct line_metric **starts;
 };
 
 struct line_pieces {
