@@ -30,6 +30,7 @@
 #include <unistd.h>
 #include <math.h>
 #include <ctype.h>
+#include <assert.h>
 #include "ft2build.h"
 #include FT_FREETYPE_H
 #include "hpdf.h"
@@ -705,6 +706,15 @@ int line_analyse(struct paragraph *p,int line_number)
       if (0) fprintf(stderr,"%d..%d : height=%.1f, penalty=%d\n",
 		     start,end,height,penalty);
 
+      if ((start>m->line_pieces)||((end-start-1)>(m->line_pieces-start))
+	  ||((end-start-1)<0)) {
+	fprintf(stderr,"Attempting to write to invalid line_metrics item.\n");
+	exit(-1);
+      }
+      if (!m->starts[start]) {
+	fprintf(stderr,"Attempting to write to invalid line_metrics item (row is NULL)\n");
+	exit(-1);
+      }
       // Record metrics for this line segment
       m->starts[start][end].penalty=penalty;
       m->starts[start][end].height=height;
@@ -726,9 +736,13 @@ int line_analyse(struct paragraph *p,int line_number)
 int line_metrics_initialise(struct line_metrics *m,int line_pieces)
 {
   int i;
-  m->starts=calloc(sizeof(int *),1+line_pieces);
+  m->starts=calloc(sizeof(int *),1+line_pieces+1);
+  assert(m->starts);
   
-  for(i=0;i<=line_pieces;i++) m->starts[i]=calloc(sizeof(int),1+line_pieces-i);
+  for(i=0;i<=line_pieces;i++) {
+    m->starts[i]=calloc(sizeof(int),1+line_pieces);
+    assert(m->starts[i]);
+  }
 
   m->line_pieces=line_pieces;
   return 0;
