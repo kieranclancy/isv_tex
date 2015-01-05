@@ -114,10 +114,22 @@ int page_penalty_if_not_start_of_page()
 
 int page_optimal_render_tokens()
 {
-  // Generate set of all paragraphs and lines that we need to optimise over.
+  /* Generate set of all paragraphs and lines that we need to optimise over.
+     This automatically calculates (or loads the cached) the heights and costs
+     of every possible segment of every possible line.
+  */
   render_tokens(0,token_count,0);
 
-  // Now generate costs and heights for every line of every paragraph
+  /* Now work out the cost of every possible page */
+  int start_para=0;
+  int start_line=0;
+  int start_piece=0;
+  
+  int end_para=0;
+  int end_line=0;
+  int end_piece=0;
+  
+
   
   return 0;
 }
