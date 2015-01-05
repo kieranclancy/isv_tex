@@ -161,10 +161,10 @@ int page_optimal_render_tokens()
 
       int penalty=0;
       float height=0;
-      int cumulative_penalty=0;
+      long long cumulative_penalty=0;
       float cumulative_height=0;
 
-      int best_penalty=0x7ffffff;
+      long long best_penalty=0x7ffffff;
       float best_height=-1;
       
       while(1) {
@@ -215,8 +215,12 @@ int page_optimal_render_tokens()
 	  emptiness_penalty=100000000;
 	
 	// XXX Work out penalty based on balance of columns.
+
+	assert(penalty>=0);
+	assert(cumulative_penalty>=0);
+	assert(emptiness_penalty>=0);
 	
-	int this_penalty=penalty+cumulative_penalty+emptiness_penalty;
+	long long this_penalty=penalty+cumulative_penalty+emptiness_penalty;
 
 	if (this_penalty<best_penalty) {
 	  best_penalty=this_penalty; best_height=this_height;
@@ -241,7 +245,7 @@ int page_optimal_render_tokens()
 
       fprintf(stderr,"Analysing page start position %d ("
 	      "%d:%d:%d): Best result: "
-	      " penalty=%d, height=%.1fpts\n",
+	      " penalty=%lld, height=%.1fpts\n",
 	      start_position_count,
 	      start_para,start_line,start_piece,
 	      best_penalty,best_height);      
