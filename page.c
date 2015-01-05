@@ -134,6 +134,40 @@ int page_optimal_render_tokens()
   while(1) {
     start_position_count++;
 
+    // Try this starting point, but only if it isn't
+    // an empty paragraph
+    if (!body_paragraphs[start_para]->line_count) {
+      // Record zero cost for spanning empty paragraph
+    } else {
+
+      // Now advance through all possible ending points.
+      // Note that the end point here is inclusive, to simplify the logic.
+      end_para=start_para;
+      end_line=start_line;
+      end_piece=start_piece;
+      
+      while(1) {
+	// Work out cost to here.
+	
+	// Advance to next ending point
+	if (!body_paragraphs[end_para]->line_count) {
+	  end_para++;
+	} else {
+	  end_piece++;
+	  if (end_piece
+	      >=body_paragraphs[end_para]->paragraph_lines[end_line]->piece_count) {
+	    end_piece=0; end_line++;
+	  }
+	  if (end_line>=body_paragraphs[end_para]->line_count) {
+	    end_line=0;
+	    end_para++;
+	  }
+	  if (end_para>=paragraph_count) break;
+	}
+	
+      }
+    }
+    
     // Advance to next starting point
     if (!body_paragraphs[start_para]->line_count) {
       start_para++;
