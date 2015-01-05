@@ -106,7 +106,7 @@ struct piece {
 };
 
 struct line_metric {
-  int penalty;
+  long long penalty;
   float height;
 };
 

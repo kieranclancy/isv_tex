@@ -699,7 +699,7 @@ int line_metrics_write(char *filename,struct line_metrics *m)
   fprintf(f,"%d\n",m->line_pieces);
   for(start=0;start<m->line_pieces;start++)
     for(end=start+1;end<=m->line_pieces;end++)
-      fprintf(f,"%d:%f\n",
+      fprintf(f,"%lld:%f\n",
 	      m->starts[start][end].penalty,
 	      m->starts[start][end].height);
 
@@ -715,13 +715,13 @@ int line_metrics_read(char *filename,struct line_metrics *m)
 
   char line[1024];
 
-  int vi;
+  long long vi;
   float vf;
 
   // Read line_pieces
   line[0]=0; fgets(line,1024,f);
   if (!line[0]) { fclose(f); return -1; }
-  if (sscanf(line,"%d",&vi)!=1) { fclose(f); return -1; }
+  if (sscanf(line,"%lld",&vi)!=1) { fclose(f); return -1; }
   if (vi!=m->line_pieces) { fclose(f); return -1; }
 
   // Now read each tuple
@@ -730,7 +730,7 @@ int line_metrics_read(char *filename,struct line_metrics *m)
     for(end=start+1;end<=m->line_pieces;end++) {
       line[0]=0; fgets(line,1024,f);
       if (!line[0]) { fclose(f); return -1; }
-      if (sscanf(line,"%d:%f",&vi,&vf)!=2) { fclose(f); return -1; }
+      if (sscanf(line,"%lld:%f",&vi,&vf)!=2) { fclose(f); return -1; }
       m->starts[start][end].penalty=vi;
       m->starts[start][end].height=vf;      
     }
