@@ -699,6 +699,11 @@ int line_analyse(struct paragraph *p,int line_number)
       float height=paragraph_height(out);
       if (0) fprintf(stderr,"%d..%d : height=%.1f, penalty=%d\n",
 		     start,end,height,penalty);
+
+      // Record metrics for this line segment
+      m->starts[start][end].penalty=penalty;
+      m->starts[start][end].height=height;
+      
       paragraph_clear(out);
     }
 
