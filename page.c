@@ -194,10 +194,35 @@ int page_optimal_render_tokens()
 	penalty=l->metrics->starts[checkpoint_piece][end_piece].penalty;
 	height=l->metrics->starts[checkpoint_piece][end_piece].height;	
 
-	fprintf(stderr,"Analysing page start position %d: %d:%d:%d p=%d, h=%.1fpts           \n",
-		start_position_count,end_para,end_line,end_piece,
-		penalty+cumulative_penalty,
-		height+cumulative_height);
+	// XXX - Look up height and penalty of footnote paragraph so that it can be
+	// taken into account.
+
+	// XXX - Look up height of cross-references so that we can stop if they are too
+	// tall.
+
+	float this_height=height+cumulative_height;
+
+	// Work out penalty for emptiness of page
+	int emptiness=(100*this_height)/(page_height-top_margin-bottom_margin);
+	if (emptiness<0) emptiness=100;
+	else if (emptiness>100) emptiness=0;
+	else emptiness=100-emptiness;
+	int emptiness_penalty=16*emptiness*emptiness;
+	if (this_height>(page_height-top_margin-bottom_margin))
+	  emptiness_penalty=100000000;
+	
+	// XXX Work out penalty based on balance of columns.
+	
+	int this_penalty=penalty+cumulative_penalty+emptiness_penalty;
+	
+	fprintf(stderr,"Analysing page start position %d:"
+		" %d:%d:%d"
+		" - %d:%d:%d"
+		" p=%d, h=%.1fpts\n",
+		start_position_count,
+		start_para,start_line,start_piece,
+		end_para,end_line,end_piece,
+		this_penalty,this_height);
 	
 
 	// Advance to next ending point
