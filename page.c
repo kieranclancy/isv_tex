@@ -163,6 +163,9 @@ int page_optimal_render_tokens()
       float height=0;
       int cumulative_penalty=0;
       float cumulative_height=0;
+
+      int best_penalty=0x7ffffff;
+      float best_height=-1;
       
       while(1) {
 	// Work out cost to here.
@@ -214,16 +217,10 @@ int page_optimal_render_tokens()
 	// XXX Work out penalty based on balance of columns.
 	
 	int this_penalty=penalty+cumulative_penalty+emptiness_penalty;
-	
-	fprintf(stderr,"Analysing page start position %d:"
-		" %d:%d:%d"
-		" - %d:%d:%d"
-		" p=%d, h=%.1fpts\n",
-		start_position_count,
-		start_para,start_line,start_piece,
-		end_para,end_line,end_piece,
-		this_penalty,this_height);
-	
+
+	if (this_penalty<best_penalty) {
+	  best_penalty=this_penalty; best_height=this_height;
+	}       	
 
 	// Advance to next ending point
 	if (!body_paragraphs[end_para]->line_count) {
@@ -239,9 +236,15 @@ int page_optimal_render_tokens()
 	    end_para++;
 	  }
 	  if (end_para>=paragraph_count) break;
-	}
-	
+	}	
       }
+
+      fprintf(stderr,"Analysing page start position %d ("
+	      "%d:%d:%d): Best result: "
+	      " penalty=%d, height=%.1fpts\n",
+	      start_position_count,
+	      start_para,start_line,start_piece,
+	      best_penalty,best_height);      
     }
     
     // Advance to next starting point
