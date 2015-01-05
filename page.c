@@ -252,7 +252,8 @@ int page_optimal_render_tokens()
 	  best_penalty=this_penalty; best_height=this_height;
 	}       	
 
-	if ((this_penalty<backtrace[end_position].penalty)
+	if (((this_penalty+backtrace[start_position_count-1].penalty)
+	     <backtrace[end_position].penalty)
 	    ||(backtrace[end_position].penalty==-1)) {
 	  backtrace[end_position].start_index=start_position_count-1;
 	  backtrace[end_position].start_para=start_para;
