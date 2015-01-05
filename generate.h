@@ -261,6 +261,7 @@ extern int verse_label;
 extern float page_y;
 #define MAX_PARAGRAPHS 65536
 extern int paragraph_count;
+extern struct paragraph body_paragraph;
 extern struct paragraph *body_paragraphs[MAX_PARAGRAPHS];
 extern struct paragraph footnote_paragraph;
 
