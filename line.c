@@ -745,7 +745,7 @@ int line_analyse(struct paragraph *p,int line_number)
   
   // Look for cached metrics for this line
   char *cachefilename=hash_line(p->paragraph_lines[line_number]);
-  fprintf(stderr,"Looking for cache file in %s\n",cachefilename);
+  // fprintf(stderr,"Looking for cache file in %s\n",cachefilename);
 
   struct line_metrics *m=calloc(sizeof(struct line_metrics),1);
   line_metrics_initialise(m,p->paragraph_lines[line_number]->piece_count);
@@ -784,10 +784,7 @@ int line_analyse(struct paragraph *p,int line_number)
     // Record metrics for next time so that we don't have to recalculate each time
     // unless the line or configuration has changed.
     line_metrics_write(cachefilename,m);
-  } else {
-    fprintf(stderr,"  Using cached metrics.\n");
   }
-
   p->paragraph_lines[line_number]->metrics=m;
      
   return 0;
