@@ -30,6 +30,7 @@
 #include <unistd.h>
 #include <math.h>
 #include <ctype.h>
+#include <assert.h>
 #include "ft2build.h"
 #include FT_FREETYPE_H
 #include "hpdf.h"
@@ -172,9 +173,9 @@ int page_optimal_render_tokens()
 	  cumulative_penalty+=penalty;
 	  cumulative_height+=height;
 
-	  checkpoint_para=start_para;
-	  checkpoint_line=start_line;
-	  checkpoint_piece=start_piece;
+	  checkpoint_para=end_para;
+	  checkpoint_line=end_line;
+	  checkpoint_piece=end_piece;
 	}
 
 	// Stop accumulating page once it is too tall to fit.
@@ -185,9 +186,20 @@ int page_optimal_render_tokens()
 
 	// Get height and penalty of the current piece of the current line.
 	struct line_pieces *l=body_paragraphs[checkpoint_para]->paragraph_lines[checkpoint_line];
+	assert(l->metrics->line_pieces==l->piece_count);
+	assert(l->metrics->line_pieces>=end_piece);	  
+	assert(l->metrics->line_pieces>=checkpoint_piece);
+	assert(end_piece>=checkpoint_piece);
+	assert(end_line==checkpoint_line);
 	penalty=l->metrics->starts[checkpoint_piece][end_piece].penalty;
 	height=l->metrics->starts[checkpoint_piece][end_piece].height;	
+
+	fprintf(stderr,"Analysing page start position %d: %d:%d:%d p=%d, h=%.1fpts           \n",
+		start_position_count,end_para,end_line,end_piece,
+		penalty+cumulative_penalty,
+		height+cumulative_height);
 	
+
 	// Advance to next ending point
 	if (!body_paragraphs[end_para]->line_count) {
 	  end_para++;
