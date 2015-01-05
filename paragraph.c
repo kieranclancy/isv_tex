@@ -92,7 +92,6 @@ int paragraph_flush(struct paragraph *p_in,int drawingPage)
   paragraph_analyse(p);
   
   body_paragraphs[paragraph_count++]=p;  
-  paragraph_count++;
 
   //  if (last_paragraph_report_time<time(0)) {
     last_paragraph_report_time=time(0);
