@@ -737,9 +737,9 @@ int line_analyse(struct paragraph *p,int line_number)
 	if (0) fprintf(stderr,"%d..%d : height=%.1f, penalty=%d\n",
 		       start,end,height,penalty);
 	
-	if ((start>m->line_pieces)||((end-start-1)>(m->line_pieces-start))
-	    ||((end-start-1)<0)) {
-	  fprintf(stderr,"Attempting to write to invalid line_metrics item.\n");
+	if ((start>m->line_pieces)||(end>m->line_pieces)
+	    ||(end<0)) {
+	  fprintf(stderr,"Attempting to write to invalid line_metrics item: start=%d, end=%d, piece_count=%d.\n",start,end,m->line_pieces);
 	  exit(-1);
 	}
 	if (!m->starts[start]) {
@@ -772,7 +772,7 @@ int line_metrics_initialise(struct line_metrics *m,int line_pieces)
   assert(m->starts);
   
   for(i=0;i<=line_pieces;i++) {
-    m->starts[i]=calloc(sizeof(int),1+line_pieces);
+    m->starts[i]=calloc(sizeof(struct line_metric),1+line_pieces);
     assert(m->starts[i]);
   }
 
