@@ -124,6 +124,10 @@ int page_optimal_render_tokens()
   int start_para=0;
   int start_line=0;
   int start_piece=0;
+
+  int checkpoint_para=0;
+  int checkpoint_line=0;
+  int checkpoint_piece=0;
   
   int end_para=0;
   int end_line=0;
@@ -133,6 +137,10 @@ int page_optimal_render_tokens()
   
   while(1) {
     start_position_count++;
+
+    fprintf(stderr,"\rAnalysing page start position %d:                 ",
+	    start_position_count);
+    fflush(stderr);
 
     // Try this starting point, but only if it isn't
     // an empty paragraph
@@ -145,9 +153,40 @@ int page_optimal_render_tokens()
       end_para=start_para;
       end_line=start_line;
       end_piece=start_piece;
+
+      checkpoint_para=start_para;
+      checkpoint_line=start_line;
+      checkpoint_piece=start_piece;
+
+      int penalty=0;
+      float height=0;
+      int cumulative_penalty=0;
+      float cumulative_height=0;
       
       while(1) {
 	// Work out cost to here.
+
+	if ((end_para!=checkpoint_para)||(end_line!=checkpoint_line)) {
+	  // We have advanced to a new line, so add last penalty to the
+	  // cumulative penalty, and also adjust the cumulative height
+	  cumulative_penalty+=penalty;
+	  cumulative_height+=height;
+
+	  checkpoint_para=start_para;
+	  checkpoint_line=start_line;
+	  checkpoint_piece=start_piece;
+	}
+
+	// Stop accumulating page once it is too tall to fit.
+	if (cumulative_height>(page_height-top_margin-bottom_margin))
+	  {
+	    break;
+	  }
+
+	// Get height and penalty of the current piece of the current line.
+	struct line_pieces *l=body_paragraphs[checkpoint_para]->paragraph_lines[checkpoint_line];
+	penalty=l->metrics->starts[checkpoint_piece][end_piece].penalty;
+	height=l->metrics->starts[checkpoint_piece][end_piece].height;	
 	
 	// Advance to next ending point
 	if (!body_paragraphs[end_para]->line_count) {
