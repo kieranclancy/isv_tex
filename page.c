@@ -149,14 +149,14 @@ int page_optimal_render_tokens()
 
   int start_position_count=0;
 
-  struct page_option_record backtrace[token_count];
+  struct page_option_record backtrace[token_count+1];
 
   for(int i=0;i<token_count;i++) {
     backtrace[i].start_index=-1;
     backtrace[i].start_para=-1;
     backtrace[i].start_line=-1;
     backtrace[i].start_piece=-1;
-    backtrace[i].page_count=-1;
+    backtrace[i].page_count=0;
     backtrace[i].penalty=-1;
     backtrace[i].height=-1;
   }
@@ -252,6 +252,26 @@ int page_optimal_render_tokens()
 	  best_penalty=this_penalty; best_height=this_height;
 	}       	
 
+	if ((this_penalty<backtrace[end_position].penalty)
+	    ||(backtrace[end_position].penalty==-1)) {
+	  backtrace[end_position].start_index=start_position_count-1;
+	  backtrace[end_position].start_para=start_para;
+	  backtrace[end_position].start_line=start_line;
+	  backtrace[end_position].start_piece=start_piece;
+	  if (start_position_count>0) {
+	    backtrace[end_position].penalty
+	      =backtrace[start_position_count-1].penalty
+	      +this_penalty;
+	  } else {
+	    backtrace[end_position].penalty=this_penalty;
+	  }
+	  backtrace[end_position].height=this_height;
+
+	  if (start_position_count)
+	    backtrace[end_position].page_count
+	      =backtrace[start_position_count-1].page_count+1;
+	}
+	
 	// Advance to next ending point
 	if (!body_paragraphs[end_para]->line_count) {
 	  end_para++;
@@ -300,6 +320,19 @@ int page_optimal_render_tokens()
 
   fprintf(stderr,"Analysed all %d possible page starting positions.\n",
 	  start_position_count);
+
+  fprintf(stderr,"Optimal page path:\n");
+  int position=start_position_count-1;
+  while(position>=0) {
+    fprintf(stderr,"%d (%d %d %d) : penalty=%lld, page_count=%d\n",
+	    position,
+	    backtrace[position].start_para,
+	    backtrace[position].start_line,
+	    backtrace[position].start_piece,
+	    backtrace[position].penalty,
+	    backtrace[position].page_count);
+    position=backtrace[position].start_index;
+  }
   
   return 0;
 }
