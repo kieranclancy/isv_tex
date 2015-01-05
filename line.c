@@ -707,6 +707,11 @@ int line_metrics_write(char *filename,struct line_metrics *m)
   return 0;
 }
 
+int line_metrics_read(char *filename,struct line_metrics *m)
+{
+  return -1;
+}
+
 int line_analyse(struct paragraph *p,int line_number)
 {
   int start,end;
@@ -719,40 +724,44 @@ int line_analyse(struct paragraph *p,int line_number)
 
   struct line_metrics *m=calloc(sizeof(struct line_metrics),1);
   line_metrics_initialise(m,p->paragraph_lines[line_number]->piece_count);
-  
-  layout_line_precalc(p->paragraph_lines[line_number]);
-  
-  for(start=0;start<p->paragraph_lines[line_number]->piece_count;start++)
-    for(end=start+1;end<=p->paragraph_lines[line_number]->piece_count;end++) {
-      int penalty=layout_line(p,line_number,start,end,out,0);
-      float height=paragraph_height(out);
-      if (0) fprintf(stderr,"%d..%d : height=%.1f, penalty=%d\n",
-		     start,end,height,penalty);
 
-      if ((start>m->line_pieces)||((end-start-1)>(m->line_pieces-start))
-	  ||((end-start-1)<0)) {
-	fprintf(stderr,"Attempting to write to invalid line_metrics item.\n");
-	exit(-1);
+  if (line_metrics_read(cachefilename,m)) {
+    // No valid cache -- so calculate line metrics
+    
+    layout_line_precalc(p->paragraph_lines[line_number]);
+    
+    for(start=0;start<p->paragraph_lines[line_number]->piece_count;start++)
+      for(end=start+1;end<=p->paragraph_lines[line_number]->piece_count;end++) {
+	int penalty=layout_line(p,line_number,start,end,out,0);
+	float height=paragraph_height(out);
+	if (0) fprintf(stderr,"%d..%d : height=%.1f, penalty=%d\n",
+		       start,end,height,penalty);
+	
+	if ((start>m->line_pieces)||((end-start-1)>(m->line_pieces-start))
+	    ||((end-start-1)<0)) {
+	  fprintf(stderr,"Attempting to write to invalid line_metrics item.\n");
+	  exit(-1);
+	}
+	if (!m->starts[start]) {
+	  fprintf(stderr,"Attempting to write to invalid line_metrics item (row is NULL)\n");
+	  exit(-1);
+	}
+	// Record metrics for this line segment
+	m->starts[start][end].penalty=penalty;
+	m->starts[start][end].height=height;
+	
+	paragraph_clear(out);
       }
-      if (!m->starts[start]) {
-	fprintf(stderr,"Attempting to write to invalid line_metrics item (row is NULL)\n");
-	exit(-1);
-      }
-      // Record metrics for this line segment
-      m->starts[start][end].penalty=penalty;
-      m->starts[start][end].height=height;
-      
-      paragraph_clear(out);
-    }
+    
+    paragraph_free(out);
 
-  paragraph_free(out);
+    // Record metrics for next time so that we don't have to recalculate each time
+    // unless the line or configuration has changed.
+    line_metrics_write(cachefilename,m);
+  }
 
   p->paragraph_lines[line_number]->metrics=m;
-
-  // Record metrics for next time so that we don't have to recalculate each time
-  // unless the line or configuration has changed.
-  line_metrics_write(cachefilename,m);
-  
+     
   return 0;
 }
 
