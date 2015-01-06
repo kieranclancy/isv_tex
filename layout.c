@@ -126,7 +126,6 @@ int layout_calculate_segment_cost(struct paragraph *p,
 
     }
 
-  // fprintf(stderr,"  segment width is %.1fpts\n",line_width);
 
   // Work out column width
   float column_width=page_width-left_margin-right_margin;
@@ -276,38 +275,41 @@ int layout_line(struct paragraph *p, int line_number,
   for(a=start;a<end;a++) {
     int line_count=line_counts[a];
     int costa=costs[a];
-    // Ignore segments that begin on a space, or follow a non-breaking piece
-    if ((!l->pieces[a].piece_is_elastic)
-	&&((!start)
-	   ||(!l->pieces[a-1].nobreak))) {
+    // Penalise segments that begin on a space, or follow a non-breaking piece
+    if (l->pieces[a].piece_is_elastic) {
       if (0)
-	fprintf(stderr,"Examining starting point at piece #%d: nobreak=%d, elastic=%d\n",
-		a,(a>0)?l->pieces[a-1].nobreak:0,l->pieces[a].piece_is_elastic);
-      
-      for(b=a+1;b<=end;b++) {
-	int segment_cost=layout_calculate_segment_cost(p,l,a,b,line_count,
-						       cumulative_widths);
-	if (segment_cost==-1) break;  
-	if (0) fprintf(stderr,"  segment cost of %d..%d is %d (combined cost = %d)\n",
-		       a,b,segment_cost,segment_cost+costs[a]);
-	// Stop looking when line segment is too long
-	if (segment_cost+costa<costs[b]) {
-	  // fprintf(stderr,"    this beats the old cost of %d\n",costs[b]);
-	  costs[b]=segment_cost+costa;
-	  next_steps[b]=a;
-	  line_counts[b]=line_count+1;
-	}
-      }
-    } else {
-      // If we are skipping a starting point, then we need to indicate a zero cost
-      // for briding over it.
+	fprintf(stderr,
+		"  adding 1,000,000 to penalty for starting on a space at #%d.\n",
+		a);
+      costa+=1000000;
+    }
+    if (a&&(l->pieces[a-1].nobreak)) {
       if (0)
-	fprintf(stderr,"Skipping starting point at piece #%d: nobreak=%d, elastic=%d\n",
-		a,(a>0)?l->pieces[a-1].nobreak:0,l->pieces[a].piece_is_elastic);
-      costs[a+1]=costs[a];
-      next_steps[a+1]=a;
-      line_counts[a+1]=line_count;
-    }    
+	fprintf(stderr,
+		"  adding 1,000,000 to penalty for starting on a non-breaking piece at #%d.\n",
+		a);
+      costa+=1000000;
+    }
+    if (0)
+      fprintf(stderr,"Examining starting point at piece #%d: nobreak=%d, elastic=%d\n",
+	      a,(a>0)?l->pieces[a-1].nobreak:0,l->pieces[a].piece_is_elastic);
+    
+    for(b=a+1;b<=end;b++) {
+      int segment_cost=layout_calculate_segment_cost(p,l,a,b,line_count,
+						     cumulative_widths);
+      if (segment_cost==-1) break;  
+      if (0) fprintf(stderr,"  segment cost of %d..%d is %d (combined cost = %d)\n",
+		     a,b,segment_cost,segment_cost+costs[a]);
+      // Stop looking when line segment is too long
+      if ((segment_cost+costa)<costs[b]) {
+	fprintf(stderr,"    this beats the old cost of %d\n",costs[b]);
+	costs[b]=segment_cost+costa;
+	next_steps[b]=a;
+	line_counts[b]=line_count+1;
+      } else if (0) fprintf(stderr,"    (%d+%d) >= old cost %d\n",
+			    segment_cost,costa,costs[b]);
+		     
+    }
   }
 
   // Count number of lines in optimal layout.
@@ -359,6 +361,14 @@ int layout_line(struct paragraph *p, int line_number,
     position=next_steps[position];
   }
 
+  if (0) {
+    fprintf(stderr,"Backtrace figures:\n");
+    for(int i=start;i<=end;i++) {
+      fprintf(stderr,"%d..%d : cost %d (next step=0x%08x)\n",
+	      next_steps[i],i,costs[i],next_steps[i]);
+    }
+  }
+  
   {
     // fprintf(stderr,">> Optimal long-line layout is:\n");
     int line_count=0;

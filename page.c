@@ -215,62 +215,65 @@ int page_optimal_render_tokens()
 
 	// Get height and penalty of the current piece of the current line.
 	struct line_pieces *l=body_paragraphs[checkpoint_para]->paragraph_lines[checkpoint_line];
-	assert(l->metrics->line_pieces==l->piece_count);
-	assert(l->metrics->line_pieces>=end_piece);	  
-	assert(l->metrics->line_pieces>=checkpoint_piece);
-	assert(end_piece>=checkpoint_piece);
-	assert(end_line==checkpoint_line);
-	penalty=l->metrics->starts[checkpoint_piece][end_piece].penalty;
-	height=l->metrics->starts[checkpoint_piece][end_piece].height;	
 
-	// XXX - Look up height and penalty of footnote paragraph so that it can be
-	// taken into account.
+	if (l) {
+	  assert(l->metrics->line_pieces==l->piece_count);
+	  assert(l->metrics->line_pieces>=end_piece);	  
+	  assert(l->metrics->line_pieces>=checkpoint_piece);
+	  assert(end_piece>=checkpoint_piece);
+	  assert(end_line==checkpoint_line);
+	  penalty=l->metrics->starts[checkpoint_piece][end_piece].penalty;
+	  height=l->metrics->starts[checkpoint_piece][end_piece].height;	
 
-	// XXX - Look up height of cross-references so that we can stop if they are too
-	// tall.
+	  // XXX - Look up height and penalty of footnote paragraph so that it can be
+	  // taken into account.
 
-	float this_height=height+cumulative_height;
+	  // XXX - Look up height of cross-references so that we can stop if they are too
+	  // tall.
+	  
+	  float this_height=height+cumulative_height;
+	  
+	  // Work out penalty for emptiness of page
+	  int emptiness=(100*this_height)/(page_height-top_margin-bottom_margin);
+	  if (emptiness<0) emptiness=100;
+	  else if (emptiness>100) emptiness=0;
+	  else emptiness=100-emptiness;
+	  int emptiness_penalty=16*emptiness*emptiness;
+	  if (this_height>(page_height-top_margin-bottom_margin))
+	    emptiness_penalty=100000000;
+	  
+	  // XXX Work out penalty based on balance of columns.
 
-	// Work out penalty for emptiness of page
-	int emptiness=(100*this_height)/(page_height-top_margin-bottom_margin);
-	if (emptiness<0) emptiness=100;
-	else if (emptiness>100) emptiness=0;
-	else emptiness=100-emptiness;
-	int emptiness_penalty=16*emptiness*emptiness;
-	if (this_height>(page_height-top_margin-bottom_margin))
-	  emptiness_penalty=100000000;
-	
-	// XXX Work out penalty based on balance of columns.
-
-	assert(penalty>=0);
-	assert(cumulative_penalty>=0);
-	assert(emptiness_penalty>=0);
-	
-	long long this_penalty=penalty+cumulative_penalty+emptiness_penalty;
-
-	if (this_penalty<best_penalty) {
-	  best_penalty=this_penalty; best_height=this_height;
-	}       	
-
-	if (((this_penalty+backtrace[start_position_count-1].penalty)
-	     <backtrace[end_position].penalty)
-	    ||(backtrace[end_position].penalty==-1)) {
-	  backtrace[end_position].start_index=start_position_count-1;
-	  backtrace[end_position].start_para=start_para;
-	  backtrace[end_position].start_line=start_line;
-	  backtrace[end_position].start_piece=start_piece;
-	  if (start_position_count>0) {
-	    backtrace[end_position].penalty
-	      =backtrace[start_position_count-1].penalty
-	      +this_penalty;
-	  } else {
-	    backtrace[end_position].penalty=this_penalty;
+	  assert(penalty>=0);
+	  assert(cumulative_penalty>=0);
+	  assert(emptiness_penalty>=0);
+	  
+	  long long this_penalty=penalty+cumulative_penalty+emptiness_penalty;
+	  
+	  if (this_penalty<best_penalty) {
+	    best_penalty=this_penalty; best_height=this_height;
+	  }       	
+	  
+	  if (((this_penalty+backtrace[start_position_count-1].penalty)
+	       <backtrace[end_position].penalty)
+	      ||(backtrace[end_position].penalty==-1)) {
+	    backtrace[end_position].start_index=start_position_count-1;
+	    backtrace[end_position].start_para=start_para;
+	    backtrace[end_position].start_line=start_line;
+	    backtrace[end_position].start_piece=start_piece;
+	    if (start_position_count>0) {
+	      backtrace[end_position].penalty
+		=backtrace[start_position_count-1].penalty
+		+this_penalty;
+	    } else {
+	      backtrace[end_position].penalty=this_penalty;
+	    }
+	    backtrace[end_position].height=this_height;
+	    
+	    if (start_position_count)
+	      backtrace[end_position].page_count
+		=backtrace[start_position_count-1].page_count+1;
 	  }
-	  backtrace[end_position].height=this_height;
-
-	  if (start_position_count)
-	    backtrace[end_position].page_count
-	      =backtrace[start_position_count-1].page_count+1;
 	}
 	
 	// Advance to next ending point
@@ -383,7 +386,8 @@ int page_optimal_render_tokens()
 
     while(start_para<end_para||start_line<end_line) {
 
-      fprintf(stderr,"  rendering para #%d line #%d\n",start_para,start_line);
+      fprintf(stderr,"  rendering para #%d line #%d : page_width=%d-%d-%d\n",
+	      start_para,start_line,page_width,left_margin,right_margin);
 
       // Layout line onto page
       penalty=0;
@@ -394,6 +398,7 @@ int page_optimal_render_tokens()
       if (body_paragraphs[start_para]->line_count) {
 	struct line_pieces *l=body_paragraphs[start_para]->paragraph_lines[start_line];
 	end=l->piece_count;
+	line_recalculate_width(l);
 	// Truncate first and last lines as required.
 	if (firstLine) start=start_piece; firstLine=0;
 	if (start_para==end_para&&start_line==end_line) end=end_piece;
@@ -403,6 +408,7 @@ int page_optimal_render_tokens()
 	  fprintf(stderr,"  line #%d : left_margin=%d, max_width=%d\n",
 		  i,out->paragraph_lines[i]->left_margin,
 		  out->paragraph_lines[i]->max_line_width);
+	  line_dump(out->paragraph_lines[i]);
 	  line_emit(out,i,1,1);
 	} 
       } else {
