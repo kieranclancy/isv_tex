@@ -381,26 +381,44 @@ int page_optimal_render_tokens()
     end_line=backtrace[position].start_line;
     end_piece=backtrace[position].start_piece;
 
-    // Layout line onto page
-    penalty=0;
-    int firstLine=1;
+    while(start_para<end_para||start_line<end_line) {
 
-    int start=0;
-    int end=0;
-    if (body_paragraphs[start_para]->line_count) {
-      end=body_paragraphs[start_para]->paragraph_lines[start_line]->piece_count;
-      // Truncate first and last lines as required.
-      if (firstLine) start=start_piece; firstLine=0;
-      if (start_para==end_para&&start_line==end_line) end=end_piece;
-      // Layout the line (or line segment)
-      penalty=layout_line(body_paragraphs[start_para],start_line,start,end,out,0);
-      for(int i=0;i<out->line_count;i++) {
-      line_emit(out,i,1,1);
+      fprintf(stderr,"  rendering para #%d line #%d\n",start_para,start_line);
+
+      // Layout line onto page
+      penalty=0;
+      int firstLine=1;
+      
+      int start=0;
+      int end=0;
+      if (body_paragraphs[start_para]->line_count) {
+	struct line_pieces *l=body_paragraphs[start_para]->paragraph_lines[start_line];
+	end=l->piece_count;
+	// Truncate first and last lines as required.
+	if (firstLine) start=start_piece; firstLine=0;
+	if (start_para==end_para&&start_line==end_line) end=end_piece;
+	// Layout the line (or line segment).
+	penalty=layout_line(body_paragraphs[start_para],start_line,start,end,out,0);
+	for(int i=0;i<out->line_count;i++) {
+	  fprintf(stderr,"  line #%d : left_margin=%d, max_width=%d\n",
+		  i,out->paragraph_lines[i]->left_margin,
+		  out->paragraph_lines[i]->max_line_width);
+	  line_emit(out,i,1,1);
+	} 
+      } else {
+	// Empty paragraphs are just for vspace, so advance accordingly.
+	page_y+=body_paragraphs[start_para]->total_height;
+      }
+
+      paragraph_clear(out);
+	  
+      start_piece=0;
+      start_line++;
+      if (start_line>=body_paragraphs[start_para]->line_count) {
+	start_line=0; start_para++;
       }
     }
-
     
-    paragraph_clear(out);
     
     leftRight=-leftRight;
   }
