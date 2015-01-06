@@ -214,7 +214,9 @@ int page_optimal_render_tokens()
 	  }
 
 	// Get height and penalty of the current piece of the current line.
-	struct line_pieces *l=body_paragraphs[checkpoint_para]->paragraph_lines[checkpoint_line];
+	struct line_pieces *l=NULL;
+	if (body_paragraphs[checkpoint_para])
+	  l=body_paragraphs[checkpoint_para]->paragraph_lines[checkpoint_line];
 
 	if (l) {
 	  assert(l->metrics->line_pieces==l->piece_count);
@@ -388,7 +390,7 @@ int page_optimal_render_tokens()
 
       fprintf(stderr,"  rendering para #%d line #%d : page_width=%d-%d-%d, pre-computed paragraph height=%.1fpts\n",
 	      start_para,start_line,page_width,left_margin,right_margin,
-	      backtrace[position].height);
+	      backtrace[start_para].height);
 
       // Layout line onto page
       penalty=0;
@@ -407,9 +409,11 @@ int page_optimal_render_tokens()
 	// Layout the line (or line segment).
 	penalty=layout_line(body_paragraphs[start_para],start_line,start,end,out,0);
 	for(int i=0;i<out->line_count;i++) {
-	  if (0) fprintf(stderr,"  line #%d : left_margin=%d, max_width=%d\n",
-			 i,out->paragraph_lines[i]->left_margin,
-			 out->paragraph_lines[i]->max_line_width);
+	  if (0) {
+	    fprintf(stderr,"  line #%d : left_margin=%d, max_width=%d\n",
+		    i,out->paragraph_lines[i]->left_margin,
+		    out->paragraph_lines[i]->max_line_width);
+	  }
 	  line_dump(out->paragraph_lines[i]);
 	  line_emit(out,i,1,1);
 	} 
