@@ -322,7 +322,6 @@ int page_optimal_render_tokens()
   fprintf(stderr,"Analysed all %d possible page starting positions.\n",
 	  start_position_count);
 
-  fprintf(stderr,"Optimal page path:\n");
   int position=start_position_count-1;
   int page_positions[token_count+1];
   int page_count=0;
@@ -338,15 +337,25 @@ int page_optimal_render_tokens()
       fprintf(stderr,"Illegal step or loop in page optimisation dyanmic programming list.\n");
       exit(-1);
     }
-    
-    fprintf(stderr,"%d (%d %d %d) : penalty=%lld, page_count=%d\n",
+    position=backtrace[position].start_index;
+  }
+
+  fprintf(stderr,"Optimal page path:\n");
+  for(int page_number=page_count-1;page_number>=0;page_number--) {
+    position=page_positions[page_number];
+    long long penalty=backtrace[position].penalty;
+    int next_position=backtrace[position].start_index;
+    if (next_position>=0) penalty-=backtrace[next_position].penalty;
+
+    fprintf(stderr,"%d (%d %d %d) : penalty=%lld, page_count=%d, page_height=%.1fpts\n",
 	    position,
 	    backtrace[position].start_para,
 	    backtrace[position].start_line,
 	    backtrace[position].start_piece,
 	    penalty,
-	    backtrace[position].page_count);
-    position=backtrace[position].start_index;
+	    backtrace[position].page_count,
+	    backtrace[position].height
+	    );
   }
   
   return 0;
