@@ -302,7 +302,7 @@ int layout_line(struct paragraph *p, int line_number,
 		     a,b,segment_cost,segment_cost+costs[a]);
       // Stop looking when line segment is too long
       if ((segment_cost+costa)<costs[b]) {
-	fprintf(stderr,"    this beats the old cost of %d\n",costs[b]);
+	// fprintf(stderr,"    this beats the old cost of %d\n",costs[b]);
 	costs[b]=segment_cost+costa;
 	next_steps[b]=a;
 	line_counts[b]=line_count+1;
