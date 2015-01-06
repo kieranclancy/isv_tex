@@ -325,12 +325,15 @@ int page_optimal_render_tokens()
   fprintf(stderr,"Optimal page path:\n");
   int position=start_position_count-1;
   while(position>=0) {
+    long long penalty=backtrace[position].penalty;
+    int next_position=backtrace[position].start_index;
+    if (next_position>=0) penalty-=backtrace[next_position].penalty;
     fprintf(stderr,"%d (%d %d %d) : penalty=%lld, page_count=%d\n",
 	    position,
 	    backtrace[position].start_para,
 	    backtrace[position].start_line,
 	    backtrace[position].start_piece,
-	    backtrace[position].penalty,
+	    penalty,
 	    backtrace[position].page_count);
     position=backtrace[position].start_index;
   }
