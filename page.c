@@ -340,6 +340,8 @@ int page_optimal_render_tokens()
     position=backtrace[position].start_index;
   }
 
+  struct paragraph *out=new_paragraph();
+  
   fprintf(stderr,"Optimal page path:\n");
   for(int page_number=page_count-1;page_number>=0;page_number--) {
     position=page_positions[page_number];
@@ -356,7 +358,54 @@ int page_optimal_render_tokens()
 	    backtrace[position].page_count,
 	    backtrace[position].height
 	    );
+
+    // Setup new page and render lines onto page.
+    if (page_number==(page_count-1))
+      // No header on first page of a book
+      new_empty_page(leftRight,1);
+    else
+      new_empty_page(leftRight,0);
+    
+    if (next_position>=0) {
+      start_para=backtrace[next_position].start_para;
+      start_line=backtrace[next_position].start_line;
+      start_piece=backtrace[next_position].start_piece;
+    } else {
+      start_para=0; start_line=0; start_piece=0;
+    }
+    if (start_para<0) {
+      start_para=0; start_line=0; start_piece=0;
+    }
+    
+    end_para=backtrace[position].start_para;
+    end_line=backtrace[position].start_line;
+    end_piece=backtrace[position].start_piece;
+
+    // Layout line onto page
+    penalty=0;
+    int firstLine=1;
+
+    int start=0;
+    int end=0;
+    if (body_paragraphs[start_para]->line_count) {
+      end=body_paragraphs[start_para]->paragraph_lines[start_line]->piece_count;
+      // Truncate first and last lines as required.
+      if (firstLine) start=start_piece; firstLine=0;
+      if (start_para==end_para&&start_line==end_line) end=end_piece;
+      // Layout the line (or line segment)
+      penalty=layout_line(body_paragraphs[start_para],start_line,start,end,out,0);
+      for(int i=0;i<out->line_count;i++) {
+      line_emit(out,i,1,1);
+      }
+    }
+
+    
+    paragraph_clear(out);
+    
+    leftRight=-leftRight;
   }
+
+  paragraph_free(out);
   
   return 0;
 }
