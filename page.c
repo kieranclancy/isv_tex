@@ -324,10 +324,21 @@ int page_optimal_render_tokens()
 
   fprintf(stderr,"Optimal page path:\n");
   int position=start_position_count-1;
+  int page_positions[token_count+1];
+  int page_count=0;
+  
   while(position>=0) {
+    page_positions[page_count++]=position;
+    
     long long penalty=backtrace[position].penalty;
     int next_position=backtrace[position].start_index;
     if (next_position>=0) penalty-=backtrace[next_position].penalty;
+
+    if (next_position>=position||next_position<-1) {
+      fprintf(stderr,"Illegal step or loop in page optimisation dyanmic programming list.\n");
+      exit(-1);
+    }
+    
     fprintf(stderr,"%d (%d %d %d) : penalty=%lld, page_count=%d\n",
 	    position,
 	    backtrace[position].start_para,
