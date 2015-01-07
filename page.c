@@ -286,20 +286,22 @@ int page_optimal_render_tokens()
 	}
 	
 	// Advance to next ending point
-	if (!body_paragraphs[end_para]->line_count) {
-	  end_para++;
-	} else {
-	  end_piece++;
-	  if (end_piece
-	      >=body_paragraphs[end_para]->paragraph_lines[end_line]->piece_count) {
-	    end_piece=0; end_line++;
-	  }
-	  if (end_line>=body_paragraphs[end_para]->line_count) {
-	    end_line=0;
+	if (body_paragraphs[end_para]) {
+	  if (!body_paragraphs[end_para]->line_count) {
 	    end_para++;
+	  } else {
+	    end_piece++;
+	    if (end_piece
+		>=body_paragraphs[end_para]->paragraph_lines[end_line]->piece_count) {
+	      end_piece=0; end_line++;
+	    }
+	    if (end_line>=body_paragraphs[end_para]->line_count) {
+	      end_line=0;
+	      end_para++;
+	    }
+	    if (end_para>=paragraph_count) break;
 	  }
-	  if (end_para>=paragraph_count) break;
-	}
+	} else break;
 
 	end_position++;
       }
