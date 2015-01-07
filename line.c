@@ -761,8 +761,9 @@ int line_analyse(struct paragraph *p,int line_number)
       for(end=start+1;end<=p->paragraph_lines[line_number]->piece_count;end++) {
 	int penalty=layout_line(p,line_number,start,end,out,0);
 	float height=paragraph_height(out);
-	if (0) fprintf(stderr,"%d..%d : height=%.1f, penalty=%d\n",
+	if (1) fprintf(stderr,"%d..%d : height=%.1f, penalty=%d\n",
 		       start,end,height,penalty);
+	line_segment_dump(p,line_number,start,end);
 	
 	if ((start>m->line_pieces)||(end>m->line_pieces)
 	    ||(end<0)) {
@@ -802,5 +803,17 @@ int line_metrics_initialise(struct line_metrics *m,int line_pieces)
   }
 
   m->line_pieces=line_pieces;
+  return 0;
+}
+
+int line_segment_dump(struct paragraph *p,int line_number, int start, int end)
+{
+  struct paragraph *t=new_paragraph();
+  layout_line(p, line_number, start, end,t,0);
+  for(int i=0;i<t->line_count;i++) {
+    line_dump(t->paragraph_lines[i]);
+  }
+  paragraph_clear(t);
+  paragraph_free(t);
   return 0;
 }

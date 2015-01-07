@@ -225,7 +225,7 @@ int page_optimal_render_tokens()
 	  assert(end_piece>=checkpoint_piece);
 	  assert(end_line==checkpoint_line);
 	  penalty=l->metrics->starts[checkpoint_piece][end_piece].penalty;
-	  height=l->metrics->starts[checkpoint_piece][end_piece].height;	
+	  height=l->metrics->starts[checkpoint_piece][end_piece].height;
 
 	  // XXX - Look up height and penalty of footnote paragraph so that it can be
 	  // taken into account.
@@ -234,6 +234,10 @@ int page_optimal_render_tokens()
 	  // tall.
 	  
 	  float this_height=height+cumulative_height;
+	  fprintf(stderr,"   segment height=%.1fpts, cumulative_height=%.1fpts\n",
+		  height,cumulative_height);
+	  line_segment_dump(body_paragraphs[checkpoint_para],checkpoint_line,
+			    checkpoint_piece, end_piece);
 	  
 	  // Work out penalty for emptiness of page
 	  int emptiness=(100*this_height)/(page_height-top_margin-bottom_margin);

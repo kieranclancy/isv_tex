@@ -357,6 +357,7 @@ struct piece *new_line_piece(char *text,struct type_face *current_font,
 struct line_pieces *new_line();
 int line_analyse(struct paragraph *p,int line_number);
 int line_metrics_initialise(struct line_metrics *m,int line_pieces);
+int line_segment_dump(struct paragraph *p,int line_number, int start, int end);
 
 int generate_footnote_mark(int footnote_count);
 int begin_footnote(int token_number);
