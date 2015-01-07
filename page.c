@@ -234,10 +234,13 @@ int page_optimal_render_tokens()
 	  // tall.
 	  
 	  float this_height=height+cumulative_height;
-	  fprintf(stderr,"   segment height=%.1fpts, cumulative_height=%.1fpts\n",
-		  height,cumulative_height);
-	  line_segment_dump(body_paragraphs[checkpoint_para],checkpoint_line,
-			    checkpoint_piece, end_piece);
+	  if (0) {
+	    fprintf(stderr,"   %d..%d : segment height=%.1fpts, cumulative_height=%.1fpts\n",
+		    checkpoint_piece, end_piece,
+		    height,cumulative_height);
+	    line_segment_dump(body_paragraphs[checkpoint_para],checkpoint_line,
+			      checkpoint_piece, end_piece);
+	  }
 	  
 	  // Work out penalty for emptiness of page
 	  int emptiness=(100*this_height)/(page_height-top_margin-bottom_margin);
