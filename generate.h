@@ -327,7 +327,7 @@ int paragraph_insert_vspace(struct paragraph *p,int points, int tied);
 int paragraph_pop_style(struct paragraph *p);
 int paragraph_fetch_style_stack(int n);
 int paragraph_stash_style_stack(int n);
-int paragraph_height(struct paragraph *p);
+float paragraph_height(struct paragraph *p);
 int paragraph_dump(struct paragraph *p);
 int current_line_flush(struct paragraph *p);
 int paragraph_insert_line(struct paragraph *p,int line_number, struct line_pieces *l);

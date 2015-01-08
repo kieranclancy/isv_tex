@@ -619,7 +619,7 @@ int paragraph_append(struct paragraph *dst,struct paragraph *src)
   return 0;
 };
 
-int paragraph_height(struct paragraph *p)
+float paragraph_height(struct paragraph *p)
 {
   // fprintf(stderr,"%s():\n",__FUNCTION__);
 
