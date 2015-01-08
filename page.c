@@ -126,6 +126,164 @@ struct page_option_record {
   float height;
 };
 
+int page_score_at_this_starting_point(int start_para,int start_line,int start_piece,
+				      struct page_option_record *backtrace,
+				      int start_position_count)
+{
+
+  int checkpoint_para=0;
+  int checkpoint_line=0;
+  int checkpoint_piece=0;
+  
+  int end_para=0;
+  int end_line=0;
+  int end_piece=0;
+
+  // Now advance through all possible ending points.
+  // Note that the end point here is inclusive, to simplify the logic.
+  end_para=start_para;
+  end_line=start_line;
+  end_piece=start_piece;
+  
+  checkpoint_para=start_para;
+  checkpoint_line=start_line;
+  checkpoint_piece=start_piece;
+  
+  int penalty=0;
+  float height=0;
+  long long cumulative_penalty=0;
+  float cumulative_height=0;
+  
+  long long best_penalty=0x7ffffff;
+  float best_height=-1;
+  
+  int end_position=start_position_count;
+  
+  while(1) {
+    // Work out cost to here.
+    
+    if ((end_para!=checkpoint_para)||(end_line!=checkpoint_line)) {
+      // We have advanced to a new line, so add last penalty to the
+      // cumulative penalty, and also adjust the cumulative height
+      cumulative_penalty+=penalty;
+      cumulative_height+=height;
+      
+      checkpoint_para=end_para;
+      checkpoint_line=end_line;
+      checkpoint_piece=end_piece;
+    }
+    
+    // Stop accumulating page once it is too tall to fit.
+    if (cumulative_height>(page_height-top_margin-bottom_margin))
+      {
+	break;
+      }
+    
+    // Get height and penalty of the current piece of the current line.
+    struct line_pieces *l=NULL;
+    if (body_paragraphs[checkpoint_para])
+      l=body_paragraphs[checkpoint_para]->paragraph_lines[checkpoint_line];
+    
+    if (l) {
+      assert(l->metrics->line_pieces==l->piece_count);
+      assert(l->metrics->line_pieces>=end_piece);	  
+      assert(l->metrics->line_pieces>=checkpoint_piece);
+      assert(end_piece>=checkpoint_piece);
+      assert(end_line==checkpoint_line);
+      penalty=l->metrics->starts[checkpoint_piece][end_piece].penalty;
+      height=l->metrics->starts[checkpoint_piece][end_piece].height;
+      
+      // XXX - Look up height and penalty of footnote paragraph so that it can be
+      // taken into account.
+      
+      // XXX - Look up height of cross-references so that we can stop if they are too
+      // tall.
+      
+      float this_height=height+cumulative_height;
+      if (0) {
+	fprintf(stderr,"   %d..%d : segment height=%.1fpts, cumulative_height=%.1fpts\n",
+		checkpoint_piece, end_piece,
+		height,cumulative_height);
+	line_segment_dump(body_paragraphs[checkpoint_para],checkpoint_line,
+			  checkpoint_piece, end_piece);
+      }
+      
+      // Work out penalty for emptiness of page
+      int emptiness=(100*this_height)/(page_height-top_margin-bottom_margin);
+      if (emptiness<0) emptiness=100;
+      else if (emptiness>100) emptiness=0;
+      else emptiness=100-emptiness;
+      int emptiness_penalty=16*emptiness*emptiness;
+      if (this_height>(page_height-top_margin-bottom_margin))
+	emptiness_penalty=100000000;
+      
+      // XXX Work out penalty based on balance of columns.
+      
+      assert(penalty>=0);
+      assert(cumulative_penalty>=0);
+      assert(emptiness_penalty>=0);
+      
+      long long this_penalty=penalty+cumulative_penalty+emptiness_penalty;
+      
+      if (this_penalty<best_penalty) {
+	best_penalty=this_penalty; best_height=this_height;
+      }       	
+      
+      if (((this_penalty+backtrace[start_position_count-1].penalty)
+	   <backtrace[end_position].penalty)
+	  ||(backtrace[end_position].penalty==-1)) {
+	backtrace[end_position].start_index=start_position_count-1;
+	backtrace[end_position].start_para=start_para;
+	backtrace[end_position].start_line=start_line;
+	backtrace[end_position].start_piece=start_piece;
+	if (start_position_count>0) {
+	  backtrace[end_position].penalty
+	    =backtrace[start_position_count-1].penalty
+	    +this_penalty;
+	} else {
+	  backtrace[end_position].penalty=this_penalty;
+	}
+	backtrace[end_position].height=this_height;
+	fprintf(stderr,"backtrace[%d].height=%.1fpts\n",
+		end_position,this_height);
+	
+	if (start_position_count)
+	  backtrace[end_position].page_count
+	    =backtrace[start_position_count-1].page_count+1;
+      }
+    }
+    
+    // Advance to next ending point
+    if (body_paragraphs[end_para]) {
+      if (!body_paragraphs[end_para]->line_count) {
+	end_para++;
+      } else {
+	end_piece++;
+	if (end_piece
+	    >=body_paragraphs[end_para]->paragraph_lines[end_line]->piece_count) {
+	  end_piece=0; end_line++;
+	}
+	if (end_line>=body_paragraphs[end_para]->line_count) {
+	  end_line=0;
+	  end_para++;
+	}
+	if (end_para>=paragraph_count) break;
+      }
+    } else break;
+    
+    end_position++;
+  }
+  
+  fprintf(stderr,"Analysing page start position %d ("
+	  "%d:%d:%d): Best result: "
+	  " penalty=%lld, height=%.1fpts\n",
+	  start_position_count,
+	  start_para,start_line,start_piece,
+	  best_penalty,best_height);      
+
+  return 0;
+}
+
 int page_optimal_render_tokens()
 {
   /* Generate set of all paragraphs and lines that we need to optimise over.
@@ -138,14 +296,6 @@ int page_optimal_render_tokens()
   int start_para=0;
   int start_line=0;
   int start_piece=0;
-
-  int checkpoint_para=0;
-  int checkpoint_line=0;
-  int checkpoint_piece=0;
-  
-  int end_para=0;
-  int end_line=0;
-  int end_piece=0;
 
   int start_position_count=0;
 
@@ -173,147 +323,9 @@ int page_optimal_render_tokens()
       // Record zero cost for spanning empty paragraph
     } else {
 
-      // Now advance through all possible ending points.
-      // Note that the end point here is inclusive, to simplify the logic.
-      end_para=start_para;
-      end_line=start_line;
-      end_piece=start_piece;
-
-      checkpoint_para=start_para;
-      checkpoint_line=start_line;
-      checkpoint_piece=start_piece;
-
-      int penalty=0;
-      float height=0;
-      long long cumulative_penalty=0;
-      float cumulative_height=0;
-
-      long long best_penalty=0x7ffffff;
-      float best_height=-1;
-
-      int end_position=start_position_count;
-      
-      while(1) {
-	// Work out cost to here.
-
-	if ((end_para!=checkpoint_para)||(end_line!=checkpoint_line)) {
-	  // We have advanced to a new line, so add last penalty to the
-	  // cumulative penalty, and also adjust the cumulative height
-	  cumulative_penalty+=penalty;
-	  cumulative_height+=height;
-
-	  checkpoint_para=end_para;
-	  checkpoint_line=end_line;
-	  checkpoint_piece=end_piece;
-	}
-
-	// Stop accumulating page once it is too tall to fit.
-	if (cumulative_height>(page_height-top_margin-bottom_margin))
-	  {
-	    break;
-	  }
-
-	// Get height and penalty of the current piece of the current line.
-	struct line_pieces *l=NULL;
-	if (body_paragraphs[checkpoint_para])
-	  l=body_paragraphs[checkpoint_para]->paragraph_lines[checkpoint_line];
-
-	if (l) {
-	  assert(l->metrics->line_pieces==l->piece_count);
-	  assert(l->metrics->line_pieces>=end_piece);	  
-	  assert(l->metrics->line_pieces>=checkpoint_piece);
-	  assert(end_piece>=checkpoint_piece);
-	  assert(end_line==checkpoint_line);
-	  penalty=l->metrics->starts[checkpoint_piece][end_piece].penalty;
-	  height=l->metrics->starts[checkpoint_piece][end_piece].height;
-
-	  // XXX - Look up height and penalty of footnote paragraph so that it can be
-	  // taken into account.
-
-	  // XXX - Look up height of cross-references so that we can stop if they are too
-	  // tall.
-	  
-	  float this_height=height+cumulative_height;
-	  if (0) {
-	    fprintf(stderr,"   %d..%d : segment height=%.1fpts, cumulative_height=%.1fpts\n",
-		    checkpoint_piece, end_piece,
-		    height,cumulative_height);
-	    line_segment_dump(body_paragraphs[checkpoint_para],checkpoint_line,
-			      checkpoint_piece, end_piece);
-	  }
-	  
-	  // Work out penalty for emptiness of page
-	  int emptiness=(100*this_height)/(page_height-top_margin-bottom_margin);
-	  if (emptiness<0) emptiness=100;
-	  else if (emptiness>100) emptiness=0;
-	  else emptiness=100-emptiness;
-	  int emptiness_penalty=16*emptiness*emptiness;
-	  if (this_height>(page_height-top_margin-bottom_margin))
-	    emptiness_penalty=100000000;
-	  
-	  // XXX Work out penalty based on balance of columns.
-
-	  assert(penalty>=0);
-	  assert(cumulative_penalty>=0);
-	  assert(emptiness_penalty>=0);
-	  
-	  long long this_penalty=penalty+cumulative_penalty+emptiness_penalty;
-	  
-	  if (this_penalty<best_penalty) {
-	    best_penalty=this_penalty; best_height=this_height;
-	  }       	
-	  
-	  if (((this_penalty+backtrace[start_position_count-1].penalty)
-	       <backtrace[end_position].penalty)
-	      ||(backtrace[end_position].penalty==-1)) {
-	    backtrace[end_position].start_index=start_position_count-1;
-	    backtrace[end_position].start_para=start_para;
-	    backtrace[end_position].start_line=start_line;
-	    backtrace[end_position].start_piece=start_piece;
-	    if (start_position_count>0) {
-	      backtrace[end_position].penalty
-		=backtrace[start_position_count-1].penalty
-		+this_penalty;
-	    } else {
-	      backtrace[end_position].penalty=this_penalty;
-	    }
-	    backtrace[end_position].height=this_height;
-	    
-	    if (start_position_count)
-	      backtrace[end_position].page_count
-		=backtrace[start_position_count-1].page_count+1;
-	  }
-	}
-	
-	// Advance to next ending point
-	if (body_paragraphs[end_para]) {
-	  if (!body_paragraphs[end_para]->line_count) {
-	    end_para++;
-	  } else {
-	    end_piece++;
-	    if (end_piece
-		>=body_paragraphs[end_para]->paragraph_lines[end_line]->piece_count) {
-	      end_piece=0; end_line++;
-	    }
-	    if (end_line>=body_paragraphs[end_para]->line_count) {
-	      end_line=0;
-	      end_para++;
-	    }
-	    if (end_para>=paragraph_count) break;
-	  }
-	} else break;
-
-	end_position++;
-      }
-
-      fprintf(stderr,"Analysing page start position %d ("
-	      "%d:%d:%d): Best result: "
-	      " penalty=%lld, height=%.1fpts\n",
-	      start_position_count,
-	      start_para,start_line,start_piece,
-	      best_penalty,best_height);      
-    }
-    
+      page_score_at_this_starting_point(start_para,start_line,start_piece,
+					backtrace,start_position_count);
+    }    
     // Advance to next starting point
     if (!body_paragraphs[start_para]->line_count) {
       start_para++;
@@ -391,9 +403,9 @@ int page_optimal_render_tokens()
       start_para=0; start_line=0; start_piece=0;
     }
     
-    end_para=backtrace[position].start_para;
-    end_line=backtrace[position].start_line;
-    end_piece=backtrace[position].start_piece;
+    int end_para=backtrace[position].start_para;
+    int end_line=backtrace[position].start_line;
+    int end_piece=backtrace[position].start_piece;
 
     while(start_para<end_para||start_line<end_line) {
 
