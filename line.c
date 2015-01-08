@@ -74,7 +74,7 @@ struct line_pieces *line_clone(struct line_pieces *l)
 int line_calculate_height(struct line_pieces *l, int start, int end)
 {
   int max=-1; int min=0;
-  int linegap=0;
+  float linegap=0;
   int i;
   if (0)
     fprintf(stderr,"Calculating height of line %p (%d pieces, %.1fpts wide, align=%d, left margin=%d)\n",
@@ -92,11 +92,11 @@ int line_calculate_height(struct line_pieces *l, int start, int end)
   for(i=start;i<end;i++)
     {
       // Get ascender height of font
-      int ascender_height
+      float ascender_height
 	=HPDF_Font_GetAscent(l->pieces[i].font->font)
 	*l->pieces[i].font->font_size/1000;
       // Get descender depth of font
-      int descender_depth
+      float descender_depth
 	=HPDF_Font_GetDescent(l->pieces[i].font->font)
 	*l->pieces[i].font->font_size/1000;
       if (descender_depth<0) descender_depth=-descender_depth;
