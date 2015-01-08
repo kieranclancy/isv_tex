@@ -150,7 +150,8 @@ int paragraph_setup_next_line(struct paragraph *p)
     if (p->current_line->piece_count||p->current_line->line_height)
       paragraph_append_current_line(p);
     else
-      line_free(p->current_line);
+      // No need to setup next line if we already have an empty one on hand.
+      return 0;
     p->current_line=NULL;
   }
   
