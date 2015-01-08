@@ -84,6 +84,9 @@ int paragraph_flush(struct paragraph *p_in,int drawingPage)
     fprintf(stderr,"Too many paragraphs. Increase MAX_PARAGRAPHS.\n");
     exit(-1);
   }
+
+  // Don't create a new paragraph when the current paragraph is empty
+  if (!p_in->line_count) return 0;
   
   struct paragraph *p=new_paragraph();
   paragraph_clone(p,p_in);
