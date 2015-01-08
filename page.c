@@ -161,16 +161,31 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
   
   while(1) {
     // Work out cost to here.
-    
-    if ((end_para!=checkpoint_para)||(end_line!=checkpoint_line)) {
-      // We have advanced to a new line, so add last penalty to the
-      // cumulative penalty, and also adjust the cumulative height
-      cumulative_penalty+=penalty;
-      cumulative_height+=height;
-      
-      checkpoint_para=end_para;
-      checkpoint_line=end_line;
-      checkpoint_piece=end_piece;
+
+    if (!end_piece) {
+      if ((end_para!=checkpoint_para)||(end_line!=checkpoint_line)) {
+	// We have advanced to a new line, so add last penalty to the
+	// cumulative penalty, and also adjust the cumulative height
+	cumulative_penalty+=penalty;
+	cumulative_height+=height;
+
+	int old_checkpoint_para=checkpoint_para;
+	int old_checkpoint_line=checkpoint_line;
+	
+	checkpoint_para=end_para;
+	checkpoint_line=end_line;
+	checkpoint_piece=end_piece;
+	fprintf(stderr,"    checkpoint advanced to %d %d %d (start is %d %d %d)"
+		" penalty=%lld, height=%.1fpts (added %.1fpts)\n",
+		checkpoint_para,checkpoint_line,checkpoint_piece,
+		start_para,start_line,start_piece,
+		cumulative_penalty,cumulative_height,height);
+	fprintf(stderr,"      Line included in checkpoint is: ");
+	if (body_paragraphs[old_checkpoint_para]
+	    ->paragraph_lines[old_checkpoint_line])
+	  line_dump(body_paragraphs[old_checkpoint_para]
+		    ->paragraph_lines[old_checkpoint_line]);	
+      }
     }
     
     // Stop accumulating page once it is too tall to fit.
@@ -311,7 +326,7 @@ int page_optimal_render_tokens()
   
   
   while(1) {
-    fprintf(stderr,"\rAnalysing page start position %d:                 ",
+    fprintf(stderr,"\nAnalysing page start position %d\n",
 	    start_position_count);
     fflush(stderr);
 
@@ -373,16 +388,6 @@ int page_optimal_render_tokens()
     int next_position=backtrace[position].start_index;
     if (next_position>=0) penalty-=backtrace[next_position].penalty;
 
-    fprintf(stderr,"%d (%d %d %d) : penalty=%lld, page_count=%d, page_height=%.1fpts\n",
-	    position,
-	    backtrace[position].start_para,
-	    backtrace[position].start_line,
-	    backtrace[position].start_piece,
-	    penalty,
-	    backtrace[position].page_count,
-	    backtrace[position].height
-	    );
-
     // Setup new page and render lines onto page.
     if (page_number==(page_count-1))
       // No header on first page of a book
@@ -405,6 +410,16 @@ int page_optimal_render_tokens()
     int end_line=backtrace[position].start_line;
     int end_piece=backtrace[position].start_piece;
 
+    fprintf(stderr,"%d (%d %d %d -- %d %d %d) : penalty=%lld, page_count=%d, page_height=%.1fpts\n",
+	    position,
+	    start_para,start_line,start_piece,
+	    end_para,end_line,end_piece,
+	    penalty,
+	    backtrace[position].page_count,
+	    backtrace[position].height
+	    );
+
+    
     struct line_pieces *l=NULL;
 
     while(start_para<end_para||start_line<end_line) {
