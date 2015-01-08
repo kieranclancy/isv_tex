@@ -406,22 +406,27 @@ int page_optimal_render_tokens()
     int end_piece=backtrace[position].start_piece;
 
     struct line_pieces *l=NULL;
-    if (body_paragraphs[start_para])
-      l=body_paragraphs[start_para]->paragraph_lines[start_line];
 
     while(start_para<end_para||start_line<end_line) {
 
+      if (body_paragraphs[start_para])
+	l=body_paragraphs[start_para]->paragraph_lines[start_line];
+      else l=NULL;
+
       int last_piece=end_piece;
       if (end_line!=start_line||end_para!=start_para) {
-	last_piece=l->piece_count;
+	if (l) last_piece=l->piece_count;
+	else last_piece=-1;
       }
-      
+
       fprintf(stderr,"  rendering para #%d line #%d : page_width=%d-%d-%d,"
 	      " pre-computed page height=%.1fpts, pre-computed para height=%.1fpts"
-	      " (pieces %d..%d)\n",
+	      " (ptr=%p)"
+	      " (pieces %d..%d)\n    ",
 	      start_para,start_line,page_width,left_margin,right_margin,
 	      backtrace[position].height,
 	      (l&&l->metrics)?l->metrics->starts[start_piece][last_piece].height:-1.0,
+	      (l&&l->metrics)?l->metrics:NULL,
 	      start_piece,last_piece
 	      );
       if (l) line_dump(l);
