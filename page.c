@@ -405,11 +405,26 @@ int page_optimal_render_tokens()
     int end_line=backtrace[position].start_line;
     int end_piece=backtrace[position].start_piece;
 
+    struct line_pieces *l=NULL;
+    if (body_paragraphs[start_para])
+      l=body_paragraphs[start_para]->paragraph_lines[start_line];
+
     while(start_para<end_para||start_line<end_line) {
 
-      fprintf(stderr,"  rendering para #%d line #%d : page_width=%d-%d-%d, pre-computed paragraph height=%.1fpts\n",
+      int last_piece=end_piece;
+      if (end_line!=start_line||end_para!=start_para) {
+	last_piece=l->piece_count;
+      }
+      
+      fprintf(stderr,"  rendering para #%d line #%d : page_width=%d-%d-%d,"
+	      " pre-computed page height=%.1fpts, pre-computed para height=%.1fpts"
+	      " (pieces %d..%d)\n",
 	      start_para,start_line,page_width,left_margin,right_margin,
-	      backtrace[start_para].height);
+	      backtrace[position].height,
+	      (l&&l->metrics)?l->metrics->starts[start_piece][last_piece].height:-1.0,
+	      start_piece,last_piece
+	      );
+      if (l) line_dump(l);
 
       // Layout line onto page
       penalty=0;
@@ -439,7 +454,10 @@ int page_optimal_render_tokens()
 		    out->paragraph_lines[i]->max_line_width);
 	  }
 	  line_dump(out->paragraph_lines[i]);
+	  float last_page_y=page_y;
 	  line_emit(out,i,1,1);
+	  fprintf(stderr,"  line #%d actual height = %.1fpts\n",
+		  out->paragraph_lines[i]->line_uid,page_y-last_page_y);
 	} 
       } else {
 	// Empty paragraphs are just for vspace, so advance accordingly.
