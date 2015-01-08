@@ -94,11 +94,12 @@ int paragraph_flush(struct paragraph *p_in,int drawingPage)
 
   paragraph_analyse(p);
   
-  body_paragraphs[paragraph_count++]=p;  
-
+  body_paragraphs[paragraph_count++]=p;
+ 
   //  if (last_paragraph_report_time<time(0)) {
     last_paragraph_report_time=time(0);
-    fprintf(stderr,"\rAnalysed %d paragraphs.",paragraph_count);
+    fprintf(stderr,"Analysed paragraph %d:\n",paragraph_count);    
+    paragraph_dump(p);
     fflush(stderr);
     //  }
   
@@ -145,7 +146,13 @@ int paragraph_setup_next_line(struct paragraph *p)
   // fprintf(stderr,"%s()\n",__FUNCTION__);
   
   // Append any line in progress before creating fresh line
-  if (p->current_line) paragraph_append_current_line(p);
+  if (p->current_line) {
+    if (p->current_line->piece_count||p->current_line->line_height)
+      paragraph_append_current_line(p);
+    else
+      line_free(p->current_line);
+    p->current_line=NULL;
+  }
   
   // Allocate structure
   p->current_line=new_line();
