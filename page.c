@@ -434,7 +434,7 @@ int page_optimal_render_tokens()
       // Layout line onto page
       penalty=0;
       int firstLine=1;
-      int prev_page_y=page_y;
+      float prev_page_y=page_y;
       
       int start=0;
       int end=0;
@@ -467,6 +467,8 @@ int page_optimal_render_tokens()
       } else {
 	// Empty paragraphs are just for vspace, so advance accordingly.
 	page_y+=body_paragraphs[start_para]->total_height;
+	fprintf(stderr,"  vspace of %.1fpts\n",
+		body_paragraphs[start_para]->total_height);
       }
       fprintf(stderr,"    actual paragraph height=%.1fpts\n",page_y-prev_page_y);
       
