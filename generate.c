@@ -660,15 +660,22 @@ int current_line_flush(struct paragraph *para)
     line_remove_trailing_space(para->current_line);
 
     if (para->current_line->piece_count||para->current_line->line_height) {
-      if (0) fprintf(stderr,"%d pieces left in %p.\n",
-		     para->current_line->piece_count,para->current_line);
+      if (0) fprintf(stderr,"%d pieces in line uid #%d, height=%.1fpts.\n",
+		     para->current_line->piece_count,
+		     para->current_line->line_uid,
+		     para->current_line->line_height);
       paragraph_append_current_line(para);
+      paragraph_setup_next_line(para);
+    } else {
+      // Current line is empty and does not dictate a height.
+      if (0) fprintf(stderr,"discarding line uid #%d (no pieces, zero height)\n",
+		     para->current_line->line_uid);
+      line_free(para->current_line);
+      para->current_line=NULL;
       paragraph_setup_next_line(para);
     }
   }
  
-  para->current_line=NULL;
-
   //  paragraph_dump(para);
   return 0;
 }
