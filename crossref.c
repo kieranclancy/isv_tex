@@ -257,16 +257,13 @@ int crossref_count=0;
 
 int crossref_queue(struct paragraph *p, int y)
 {
+  if (!p) return 0;
   if (crossref_count<MAX_VERSES_ON_PAGE) {
     crossrefs_queue[crossref_count]=p;
     crossrefs_y[crossref_count++]=y;
   } else {
     fprintf(stderr,"Too many verses with cross-references on the same page.\n");
-    fprintf(stderr,"Accumulated cross-references are:\n");
-    for(int i=0;i<crossref_count;i++) {
-      fprintf(stderr,"  crossref #%d:\n",i);
-      paragraph_dump(crossrefs_queue[i]);
-    }
+    crossref_queue_dump("Accumulated cross-references");
     exit(-1);
   }
   return 0;
@@ -280,6 +277,8 @@ int crossref_queue_dump(char *msg)
     {
       fprintf(stderr,"  %-2d @ %d -- %.1fpts\n",
 	      i,crossrefs_y[i],crossrefs_y[i]+crossrefs_queue[i]->total_height);
+      fprintf(stderr,"  crossref #%d:\n",i);
+      paragraph_dump(crossrefs_queue[i]);
     }
   return 0;
 }
@@ -342,8 +341,46 @@ int crossrefs_reset()
   return 0;
 }
 
-int output_accumulated_cross_references(int max_line_to_render,
-					int drawingPage)
+extern char *short_book_name;
+extern char *long_book_name;
+extern int chapter_label;
+extern int verse_label;
+extern int chapternumfont_index;
+extern int versenumfont_index;
+
+int crossrefs_register_line(struct line_pieces *l, int start, int end, int y)
+{
+  int piece;
+  for(piece=start;piece<end;piece++) {
+    if (l->pieces[piece].font==&type_faces[chapternumfont_index]) {
+      chapter_label=atoi(l->pieces[piece].piece);
+    }
+    
+    if (l->pieces[piece].font==&type_faces[versenumfont_index]) {
+      verse_label=atoi(l->pieces[piece].piece);
+      // queue crossref
+      if (l->pieces[piece].crossrefs)
+	crossref_queue(l->pieces[piece].crossrefs,y);
+    }
+  }
+  return 0;
+}
+
+int crossrefs_register(struct paragraph *p, int y)
+{
+  int line;
+
+  
+  for(line=0;line<p->line_count;line++) {
+    struct line_pieces *l=p->paragraph_lines[line];
+    crossrefs_register_line(l,0,l->piece_count,y);
+    line_calculate_height(l,0,l->piece_count);
+    y+=l->line_height;
+  }
+  return 0;
+}
+  
+int output_accumulated_cross_references()
 {
   // fprintf(stderr,"%s()\n",__FUNCTION__);
 
@@ -380,7 +417,7 @@ int output_accumulated_cross_references(int max_line_to_render,
 	    cr->paragraph_lines[l]->alignment=AL_LEFT;
 	  else
 	    cr->paragraph_lines[l]->alignment=AL_RIGHT;	    
-	  line_emit(cr,l,0,drawingPage);
+	  line_emit(cr,l,0,1);
 	}
     } 
   }

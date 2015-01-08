@@ -397,6 +397,8 @@ int page_optimal_render_tokens()
       new_empty_page(leftRight,1);
     else
       new_empty_page(leftRight,0);
+
+    crossrefs_reset();
     
     if (next_position>=0) {
       start_para=backtrace[next_position].start_para;
@@ -479,6 +481,7 @@ int page_optimal_render_tokens()
 	  line_dump(out->paragraph_lines[i]);
 	  float last_page_y=page_y;
 	  line_emit(out,i,1,1);
+	  crossrefs_register(out,(int)page_y);
 	  fprintf(stderr,"  line #%d actual height = %.1fpts\n",
 		  out->paragraph_lines[i]->line_uid,page_y-last_page_y);
 	} 
@@ -502,11 +505,13 @@ int page_optimal_render_tokens()
 	  start_line=0; start_para++;
 	}
       }
-    }
+    }    
 
     float actual_page_height=page_y-top_margin;
 
     fprintf(stderr,"  actual page was %.1fpts long.\n",actual_page_height);
+
+    output_accumulated_cross_references();
     
     leftRight=-leftRight;
   }

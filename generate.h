@@ -367,8 +367,7 @@ int reenumerate_footnotes(struct paragraph *p, int line_uid);
 int footnotes_reset();
 char *next_footnote_mark();
 
-int output_accumulated_cross_references(int max_line_to_render,
-					int drawingPage);
+int output_accumulated_cross_references();
 int crossreference_start(int token_number);
 int crossreference_end();
 int crossreference_register_verse(struct paragraph *p,
@@ -378,6 +377,7 @@ int crossref_queue(struct paragraph *p, int y);
 int crossref_set_ylimit(int y);
 int crossrefs_reset();
 int crossref_queue_dump(char *msg);
+int crossrefs_register(struct paragraph *p,int y);
 
 int set_font_by_name(char *nickname);
 int set_font(struct type_face *f);
