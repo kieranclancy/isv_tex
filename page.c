@@ -244,8 +244,6 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
 	  backtrace[end_position].penalty=this_penalty;
 	}
 	backtrace[end_position].height=this_height;
-	fprintf(stderr,"backtrace[%d].height=%.1fpts\n",
-		end_position,this_height);
 	
 	if (start_position_count)
 	  backtrace[end_position].page_count
