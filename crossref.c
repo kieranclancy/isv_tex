@@ -232,7 +232,7 @@ struct paragraph *crossreference_find(char *book,int chapter, int verse)
 	&&(chapter==p->src_chapter)
 	&&(verse==p->src_verse)) {
       if (0)
-	fprintf(stderr,"Found crossref passage for %s %d:%d (%dpts high)\n",
+	fprintf(stderr,"Found crossref passage for %s %d:%d (%1.fpts high)\n",
 		book,chapter,verse,p->total_height);
       return p;
     }
@@ -278,7 +278,7 @@ int crossref_queue_dump(char *msg)
   int i;
   for(i=0;i<crossref_count;i++)
     {
-      fprintf(stderr,"  %-2d @ %d -- %d\n",
+      fprintf(stderr,"  %-2d @ %d -- %.1fpts\n",
 	      i,crossrefs_y[i],crossrefs_y[i]+crossrefs_queue[i]->total_height);
     }
   return 0;

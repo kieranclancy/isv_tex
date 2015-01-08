@@ -175,7 +175,7 @@ struct crossref_height_record {
   struct paragraph *first_cross_ref;
 
   // Height of set of cross-references
-  int total_height;
+  float total_height;
 };
 
 // Current paragraph
@@ -206,7 +206,7 @@ struct paragraph {
   char *src_book;
   int src_chapter;
   int src_verse;
-  int total_height;
+  float total_height;
 };
 
 #define MAX_INCLUDE_DEPTH 32
