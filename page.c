@@ -428,11 +428,16 @@ int page_optimal_render_tokens()
 	if (firstLine) start=start_piece; firstLine=0;
 	if (start_para==end_para&&start_line==end_line) end=end_piece;
 	// Layout the line (or line segment).
+	fprintf(stderr,"layout_line(line_number=%d, start=%d, end=%d) for page "
+		"(line actual range is %d..%d)\nThis is the line:\n  ",
+		start_line,start,end,0,l->piece_count);
+	line_dump(l);
 	penalty=layout_line(body_paragraphs[start_para],start_line,start,end,out,0);
 	for(int i=0;i<out->line_count;i++) {
-	  if (0) {
-	    fprintf(stderr,"  line #%d : left_margin=%d, max_width=%d\n",
-		    i,out->paragraph_lines[i]->left_margin,
+	  if (1) {
+	    fprintf(stderr,"  line #%d %d..%d: left_margin=%d, max_width=%d\n",
+		    i,start,end,
+		    out->paragraph_lines[i]->left_margin,
 		    out->paragraph_lines[i]->max_line_width);
 	  }
 	  line_dump(out->paragraph_lines[i]);
