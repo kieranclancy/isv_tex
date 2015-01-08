@@ -508,7 +508,9 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph,
     }
   }
 
-  page_y=page_y+linegap*line_spacing;
+  // Advance vertical position.
+  line_calculate_height(l,0,l->piece_count);  
+  page_y=page_y+l->line_height;
     
   return 0;
 }
