@@ -414,18 +414,18 @@ int page_optimal_render_tokens()
     int end_piece=backtrace[position].start_piece;
 
     fprintf(stderr,"%d (%d %d %d -- %d %d %d) : penalty=%lld, page_count=%d, page_height=%.1fpts\n",
-	    position,
+	    next_position+1,
 	    start_para,start_line,start_piece,
 	    end_para,end_line,end_piece,
 	    penalty,
 	    backtrace[position].page_count,
-	    backtrace[position].height
+	    (next_position>=0)?backtrace[next_position].height:-1
 	    );
 
     
     struct line_pieces *l=NULL;
 
-    while(start_para<end_para||start_line<end_line) {
+    while(start_para<end_para||start_line<end_line||start_piece<end_piece) {
 
       if (body_paragraphs[start_para])
 	l=body_paragraphs[start_para]->paragraph_lines[start_line];
@@ -492,11 +492,15 @@ int page_optimal_render_tokens()
 	      page_y-prev_page_y,prev_page_y,page_y);
       
       paragraph_clear(out);
-	  
-      start_piece=0;
-      start_line++;
-      if (start_line>=body_paragraphs[start_para]->line_count) {
-	start_line=0; start_para++;
+
+      if (end_para==start_para&&end_line==start_line) {
+	start_piece=end_piece;
+      } else {
+	start_piece=0;
+	start_line++;
+	if (start_line>=body_paragraphs[start_para]->line_count) {
+	  start_line=0; start_para++;
+	}
       }
     }
 
