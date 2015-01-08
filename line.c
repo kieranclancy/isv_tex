@@ -700,7 +700,7 @@ int line_metrics_write(char *filename,struct line_metrics *m)
   fprintf(f,"%d\n",m->line_pieces);
   for(start=0;start<m->line_pieces;start++)
     for(end=start+1;end<=m->line_pieces;end++)
-      fprintf(f,"%lld:%f\n",
+      fprintf(f,"%lld:%.2f\n",
 	      m->starts[start][end].penalty,
 	      m->starts[start][end].height);
 
