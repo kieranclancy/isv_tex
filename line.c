@@ -566,7 +566,8 @@ int line_remove_leading_space(struct line_pieces *l)
 int line_dump_segment(struct line_pieces *l,int start,int end)
 {
   int i;
-  fprintf(stderr,"line_uid #%d: ",l->line_uid);
+  fprintf(stderr,"line_uid #%d (%d..%d, height=%.1fpts): ",
+	  l->line_uid,start,end-1,l->line_height);
   if (l->left_margin) fprintf(stderr,"%+d ",l->left_margin);
   for(i=start;i<end;i++) {
     if (i&&(l->pieces[i-1].piece_width!=l->pieces[i-1].natural_width))
