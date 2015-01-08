@@ -470,7 +470,8 @@ int page_optimal_render_tokens()
 	fprintf(stderr,"  vspace of %.1fpts\n",
 		body_paragraphs[start_para]->total_height);
       }
-      fprintf(stderr,"    actual paragraph height=%.1fpts\n",page_y-prev_page_y);
+      fprintf(stderr,"    actual paragraph height=%.1fpts (%.1f -- %.1fpts)\n",
+	      page_y-prev_page_y,prev_page_y,page_y);
       
       paragraph_clear(out);
 	  
@@ -480,7 +481,10 @@ int page_optimal_render_tokens()
 	start_line=0; start_para++;
       }
     }
-    
+
+    float actual_page_height=page_y-top_margin;
+
+    fprintf(stderr,"  actual page was %.1fpts long.\n",actual_page_height);
     
     leftRight=-leftRight;
   }
