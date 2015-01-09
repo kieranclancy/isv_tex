@@ -453,6 +453,7 @@ int finalise_page()
 
     if (headerfont_index==-1) headerfont_index=set_font_by_name("header");
     int index=headerfont_index;
+    set_font(&type_faces[index]);
     
     y=heading_y;
 
@@ -478,9 +479,11 @@ int finalise_page()
     HPDF_Page_BeginText (page);
     HPDF_Page_SetTextRenderingMode (page, HPDF_FILL);
     HPDF_Page_SetRGBFill (page, 0.00, 0.00, 0.00);
-    record_text(&type_faces[index],type_faces[index].font_size,
+    record_text(&type_faces[headerfont_index],
+		type_faces[headerfont_index].font_size,
 		heading,x,y,0);
     
+    set_font(&type_faces[headerfont_index]);
     HPDF_Page_TextOut (page, x, y, heading);
     HPDF_Page_EndText (page);
 
@@ -501,6 +504,7 @@ int finalise_page()
   float text_width = HPDF_Page_TextWidth(page,pagenumberstring);
   x=(page_width/2)-(text_width/2);
   record_text(&type_faces[index],type_faces[index].font_size,heading,x,y,0);  
+  set_font(&type_faces[pagenumberfont_index]);
   HPDF_Page_TextOut (page, x, y, pagenumberstring);
   HPDF_Page_EndText (page);
   
@@ -513,7 +517,7 @@ int new_empty_page(int leftRight, int noHeading)
 {
   // fprintf(stderr,"%s(%d,%d)\n",__FUNCTION__,leftRight,noHeading);
 
-  if (!on_first_page) finalise_page();
+  //  if (!on_first_page) finalise_page();
 
   page_leftRight=leftRight;
   
