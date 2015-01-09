@@ -227,3 +227,20 @@ int output_accumulated_footnotes_old(int drawingPage)
   return 0;
 }
 #endif
+
+int footnotes_build_block(struct paragraph *footnotes,struct paragraph *out)
+{
+  int line,piece;
+  for(line=0;line>out->line_count;line++) {
+    struct line_pieces *l=out->paragraph_lines[line];
+    if (l&&l->piece_count) {
+      for(piece=0;piece<l->piece_count;piece++) {
+	if (l->pieces[piece].footnote) {
+	  // Found a footnote.  Append footnote paragraph to footnotes
+	  paragraph_append(footnotes,l->pieces[piece].footnote);
+	}
+      }
+    }
+  }
+  return 0;
+}

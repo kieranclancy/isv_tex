@@ -392,6 +392,7 @@ int page_optimal_render_tokens()
   }
 
   struct paragraph *out=new_paragraph();
+  struct paragraph *footnotes=new_paragraph();
   
   fprintf(stderr,"Optimal page path:\n");
   for(int page_number=page_count-1;page_number>=0;page_number--) {
@@ -433,7 +434,6 @@ int page_optimal_render_tokens()
 	    (next_position>=0)?backtrace[next_position].height:-1
 	    );
 
-    
     struct line_pieces *l=NULL;
 
     while(start_para<end_para||start_line<end_line||start_piece<end_piece) {
@@ -482,6 +482,7 @@ int page_optimal_render_tokens()
 	  line_dump(l);
 	}
 	penalty=layout_line(body_paragraphs[start_para],start_line,start,end,out,0);
+	footnotes_build_block(footnotes,out);
 	for(int i=0;i<out->line_count;i++) {
 	  if (0) {
 	    fprintf(stderr,"  line #%d %d..%d: left_margin=%d, max_width=%d\n",
@@ -526,7 +527,20 @@ int page_optimal_render_tokens()
     fprintf(stderr,"  actual page was %.1fpts long (%d crossrefs).\n",
 	    actual_page_height,crossref_count);
 
-    float footnotes_height=0;
+    // Now layout footnotes and output.
+    struct paragraph *laid_out_footnotes=layout_paragraph(footnotes,1);
+    
+    float footnotes_height=paragraph_height(laid_out_footnotes);
+    float saved_page_y=page_y;
+    page_y=page_height-bottom_margin-footnotes_height;
+
+    for(int i=0;i<laid_out_footnotes->line_count;i++) {
+      line_dump(laid_out_footnotes->paragraph_lines[i]);
+      line_emit(out,i,1,1);
+    }    
+    paragraph_clear(laid_out_footnotes); free(laid_out_footnotes);
+    paragraph_clear(footnotes);          
+    page_y=saved_page_y;
     
     // Cross-references can go down to to top of footnotes
     crossref_set_ylimit(page_height-bottom_margin-footnotes_height);
