@@ -509,8 +509,10 @@ int page_optimal_render_tokens()
 
     float actual_page_height=page_y-top_margin;
 
-    fprintf(stderr,"  actual page was %.1fpts long.\n",actual_page_height);
+    fprintf(stderr,"  actual page was %.1fpts long (%d crossrefs).\n",
+	    actual_page_height,crossref_count);
 
+    crossref_set_ylimit(page_y);   
     output_accumulated_cross_references();
     
     leftRight=-leftRight;
