@@ -452,8 +452,6 @@ int finalise_page()
     // Largely this is book chap:verse on the same side as the booktab
 
     if (headerfont_index==-1) headerfont_index=set_font_by_name("header");
-    int index=headerfont_index;
-    set_font(&type_faces[index]);
     
     y=heading_y;
 
@@ -1201,7 +1199,7 @@ int typeset_file(char *file)
 
 int finish_job()
 {
-  finalise_page();
+  // finalise_page();
   
   // Write PDF to disk
   HPDF_SaveToFile(pdf,output_file);
