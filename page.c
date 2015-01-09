@@ -551,6 +551,18 @@ int page_optimal_render_tokens()
     float saved_page_y=page_y;
     page_y=page_height-bottom_margin-footnotes_height;
 
+    if (footnotes_height) {
+      // Draw horizontal rule
+      int rule_y=page_y+footnote_rule_ydelta;
+      crossref_set_ylimit(rule_y);
+      int y=page_height-rule_y;
+      HPDF_Page_SetRGBStroke(page, 0.0, 0.0, 0.0);
+      HPDF_Page_SetLineWidth(page,footnote_rule_width);
+      
+      HPDF_Page_MoveTo(page,left_margin,y);
+      HPDF_Page_LineTo(page,left_margin+footnote_rule_length,y);
+      HPDF_Page_Stroke(page);
+    }
     for(int i=0;i<laid_out_footnotes->line_count;i++) {
       line_dump(laid_out_footnotes->paragraph_lines[i]);
       line_emit(laid_out_footnotes,i,1,1);
