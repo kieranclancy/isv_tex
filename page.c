@@ -486,10 +486,10 @@ int page_optimal_render_tokens()
 	  line_dump(out->paragraph_lines[i]);
 	  float last_page_y=page_y;
 	  line_emit(out,i,1,1);
-	  crossrefs_register(out,(int)page_y);
 	  fprintf(stderr,"  line #%d actual height = %.1fpts\n",
 		  out->paragraph_lines[i]->line_uid,page_y-last_page_y);
-	} 
+	}
+	crossrefs_register(out,(int)page_y);
       } else {
 	// Empty paragraphs are just for vspace, so advance accordingly.
 	page_y+=body_paragraphs[start_para]->total_height;
