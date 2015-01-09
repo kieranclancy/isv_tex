@@ -234,7 +234,8 @@ int output_accumulated_footnotes_old(int drawingPage)
 }
 #endif
 
-int footnotes_build_block(struct paragraph *footnotes,struct paragraph *out)
+int footnotes_build_block(struct paragraph *footnotes,struct paragraph *out,
+			  int *num_foonotes)
 {
   fprintf(stderr,"%s(): %d lines\n",__FUNCTION__,out->line_count);
   
@@ -248,8 +249,25 @@ int footnotes_build_block(struct paragraph *footnotes,struct paragraph *out)
 	if (l->pieces[piece].footnote) {
 	  fprintf(stderr,"Found footnote = %p\n",l->pieces[piece].footnote);
 	  // Found a footnote.  Append footnote paragraph to footnotes
+
+	  // Replace footnote mark in text
+	  free(l->pieces[piece].piece);
+	  generate_footnote_mark(*num_foonotes);
+	  l->pieces[piece].piece=strdup(footnote_mark_string);
+	  // And in the footnote
+	  // XXX Cheat -- we know that the footnote mark is after exactly 4 spaces.
+	  free(l->pieces[piece].footnote->paragraph_lines[0]->pieces[4].piece);
+	  l->pieces[piece].footnote->paragraph_lines[0]->pieces[4].piece
+	    =strdup(footnote_mark_string);
+
+	  // Update number of footnotes on the page.
+	  (*num_foonotes)++;
+
+	  // We can now duplicate the footnote into the footnotes paragraph since
+	  // it has the right footnote mark now.
 	  paragraph_append(footnotes,l->pieces[piece].footnote);
 	  paragraph_dump(footnotes);
+
 	}
       }
     }

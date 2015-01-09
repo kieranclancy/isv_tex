@@ -370,7 +370,8 @@ int output_accumulated_footnotes();
 int reenumerate_footnotes(struct paragraph *p, int line_uid);
 int footnotes_reset();
 char *next_footnote_mark();
-int footnotes_build_block(struct paragraph *footnotes,struct paragraph *out);
+int footnotes_build_block(struct paragraph *footnotes,struct paragraph *out,
+			  int *num_footnotes);
 
 int output_accumulated_cross_references();
 int crossreference_start(int token_number);

@@ -428,6 +428,8 @@ int page_optimal_render_tokens()
     int end_line=backtrace[position].start_line;
     int end_piece=backtrace[position].start_piece;
 
+    int num_footnotes=0;
+    
     fprintf(stderr,"%d (%d %d %d -- %d %d %d) : penalty=%lld, page_count=%d, page_height=%.1fpts\n",
 	    next_position+1,
 	    start_para,start_line,start_piece,
@@ -487,7 +489,7 @@ int page_optimal_render_tokens()
 	  line_dump(l);
 	}
 	penalty=layout_line(body_paragraphs[start_para],start_line,start,end,out,0);
-	footnotes_build_block(footnotes,out);
+	footnotes_build_block(footnotes,out,&num_footnotes);
 	for(int i=0;i<out->line_count;i++) {
 	  if (0) {
 	    fprintf(stderr,"  line #%d %d..%d: left_margin=%d, max_width=%d\n",
