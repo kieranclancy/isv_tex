@@ -456,6 +456,7 @@ struct paragraph *layout_paragraph(struct paragraph *p, int drawingPage)
   out->src_chapter=p->src_chapter;
   out->src_verse=p->src_verse;
   out->noindent=p->noindent;
+  out->justifylast=p->justifylast;
 
   // Lay out each line
   for(i=0;i<p->line_count;i++) {
