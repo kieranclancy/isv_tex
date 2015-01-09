@@ -297,13 +297,14 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
     
     end_position++;
   }
-  
-  fprintf(stderr,"Analysing page start position %d ("
-	  "%d:%d:%d): Best result: "
-	  " penalty=%lld, height=%.1fpts\n",
-	  start_position_count,
-	  start_para,start_line,start_piece,
-	  best_penalty,best_height);      
+
+  if (0)
+    fprintf(stderr,"Analysing page start position %d ("
+	    "%d:%d:%d): Best result: "
+	    " penalty=%lld, height=%.1fpts\n",
+	    start_position_count,
+	    start_para,start_line,start_piece,
+	    best_penalty,best_height);      
 
   return 0;
 }
@@ -336,9 +337,11 @@ int page_optimal_render_tokens()
   }
      
   while(1) {
-    fprintf(stderr,"\nAnalysing page start position %d\n",
-	    start_position_count);
-    fflush(stderr);
+    if (0) {
+      fprintf(stderr,"\nAnalysing page start position %d\n",
+		    start_position_count);
+      fflush(stderr);
+    }
 
     crossrefs_reset();
 
