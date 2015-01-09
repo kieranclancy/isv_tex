@@ -410,8 +410,9 @@ int output_accumulated_cross_references()
     struct paragraph *cr=crossrefs_queue[n];
     {
       if (0) {
-	fprintf(stderr,"Drawing cross-references for %s %d:%d\n",
-		cr->src_book,cr->src_chapter,cr->src_verse);
+	fprintf(stderr,"Drawing cross-references for %s %d:%d @ (%d,%.1f)\n",
+		cr->src_book,cr->src_chapter,cr->src_verse,
+		left_margin,page_y);
 	paragraph_dump(cr);
       }
       for(l=0;l<cr->line_count;l++)
