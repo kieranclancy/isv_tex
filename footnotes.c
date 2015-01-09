@@ -53,12 +53,33 @@ float footnote_rule_width=0.5;
 int footnote_rule_length=100;
 int footnote_rule_ydelta=0;
 
+int footnote_mark_widths_initialised=0;
+float footnote_mark_widths[MAX_FOOTNOTES_PER_PAGE];
+float footnote_mark_innote_widths[MAX_FOOTNOTES_PER_PAGE];
+
 int footnotes_reset()
 {
   generate_footnote_mark(0);
 
   footnote_stack_depth=-1;
   footnote_count=0;
+
+  // Pre-compute the widths of all footnote marks
+  if (!footnote_mark_widths_initialised) {
+    set_font_by_name("footnotemark");
+    for(int i=0;i<MAX_FOOTNOTES_PER_PAGE;i++) {
+      generate_footnote_mark(i);
+      float text_width=HPDF_Page_TextWidth(page,footnote_mark_string);
+      footnote_mark_widths[i]=text_width;
+    }
+    set_font_by_name("footnotemarkinfootnote");
+    for(int i=0;i<MAX_FOOTNOTES_PER_PAGE;i++) {
+      generate_footnote_mark(i);
+      float text_width=HPDF_Page_TextWidth(page,footnote_mark_string);
+      footnote_mark_innote_widths[i]=text_width;
+    }
+    footnote_mark_widths_initialised=1;
+  }
   
   for(int i=0;i<footnote_total_count;i++) {
     paragraph_free(footnote_paragraphs[i]);
