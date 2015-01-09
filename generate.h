@@ -418,6 +418,7 @@ int page_penalty_if_not_start_of_page();
 int page_optimal_render_tokens();
 int page_skip_token_as_subordinate(int token_number);
 int page_notify_details(float fullness,int tied_to_next_line);
+int finalise_page();
 
 int hash_configend();
 int hash_configline(char *line);

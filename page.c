@@ -514,8 +514,10 @@ int page_optimal_render_tokens()
 
     crossref_set_ylimit(page_y);   
     output_accumulated_cross_references();
+
+    finalise_page();
     
-    leftRight=-leftRight;
+    leftRight=-leftRight;    
   }
 
   paragraph_free(out);
