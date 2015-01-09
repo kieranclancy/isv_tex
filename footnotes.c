@@ -148,6 +148,10 @@ int end_footnote()
     fprintf(stderr,"Too many footnotes. Increase MAX_FOOTNOTESS.\n");
     exit(-1);
   }
+
+  for(int j=0;j<MAX_FOOTNOTES_PER_PAGE;j++)
+    footnote_paragraph_heights[footnote_total_count][j]=-1;
+
   footnote_paragraphs[footnote_total_count++]=target_paragraph;
 
   if(0) {
@@ -284,7 +288,7 @@ int footnotes_build_block(struct paragraph *footnotes,struct paragraph *out,
  */
 float footnotes_paragraph_height(int first,int last)
 {
-  fprintf(stderr,"%s(%d,%d) = ",__FUNCTION__,first,last);
+  // fprintf(stderr,"%s(%d,%d)\n",__FUNCTION__,first,last);
 
   // zero footnotes take zero vspace
   if (first<0) return 0.0;
@@ -294,7 +298,7 @@ float footnotes_paragraph_height(int first,int last)
 
   // Return cached value if present.
   if (footnote_paragraph_heights[first][last-first]>=0) {
-    fprintf(stderr," %.1fpts\n",footnote_paragraph_heights[first][last-first]);
+    // fprintf(stderr," %.1fpts\n",footnote_paragraph_heights[first][last-first]);
     return footnote_paragraph_heights[first][last-first];
   }
 
@@ -312,11 +316,12 @@ float footnotes_paragraph_height(int first,int last)
   if (p->current_line) paragraph_append_current_line(p);
   
   struct paragraph *laid_out=layout_paragraph(p,0);
+  paragraph_dump(laid_out);
   footnote_paragraph_heights[first][last-first]=paragraph_height(laid_out);
 
   paragraph_clear(p); paragraph_free(p);
   paragraph_clear(laid_out); paragraph_free(laid_out);
     
-  fprintf(stderr," %.1fpts **\n",footnote_paragraph_heights[first][last-first]);
+  //  fprintf(stderr," %.1fpts **\n",footnote_paragraph_heights[first][last-first]);
   return footnote_paragraph_heights[first][last-first];
 }
