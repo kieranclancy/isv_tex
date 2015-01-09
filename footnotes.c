@@ -40,7 +40,9 @@ char *footnote_alphabet=NONDECENDING_LETTERS;
 int footnote_alphabet_size=strlen(NONDECENDING_LETTERS);
 
 #define MAX_FOOTNOTES 65536
+#define MAX_FOOTNOTES_PER_PAGE 256
 struct paragraph *footnote_paragraphs[MAX_FOOTNOTES];
+float footnote_paragraph_heights[MAX_FOOTNOTES][MAX_FOOTNOTES_PER_PAGE];
 int footnote_total_count=0;
 
 int footnote_stack_depth=-1;
@@ -60,6 +62,10 @@ int footnotes_reset()
   
   for(int i=0;i<footnote_total_count;i++) {
     paragraph_free(footnote_paragraphs[i]);
+    footnote_paragraphs[i]=NULL;
+    // Clear footnote paragraph heights cache
+    for(int j=0;j<MAX_FOOTNOTES_PER_PAGE;j++)
+      footnote_paragraph_heights[i][j]=-1;
   }
   
   footnote_total_count=0;
@@ -267,11 +273,50 @@ int footnotes_build_block(struct paragraph *footnotes,struct paragraph *out,
 	  // it has the right footnote mark now.
 	  paragraph_append(footnotes,
 			   footnote_paragraphs[l->pieces[piece].footnote_number-1]);
-	  paragraph_dump(footnotes);
-
 	}
       }
     }
   }
   return 0;
+}
+
+/* Work out height of a footnote paragraph containing this range of footnotes.
+ */
+float footnotes_paragraph_height(int first,int last)
+{
+  fprintf(stderr,"%s(%d,%d) = ",__FUNCTION__,first,last);
+
+  // zero footnotes take zero vspace
+  if (first<0) return 0.0;
+  
+  // Return absurd height if the range is too large
+  if (last>=(first+MAX_FOOTNOTES_PER_PAGE)) return 999999.0;
+
+  // Return cached value if present.
+  if (footnote_paragraph_heights[first][last-first]>=0) {
+    fprintf(stderr," %.1fpts\n",footnote_paragraph_heights[first][last-first]);
+    return footnote_paragraph_heights[first][last-first];
+  }
+
+  // Build footnote paragraph, calculate height, store in cache and return.
+  struct paragraph *p=new_paragraph();
+
+  for(int i=first;i<=last;i++) {
+    generate_footnote_mark(i-first);
+    // Replace footnote mark in footnote
+    free(footnote_paragraphs[i-1]->paragraph_lines[0]->pieces[4].piece);
+    footnote_paragraphs[i-1]->paragraph_lines[0]->pieces[4].piece
+      =strdup(footnote_mark_string);
+    paragraph_append(p,footnote_paragraphs[i-1]);
+  }
+  if (p->current_line) paragraph_append_current_line(p);
+  
+  struct paragraph *laid_out=layout_paragraph(p,0);
+  footnote_paragraph_heights[first][last-first]=paragraph_height(laid_out);
+
+  paragraph_clear(p); paragraph_free(p);
+  paragraph_clear(laid_out); paragraph_free(laid_out);
+    
+  fprintf(stderr," %.1fpts **\n",footnote_paragraph_heights[first][last-first]);
+  return footnote_paragraph_heights[first][last-first];
 }

@@ -134,6 +134,9 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
 {
   crossrefs_reset();
 
+  int first_footnote=-1;
+  int last_footnote=-1;
+
   int checkpoint_para=0;
   int checkpoint_line=0;
   int checkpoint_piece=0;
@@ -201,7 +204,7 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
     struct line_pieces *l=NULL;
     if (body_paragraphs[checkpoint_para])
       l=body_paragraphs[checkpoint_para]->paragraph_lines[checkpoint_line];
-
+    
     if (l&&!l->piece_count) {
       penalty=0;
       height=l->line_height;      
@@ -213,6 +216,14 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
       assert(end_line==checkpoint_line);
       penalty=l->metrics->starts[checkpoint_piece][end_piece].penalty;
       height=l->metrics->starts[checkpoint_piece][end_piece].height;
+
+      struct piece *piece=
+	piece=&body_paragraphs[end_para]->paragraph_lines[end_line]->pieces[end_piece];
+      if (piece->footnote_number) {
+	if (first_footnote==-1)	first_footnote=piece->footnote_number;
+	last_footnote=piece->footnote_number;
+      }
+
     }
 
     float this_height=height+cumulative_height;
@@ -226,7 +237,7 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
 
     // XXX - Look up height and penalty of footnote paragraph so that it can be
     // taken into account.
-    float footnotes_height=0;
+    float footnotes_height=footnotes_paragraph_height(first_footnote,last_footnote);
     
     // Look up height of cross-references so that we can stop if they are too
     // tall.  We don't care about the position.

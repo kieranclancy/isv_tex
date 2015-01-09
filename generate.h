@@ -369,6 +369,7 @@ int footnotes_reset();
 char *next_footnote_mark();
 int footnotes_build_block(struct paragraph *footnotes,struct paragraph *out,
 			  int *num_footnotes);
+float footnotes_paragraph_height(int first,int last);
 
 int output_accumulated_cross_references();
 int crossreference_start(int token_number);
