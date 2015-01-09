@@ -569,7 +569,7 @@ int paragraph_dump(struct paragraph *p)
   return 0;
 }
 
-int paragraph_append(struct paragraph *dst,struct paragraph *src)
+int paragraph_append(struct paragraph *dst,struct paragraph *src, int skip)
 {
   // fprintf(stderr,"%s()\n",__FUNCTION__);
   // paragraph_dump(dst);
@@ -598,15 +598,18 @@ int paragraph_append(struct paragraph *dst,struct paragraph *src)
 	    line_set_checkpoint(dst->current_line);
 	  }
 
-	  // Don't force spaces at start of lines, so that formatting comes out
-	  // right with appended footnotes etc.
-	  paragraph_append_characters(dst,
-				      src->paragraph_lines[i]->pieces[j].piece,
-				      src->paragraph_lines[i]->pieces[j].actualsize,
-				      src->paragraph_lines[i]->pieces[j].piece_baseline,
-				      NO_FORCESPACEATSTARTOFLINE,
-				      src->paragraph_lines[i]->pieces[j].nobreak,
-				      src->paragraph_lines[i]->pieces[j].token_number);
+	  if (skip) skip--;
+	  else {
+	    // Don't force spaces at start of lines, so that formatting comes out
+	    // right with appended footnotes etc.
+	    paragraph_append_characters(dst,
+					src->paragraph_lines[i]->pieces[j].piece,
+					src->paragraph_lines[i]->pieces[j].actualsize,
+					src->paragraph_lines[i]->pieces[j].piece_baseline,
+					NO_FORCESPACEATSTARTOFLINE,
+					src->paragraph_lines[i]->pieces[j].nobreak,
+					src->paragraph_lines[i]->pieces[j].token_number);
+	  }
 	  current_font = preserved_current_font;
 	}
     }

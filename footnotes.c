@@ -245,17 +245,17 @@ int output_accumulated_footnotes_old(int drawingPage)
 int footnotes_build_block(struct paragraph *footnotes,struct paragraph *out,
 			  int *num_foonotes)
 {
-  fprintf(stderr,"%s(): %d lines\n",__FUNCTION__,out->line_count);
+  // fprintf(stderr,"%s(): %d lines\n",__FUNCTION__,out->line_count);
   
   int line,piece;
   for(line=0;line<out->line_count;line++) {
     struct line_pieces *l=out->paragraph_lines[line];
     if (l&&l->piece_count) {
-      fprintf(stderr,"looking for footnotes in: %p\n",l);
-      line_dump(l);
+      // fprintf(stderr,"looking for footnotes in: %p\n",l);
+      // line_dump(l);
       for(piece=0;piece<l->piece_count;piece++) {
 	if (l->pieces[piece].footnote_number) {
-	  fprintf(stderr,"Found footnote id #%d\n",l->pieces[piece].footnote_number-1);
+	  // fprintf(stderr,"Found footnote id #%d\n",l->pieces[piece].footnote_number-1);
 	  // Found a footnote.  Append footnote paragraph to footnotes
 
 	  // Replace footnote mark in text
@@ -270,13 +270,21 @@ int footnotes_build_block(struct paragraph *footnotes,struct paragraph *out,
 	       ->paragraph_lines[0]->pieces[4].piece
 	    =strdup(footnote_mark_string);
 
+	  // Skip four leading spaces of first footnote
+	  int skip=0;
+	  if ((*num_foonotes)==0) {
+	    skip=4;
+	    fprintf(stderr,"Skipping leading spaces of first footnote on page.\n");
+	  }
+
 	  // Update number of footnotes on the page.
 	  (*num_foonotes)++;
 
 	  // We can now duplicate the footnote into the footnotes paragraph since
 	  // it has the right footnote mark now.
 	  paragraph_append(footnotes,
-			   footnote_paragraphs[l->pieces[piece].footnote_number-1]);
+			   footnote_paragraphs[l->pieces[piece].footnote_number-1],
+			   skip);
 	}
       }
     }
@@ -312,7 +320,9 @@ float footnotes_paragraph_height(int first,int last)
     free(footnote_paragraphs[i-1]->paragraph_lines[0]->pieces[4].piece);
     footnote_paragraphs[i-1]->paragraph_lines[0]->pieces[4].piece
       =strdup(footnote_mark_string);
-    paragraph_append(p,footnote_paragraphs[i-1]);
+    int skip=0;
+    if (i==first) { skip=4; fprintf(stderr,"skipping leading spaces in footnote.\n"); }
+    paragraph_append(p,footnote_paragraphs[i-1],skip);
   }
   if (p->current_line) paragraph_append_current_line(p);
   
