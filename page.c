@@ -227,7 +227,8 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
     
     // XXX - Look up height of cross-references so that we can stop if they are too
     // tall.
-    crossrefs_register_line(l,end_piece,end_piece+1, this_height);
+    if (l->piece_count)
+      crossrefs_register_line(l,end_piece,end_piece+1, this_height);
     if (crossrefs_height>(page_height-top_margin-bottom_margin-footnotes_height))
       break;
         
@@ -517,7 +518,11 @@ int page_optimal_render_tokens()
     fprintf(stderr,"  actual page was %.1fpts long (%d crossrefs).\n",
 	    actual_page_height,crossref_count);
 
-    crossref_set_ylimit(page_y);   
+    float footnotes_height=0;
+    
+    // Cross-references can go down to to top of footnotes
+    crossref_set_ylimit(page_height-bottom_margin-footnotes_height);
+    
     output_accumulated_cross_references();
 
     finalise_page();
