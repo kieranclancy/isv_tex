@@ -111,8 +111,7 @@ int line_calculate_height(struct line_pieces *l, int start, int end)
       if (l->pieces[i].font->line_count==1) {
 	if (l->pieces[i].font->linegap>linegap)
 	  linegap=l->pieces[i].font->linegap;
-    }
-
+      }
     }
 
   // l->line_height=max-min+1;
