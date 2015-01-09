@@ -432,7 +432,7 @@ int line_emit(struct paragraph *p,int line_num,int isBodyParagraph,
   // Add extra spaces to justified lines, except for the last
   // line of a paragraph, and poetry lines.
   if (l->alignment==AL_JUSTIFIED) {
-    if (p->line_count>(line_num+1)) {
+    if (p->line_count>(line_num+1)||(p->justifylast)) {
 
       float points_to_add
 	=l->max_line_width-l->line_width_so_far;

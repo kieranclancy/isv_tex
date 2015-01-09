@@ -677,6 +677,7 @@ struct paragraph *new_paragraph()
   p->src_verse=0;
   p->total_height=0;
   p->noindent=0;
+  p->justifylast=0;
   p->crossref_heights=NULL;
   return p;
 }

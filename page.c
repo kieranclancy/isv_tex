@@ -545,7 +545,7 @@ int page_optimal_render_tokens()
 
     // Now layout footnotes and output.
     if (footnotes->current_line) paragraph_append_current_line(footnotes);
-    footnotes->noindent=1;
+    footnotes->noindent=1; footnotes->justifylast=1;
     struct paragraph *laid_out_footnotes=layout_paragraph(footnotes,1);
     
     float footnotes_height=paragraph_height(laid_out_footnotes);
