@@ -236,6 +236,8 @@ int footnotes_build_block(struct paragraph *footnotes,struct paragraph *out)
     if (l&&l->piece_count) {
       for(piece=0;piece<l->piece_count;piece++) {
 	if (l->pieces[piece].footnote) {
+	  fprintf(stderr,"Found foonote: ");
+	  line_dump(l->pieces[piece].footnote->paragraph_lines[0]);
 	  // Found a footnote.  Append footnote paragraph to footnotes
 	  paragraph_append(footnotes,l->pieces[piece].footnote);
 	}

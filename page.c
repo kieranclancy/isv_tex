@@ -448,17 +448,19 @@ int page_optimal_render_tokens()
 	else last_piece=-1;
       }
 
-      fprintf(stderr,"  rendering para #%d line #%d : page_width=%d-%d-%d,"
-	      " pre-computed page height=%.1fpts, pre-computed para height=%.1fpts"
-	      " (ptr=%p)"
-	      " (pieces %d..%d)\n    ",
-	      start_para,start_line,page_width,left_margin,right_margin,
-	      backtrace[position].height,
-	      (l&&l->metrics)?l->metrics->starts[start_piece][last_piece].height:-1.0,
-	      (l&&l->metrics)?l->metrics:NULL,
-	      start_piece,last_piece
-	      );
-      if (l) line_dump(l);
+      if (0) {
+	fprintf(stderr,"  rendering para #%d line #%d : page_width=%d-%d-%d,"
+		" pre-computed page height=%.1fpts, pre-computed para height=%.1fpts"
+		" (ptr=%p)"
+		" (pieces %d..%d)\n    ",
+		start_para,start_line,page_width,left_margin,right_margin,
+		backtrace[position].height,
+		(l&&l->metrics)?l->metrics->starts[start_piece][last_piece].height:-1.0,
+		(l&&l->metrics)?l->metrics:NULL,
+		start_piece,last_piece
+		);
+	if (l) line_dump(l);
+      }
 
       // Layout line onto page
       penalty=0;
@@ -524,9 +526,6 @@ int page_optimal_render_tokens()
 
     float actual_page_height=page_y-top_margin;
 
-    fprintf(stderr,"  actual page was %.1fpts long (%d crossrefs).\n",
-	    actual_page_height,crossref_count);
-
     // Now layout footnotes and output.
     struct paragraph *laid_out_footnotes=layout_paragraph(footnotes,1);
     
@@ -544,8 +543,16 @@ int page_optimal_render_tokens()
     
     // Cross-references can go down to to top of footnotes
     crossref_set_ylimit(page_height-bottom_margin-footnotes_height);
+
+    int num_crossrefs=crossref_count;
     
     output_accumulated_cross_references();
+
+    fprintf(stderr,"  actual page was %.1fpts long "
+	    "(%d crossrefs, %.1fpts of footnotes).\n",
+	    actual_page_height,num_crossrefs,
+	    footnotes_height);
+
 
     finalise_page();
     
