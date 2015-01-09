@@ -254,13 +254,17 @@ int crossreference_register_verse(struct paragraph *p,
 struct paragraph *crossrefs_queue[MAX_VERSES_ON_PAGE];
 int crossrefs_y[MAX_VERSES_ON_PAGE];
 int crossref_count=0;
+float crossrefs_height=0;
 
 int crossref_queue(struct paragraph *p, int y)
 {
   if (!p) return 0;
   if (crossref_count<MAX_VERSES_ON_PAGE) {
+    if (crossref_count) crossrefs_height+=crossref_min_vspace;
     crossrefs_queue[crossref_count]=p;
     crossrefs_y[crossref_count++]=y;
+    crossrefs_height+=p->total_height;
+
   } else {
     fprintf(stderr,"Too many verses with cross-references on the same page.\n");
     crossref_queue_dump("Accumulated cross-references");
@@ -338,6 +342,7 @@ int crossrefs_reposition()
 int crossrefs_reset()
 {
   crossref_count=0;
+  crossrefs_height=0;
   return 0;
 }
 
@@ -378,6 +383,7 @@ int crossrefs_register(struct paragraph *p, int y)
     int old_line_height=l->line_height;
     line_calculate_height(l,0,l->piece_count);
     y+=l->line_height;
+    
     l->line_height=old_line_height;
   }
   return 0;
