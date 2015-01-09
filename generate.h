@@ -190,6 +190,8 @@ struct paragraph {
 
   int drop_char_left_margin;
   int drop_char_margin_line_count;
+
+  int noindent;
   
   int poem_level;
   int poem_subsequent_line;
