@@ -156,9 +156,6 @@ int end_footnote()
   // Tag footnotemark with footnote paragraph
   body_paragraph.current_line->pieces[body_paragraph.current_line->piece_count-1]
     .footnote=target_paragraph;
-  fprintf(stderr,"  footnote reference %p added to : ",
-	  target_paragraph);
-  line_dump(body_paragraph.current_line);
   
   target_paragraph=&body_paragraph;
   footnote_mode=0;
