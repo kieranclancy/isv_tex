@@ -92,8 +92,8 @@ struct piece {
 
   // Cross-reference paragraph for verse numbers
   struct paragraph *crossrefs;
-  // Footnote paragraph for footnotemarks
-  struct paragraph *footnote;
+  // Footnote id for footnotemarks
+  int footnote_number;
   
   // if non-zero, do not break after this piece
 #define NO_FORCESPACEATSTARTOFLINE 0

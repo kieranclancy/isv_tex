@@ -153,9 +153,10 @@ int end_footnote()
     paragraph_dump(target_paragraph);
   }
 
-  // Tag footnotemark with footnote paragraph
+  // Tag footnotemark with footnote paragraph.
+  // Tags start at 1 not zero, so that calloc()'d line pieces mean no footnote.
   body_paragraph.current_line->pieces[body_paragraph.current_line->piece_count-1]
-    .footnote=target_paragraph;
+    .footnote_number=footnote_total_count;
   
   target_paragraph=&body_paragraph;
   footnote_mode=0;
@@ -243,8 +244,8 @@ int footnotes_build_block(struct paragraph *footnotes,struct paragraph *out,
       fprintf(stderr,"looking for footnotes in: %p\n",l);
       line_dump(l);
       for(piece=0;piece<l->piece_count;piece++) {
-	if (l->pieces[piece].footnote) {
-	  fprintf(stderr,"Found footnote = %p\n",l->pieces[piece].footnote);
+	if (l->pieces[piece].footnote_number) {
+	  fprintf(stderr,"Found footnote id #%d\n",l->pieces[piece].footnote_number-1);
 	  // Found a footnote.  Append footnote paragraph to footnotes
 
 	  // Replace footnote mark in text
@@ -253,8 +254,10 @@ int footnotes_build_block(struct paragraph *footnotes,struct paragraph *out,
 	  l->pieces[piece].piece=strdup(footnote_mark_string);
 	  // And in the footnote
 	  // XXX Cheat -- we know that the footnote mark is after exactly 4 spaces.
-	  free(l->pieces[piece].footnote->paragraph_lines[0]->pieces[4].piece);
-	  l->pieces[piece].footnote->paragraph_lines[0]->pieces[4].piece
+	  free(footnote_paragraphs[l->pieces[piece].footnote_number-1]
+	       ->paragraph_lines[0]->pieces[4].piece);
+	  footnote_paragraphs[l->pieces[piece].footnote_number-1]
+	       ->paragraph_lines[0]->pieces[4].piece
 	    =strdup(footnote_mark_string);
 
 	  // Update number of footnotes on the page.
@@ -262,7 +265,8 @@ int footnotes_build_block(struct paragraph *footnotes,struct paragraph *out,
 
 	  // We can now duplicate the footnote into the footnotes paragraph since
 	  // it has the right footnote mark now.
-	  paragraph_append(footnotes,l->pieces[piece].footnote);
+	  paragraph_append(footnotes,
+			   footnote_paragraphs[l->pieces[piece].footnote_number-1]);
 	  paragraph_dump(footnotes);
 
 	}
