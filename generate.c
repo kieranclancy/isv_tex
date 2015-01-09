@@ -974,7 +974,7 @@ int render_tokens(int token_low,int token_high,int drawingPage)
 	    // a paragraph being shorter than it otherwise would have been.  Neither
 	    // are ideal, but the problem is difficult to work around otherwise.
 
-	    // Draw the mark.
+	    // Draw the mark (use the widest possible mark)
 	    char *mark="mm";
 	    int alignment=AL_NONE;
 	    if (target_paragraph->current_line)
