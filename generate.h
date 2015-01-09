@@ -21,9 +21,6 @@ struct parsed_text {
 #define PT_WORD 3
 #define PT_INFO 4
 
-  // List of footnotes (if PT_ROOT)
-  struct parsed_text *footnotelist;
-  
   // next node in list
   struct parsed_text *next;
   // child (must be a PT_TAG)
