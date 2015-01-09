@@ -178,16 +178,19 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
 	checkpoint_para=end_para;
 	checkpoint_line=end_line;
 	checkpoint_piece=end_piece;
-	fprintf(stderr,"    checkpoint advanced to %d %d %d (start is %d %d %d)"
-		" penalty=%lld, height=%.1fpts (added %.1fpts)\n",
-		checkpoint_para,checkpoint_line,checkpoint_piece,
-		start_para,start_line,start_piece,
-		cumulative_penalty,cumulative_height,height);
-	fprintf(stderr,"      Line included in checkpoint is: ");
-	if (body_paragraphs[old_checkpoint_para]
-	    ->paragraph_lines[old_checkpoint_line])
-	  line_dump(body_paragraphs[old_checkpoint_para]
-		    ->paragraph_lines[old_checkpoint_line]);	
+
+	if (0) {
+	  fprintf(stderr,"    checkpoint advanced to %d %d %d (start is %d %d %d)"
+		  " penalty=%lld, height=%.1fpts (added %.1fpts)\n",
+		  checkpoint_para,checkpoint_line,checkpoint_piece,
+		  start_para,start_line,start_piece,
+		  cumulative_penalty,cumulative_height,height);
+	  fprintf(stderr,"      Line included in checkpoint is: ");
+	  if (body_paragraphs[old_checkpoint_para]
+	      ->paragraph_lines[old_checkpoint_line])
+	    line_dump(body_paragraphs[old_checkpoint_para]
+		      ->paragraph_lines[old_checkpoint_line]);
+	}
       }
     }
     
@@ -218,17 +221,17 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
 	      checkpoint_piece, end_piece,
 	      height,cumulative_height);
       line_segment_dump(body_paragraphs[checkpoint_para],checkpoint_line,
-			checkpoint_piece, end_piece);
+			       checkpoint_piece, end_piece);
     }
 
     // XXX - Look up height and penalty of footnote paragraph so that it can be
     // taken into account.
     float footnotes_height=0;
     
-    // XXX - Look up height of cross-references so that we can stop if they are too
-    // tall.
+    // Look up height of cross-references so that we can stop if they are too
+    // tall.  We don't care about the position.
     if (l->piece_count)
-      crossrefs_register_line(l,end_piece,end_piece+1, this_height);
+      crossrefs_register_line(l,end_piece,end_piece+1, 0);
     if (crossrefs_height>(page_height-top_margin-bottom_margin-footnotes_height))
       break;
         
@@ -472,25 +475,30 @@ int page_optimal_render_tokens()
 	if (firstLine) start=start_piece; firstLine=0;
 	if (start_para==end_para&&start_line==end_line) end=end_piece;
 	// Layout the line (or line segment).
-	fprintf(stderr,"layout_line(line_number=%d, start=%d, end=%d) for page "
-		"(line actual range is %d..%d)\nThis is the line:\n  ",
-		start_line,start,end,0,l->piece_count);
-	line_dump(l);
+	if (0) {
+	  fprintf(stderr,"layout_line(line_number=%d, start=%d, end=%d) for page "
+		  "(line actual range is %d..%d)\nThis is the line:\n  ",
+		  start_line,start,end,0,l->piece_count);
+	  line_dump(l);
+	}
 	penalty=layout_line(body_paragraphs[start_para],start_line,start,end,out,0);
 	for(int i=0;i<out->line_count;i++) {
-	  if (1) {
+	  if (0) {
 	    fprintf(stderr,"  line #%d %d..%d: left_margin=%d, max_width=%d\n",
 		    i,start,end,
 		    out->paragraph_lines[i]->left_margin,
 		    out->paragraph_lines[i]->max_line_width);
+	    line_dump(out->paragraph_lines[i]);
 	  }
-	  line_dump(out->paragraph_lines[i]);
 	  float last_page_y=page_y;
 	  line_emit(out,i,1,1);
-	  fprintf(stderr,"  line #%d actual height = %.1fpts\n",
-		  out->paragraph_lines[i]->line_uid,page_y-last_page_y);
+	  if (0) fprintf(stderr,"  line #%d actual height = %.1fpts\n",
+			 out->paragraph_lines[i]->line_uid,page_y-last_page_y);
+	  crossrefs_register_line(out->paragraph_lines[i],
+				  0,out->paragraph_lines[i]->piece_count,
+				  (int)last_page_y
+				  -out->paragraph_lines[i]->line_height);
 	}
-	crossrefs_register(out,(int)page_y);
       } else {
 	// Empty paragraphs are just for vspace, so advance accordingly.
 	page_y+=body_paragraphs[start_para]->total_height;
