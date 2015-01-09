@@ -374,8 +374,11 @@ int crossrefs_register(struct paragraph *p, int y)
   for(line=0;line<p->line_count;line++) {
     struct line_pieces *l=p->paragraph_lines[line];
     crossrefs_register_line(l,0,l->piece_count,y);
+    // Why do we have to save the old line height?
+    int old_line_height=l->line_height;
     line_calculate_height(l,0,l->piece_count);
     y+=l->line_height;
+    l->line_height=old_line_height;
   }
   return 0;
 }
