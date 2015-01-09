@@ -264,7 +264,7 @@ int output_accumulated_footnotes_old(int drawingPage)
 #endif
 
 int footnotes_build_block(struct paragraph *footnotes,struct paragraph *out,
-			  int *num_foonotes)
+			  int *num_footnotes)
 {
   // fprintf(stderr,"%s(): %d lines\n",__FUNCTION__,out->line_count);
   
@@ -281,25 +281,36 @@ int footnotes_build_block(struct paragraph *footnotes,struct paragraph *out,
 
 	  // Replace footnote mark in text
 	  free(l->pieces[piece].piece);
-	  generate_footnote_mark(*num_foonotes);
+	  float old_width=l->pieces[piece].natural_width;
+	  generate_footnote_mark(*num_footnotes);
 	  l->pieces[piece].piece=strdup(footnote_mark_string);
+	  l->pieces[piece].natural_width=footnote_mark_widths[*num_footnotes];
+	  l->pieces[piece].piece_width=footnote_mark_widths[*num_footnotes];
+	  l->line_width_so_far-=old_width;
+	  l->line_width_so_far+=footnote_mark_widths[*num_footnotes];
 	  // And in the footnote
 	  // XXX Cheat -- we know that the footnote mark is after exactly 4 spaces.
-	  free(footnote_paragraphs[l->pieces[piece].footnote_number-1]
-	       ->paragraph_lines[0]->pieces[4].piece);
-	  footnote_paragraphs[l->pieces[piece].footnote_number-1]
-	       ->paragraph_lines[0]->pieces[4].piece
-	    =strdup(footnote_mark_string);
+	  struct paragraph *f_para=footnote_paragraphs[l->pieces[piece].footnote_number-1];
+	  free(f_para->paragraph_lines[0]->pieces[4].piece);
+	  f_para->paragraph_lines[0]->pieces[4].piece=strdup(footnote_mark_string);
+	  f_para->paragraph_lines[0]->pieces[4].natural_width
+	    =footnote_mark_widths[*num_footnotes];
+	  f_para->paragraph_lines[0]->pieces[4].piece_width
+	    =footnote_mark_widths[*num_footnotes];
+	  f_para->paragraph_lines[0]->line_width_so_far
+	    -=old_width;
+	  f_para->paragraph_lines[0]->line_width_so_far
+	    +=footnote_mark_widths[*num_footnotes];
 
 	  // Skip four leading spaces of first footnote
 	  int skip=0;
-	  if ((*num_foonotes)==0) {
+	  if ((*num_footnotes)==0) {
 	    skip=4;
 	    fprintf(stderr,"Skipping leading spaces of first footnote on page.\n");
 	  }
 
 	  // Update number of footnotes on the page.
-	  (*num_foonotes)++;
+	  (*num_footnotes)++;
 
 	  // We can now duplicate the footnote into the footnotes paragraph since
 	  // it has the right footnote mark now.
