@@ -92,7 +92,11 @@ struct piece {
   // Where the piece sits with respect to the nominal baseline
   // (used for placing super- and sub-scripts).
   int piece_baseline;
+
+  // Cross-reference paragraph for verse numbers
   struct paragraph *crossrefs;
+  // Footnote paragraph for footnotemarks
+  struct paragraph *footnote;
   
   // if non-zero, do not break after this piece
 #define NO_FORCESPACEATSTARTOFLINE 0
