@@ -11,7 +11,7 @@ right_margin 54
 top_margin 54
 bottom_margin 36
 
-heading_y 497
+heading_y 505
 pagenumber_y 20
 
 # Indentation of first line of a paragraph
