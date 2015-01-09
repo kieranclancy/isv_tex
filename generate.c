@@ -452,7 +452,8 @@ int finalise_page()
     // Largely this is book chap:verse on the same side as the booktab
 
     if (headerfont_index==-1) headerfont_index=set_font_by_name("header");
-    
+    set_font(&type_faces[headerfont_index]);
+
     y=heading_y;
 
     if (page_leftRight==LR_LEFT) {
@@ -481,7 +482,6 @@ int finalise_page()
 		type_faces[headerfont_index].font_size,
 		heading,x,y,0);
     
-    set_font(&type_faces[headerfont_index]);
     HPDF_Page_TextOut (page, x, y, heading);
     HPDF_Page_EndText (page);
 
@@ -499,10 +499,10 @@ int finalise_page()
   y=pagenumber_y;
   char pagenumberstring[1024];
   snprintf(pagenumberstring,1024,"%d",current_page);
+  set_font(&type_faces[pagenumberfont_index]);
   float text_width = HPDF_Page_TextWidth(page,pagenumberstring);
   x=(page_width/2)-(text_width/2);
   record_text(&type_faces[index],type_faces[index].font_size,heading,x,y,0);  
-  set_font(&type_faces[pagenumberfont_index]);
   HPDF_Page_TextOut (page, x, y, pagenumberstring);
   HPDF_Page_EndText (page);
   
