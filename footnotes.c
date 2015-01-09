@@ -150,6 +150,10 @@ int end_footnote()
     paragraph_dump(target_paragraph);
   }
 
+  // Tag footnotemark with footnote paragraph
+  body_paragraph.current_line->pieces[body_paragraph.current_line->piece_count-1]
+    .footnote=target_paragraph;
+  
   target_paragraph=&body_paragraph;
   footnote_mode=0;
 

@@ -981,9 +981,9 @@ int render_tokens(int token_low,int token_high,int drawingPage)
 	      alignment=target_paragraph->current_line->alignment;
 	    if (footnotemarkfont_index==-1)
 	      footnotemarkfont_index=set_font_by_name("footnotemark");
+	    // Write footnote mark
 	    paragraph_push_style(target_paragraph,alignment,
 				 footnotemarkfont_index);
-	    // fprintf(stderr,"Footnote mark is '%s'\n",mark);
 	    paragraph_append_text(target_paragraph,mark,current_font->baseline_delta,
 				  NO_FORCESPACEATSTARTOFLINE,NO_NOTBREAKABLE,i);
 	    paragraph_pop_style(target_paragraph);
