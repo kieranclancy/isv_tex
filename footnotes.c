@@ -304,6 +304,7 @@ float footnotes_paragraph_height(int first,int last)
 
   // Build footnote paragraph, calculate height, store in cache and return.
   struct paragraph *p=new_paragraph();
+  p->noindent=1;
 
   for(int i=first;i<=last;i++) {
     generate_footnote_mark(i-first);

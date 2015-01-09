@@ -131,8 +131,8 @@ int layout_calculate_segment_cost(struct paragraph *p,
   float column_width=page_width-left_margin-right_margin;
 
   if (start==0&&l==p->paragraph_lines[0]) {
-    // First line of a paragraph is indented.
-    column_width-=paragraph_indent;
+    // First line of a paragraph is indented, unless the noindent flag is set
+    if (!p->noindent) column_width-=paragraph_indent;
   }
   
   // Deduct drop char margin from line width if required.
@@ -393,11 +393,13 @@ int layout_line(struct paragraph *p, int line_number,
 	
 	// XXX - Use the largest indent specified by any of these
 	
-	// Add left margin for start of paragraph
+	// Add left margin for start of paragraph, unless noindent flag is set.
 	if ((line_number==0)&&(next_steps[position]<1)) {
-	  lout->left_margin=paragraph_indent;
-	  lout->max_line_width
-	    =page_width-left_margin-right_margin-paragraph_indent;
+	  if (!p->noindent) {
+	    lout->left_margin=paragraph_indent;
+	    lout->max_line_width
+	      =page_width-left_margin-right_margin-paragraph_indent;
+	  }
 	}
 	// Add left margin for any dropchar
 	// (but not for the line with the dropchar)
@@ -453,6 +455,7 @@ struct paragraph *layout_paragraph(struct paragraph *p, int drawingPage)
   if (p->src_book) out->src_book=strdup(p->src_book);
   out->src_chapter=p->src_chapter;
   out->src_verse=p->src_verse;
+  out->noindent=p->noindent;
 
   // Lay out each line
   for(i=0;i<p->line_count;i++) {

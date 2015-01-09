@@ -407,6 +407,7 @@ int page_optimal_render_tokens()
 
   struct paragraph *out=new_paragraph();
   struct paragraph *footnotes=new_paragraph();
+  footnotes->noindent=1;
   
   fprintf(stderr,"Optimal page path:\n");
   for(int page_number=page_count-1;page_number>=0;page_number--) {
