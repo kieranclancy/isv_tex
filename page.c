@@ -530,6 +530,7 @@ int page_optimal_render_tokens()
     float actual_page_height=page_y-top_margin;
 
     // Now layout footnotes and output.
+    if (footnotes->current_line) paragraph_append_current_line(footnotes);
     struct paragraph *laid_out_footnotes=layout_paragraph(footnotes,1);
     
     float footnotes_height=paragraph_height(laid_out_footnotes);
@@ -538,7 +539,7 @@ int page_optimal_render_tokens()
 
     for(int i=0;i<laid_out_footnotes->line_count;i++) {
       line_dump(laid_out_footnotes->paragraph_lines[i]);
-      line_emit(out,i,1,1);
+      line_emit(laid_out_footnotes,i,1,1);
     }    
     paragraph_clear(laid_out_footnotes); free(laid_out_footnotes);
     paragraph_clear(footnotes);          
