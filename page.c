@@ -126,10 +126,13 @@ struct page_option_record {
   float height;
 };
 
+extern float crossrefs_height;
+
 int page_score_at_this_starting_point(int start_para,int start_line,int start_piece,
 				      struct page_option_record *backtrace,
 				      int start_position_count)
 {
+  crossrefs_reset();
 
   int checkpoint_para=0;
   int checkpoint_line=0;
@@ -138,7 +141,7 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
   int end_para=0;
   int end_line=0;
   int end_piece=0;
-
+  
   // Now advance through all possible ending points.
   // Note that the end point here is inclusive, to simplify the logic.
   end_para=start_para;
@@ -189,10 +192,7 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
     }
     
     // Stop accumulating page once it is too tall to fit.
-    if (cumulative_height>(page_height-top_margin-bottom_margin))
-      {
-	break;
-      }
+    if (cumulative_height>(page_height-top_margin-bottom_margin)) break;
     
     // Get height and penalty of the current piece of the current line.
     struct line_pieces *l=NULL;
@@ -211,13 +211,7 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
       penalty=l->metrics->starts[checkpoint_piece][end_piece].penalty;
       height=l->metrics->starts[checkpoint_piece][end_piece].height;
     }
-    
-    // XXX - Look up height and penalty of footnote paragraph so that it can be
-    // taken into account.
-    
-    // XXX - Look up height of cross-references so that we can stop if they are too
-    // tall.
-    
+
     float this_height=height+cumulative_height;
     if (0) {
       fprintf(stderr,"   %d..%d : segment height=%.1fpts, cumulative_height=%.1fpts\n",
@@ -226,7 +220,17 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
       line_segment_dump(body_paragraphs[checkpoint_para],checkpoint_line,
 			checkpoint_piece, end_piece);
     }
+
+    // XXX - Look up height and penalty of footnote paragraph so that it can be
+    // taken into account.
+    float footnotes_height=0;
     
+    // XXX - Look up height of cross-references so that we can stop if they are too
+    // tall.
+    crossrefs_register_line(l,end_piece,end_piece+1, this_height);
+    if (crossrefs_height>(page_height-top_margin-bottom_margin-footnotes_height))
+      break;
+        
     // Work out penalty for emptiness of page
     int emptiness=(100*this_height)/(page_height-top_margin-bottom_margin);
     if (emptiness<0) emptiness=100;
@@ -326,12 +330,13 @@ int page_optimal_render_tokens()
     backtrace[i].penalty=-1;
     backtrace[i].height=-1;
   }
-  
-  
+     
   while(1) {
     fprintf(stderr,"\nAnalysing page start position %d\n",
 	    start_position_count);
     fflush(stderr);
+
+    crossrefs_reset();
 
     // Try this starting point, but only if it isn't
     // an empty paragraph

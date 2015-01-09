@@ -378,6 +378,7 @@ int crossref_set_ylimit(int y);
 int crossrefs_reset();
 int crossref_queue_dump(char *msg);
 int crossrefs_register(struct paragraph *p,int y);
+int crossrefs_register_line(struct line_pieces *l, int start, int end, int y);
 
 int set_font_by_name(char *nickname);
 int set_font(struct type_face *f);
