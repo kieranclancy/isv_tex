@@ -389,7 +389,7 @@ int output_accumulated_cross_references()
 
   // Place cross-reference column in space on opposite side to the
   // booktab
-  if (leftRight==LR_RIGHT) {
+  if (leftRight==LR_LEFT) {
     left_margin=page_width-crossref_column_width-crossref_margin_width;
     right_margin=crossref_margin_width;
   } else {
