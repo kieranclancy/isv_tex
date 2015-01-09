@@ -135,12 +135,15 @@ int end_footnote()
 {
   // fprintf(stderr,"%s()\n",__FUNCTION__);
 
+  // Commit current line into paragraph
+  paragraph_append_current_line(target_paragraph);
+  
   if (footnote_total_count>=MAX_FOOTNOTES) {
     fprintf(stderr,"Too many footnotes. Increase MAX_FOOTNOTESS.\n");
     exit(-1);
   }
   footnote_paragraphs[footnote_total_count++]=target_paragraph;
-  
+
   if(0) {
     fprintf(stderr,"Footnote paragraph (%p) is:\n",target_paragraph);
     paragraph_dump(target_paragraph);
@@ -153,6 +156,9 @@ int end_footnote()
   // Tag footnotemark with footnote paragraph
   body_paragraph.current_line->pieces[body_paragraph.current_line->piece_count-1]
     .footnote=target_paragraph;
+  fprintf(stderr,"  footnote reference %p added to : ",
+	  target_paragraph);
+  line_dump(body_paragraph.current_line);
   
   target_paragraph=&body_paragraph;
   footnote_mode=0;
@@ -230,16 +236,20 @@ int output_accumulated_footnotes_old(int drawingPage)
 
 int footnotes_build_block(struct paragraph *footnotes,struct paragraph *out)
 {
+  fprintf(stderr,"%s(): %d lines\n",__FUNCTION__,out->line_count);
+  
   int line,piece;
-  for(line=0;line>out->line_count;line++) {
+  for(line=0;line<out->line_count;line++) {
     struct line_pieces *l=out->paragraph_lines[line];
     if (l&&l->piece_count) {
+      fprintf(stderr,"looking for footnotes in: %p\n",l);
+      line_dump(l);
       for(piece=0;piece<l->piece_count;piece++) {
 	if (l->pieces[piece].footnote) {
-	  fprintf(stderr,"Found foonote: ");
-	  line_dump(l->pieces[piece].footnote->paragraph_lines[0]);
+	  fprintf(stderr,"Found footnote = %p\n",l->pieces[piece].footnote);
 	  // Found a footnote.  Append footnote paragraph to footnotes
 	  paragraph_append(footnotes,l->pieces[piece].footnote);
+	  paragraph_dump(footnotes);
 	}
       }
     }
