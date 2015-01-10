@@ -578,7 +578,7 @@ int line_dump_segment(struct line_pieces *l,int start,int end)
   fprintf(stderr,"\n");
   if (l->metrics) {
     fprintf(stderr,"        metrics: ");
-    for(i=start;i<end;i++) {
+    for(i=start;i<=end;i++) {
       fprintf(stderr, " %d:%.1f",i,l->metrics->starts[start][i].height);
     }
     fprintf(stderr,"\n");
@@ -706,12 +706,13 @@ int line_metrics_write(char *filename,struct line_metrics *m)
   int start,end;
 
   fprintf(f,"%d\n",m->line_pieces);
-  for(start=0;start<m->line_pieces;start++)
-    for(end=start+1;end<=m->line_pieces;end++)
+  for(start=0;start<m->line_pieces;start++) {
+    fprintf(f,"%d\n",start);
+    for(end=start;end<=m->line_pieces;end++)
       fprintf(f,"%lld:%.2f\n",
 	      m->starts[start][end].penalty,
 	      m->starts[start][end].height);
-
+  }
   fclose(f);
   
   return 0;
@@ -735,14 +736,23 @@ int line_metrics_read(char *filename,struct line_metrics *m)
 
   // Now read each tuple
   int start,end;
-  for(start=0;start<m->line_pieces;start++)
-    for(end=start+1;end<=m->line_pieces;end++) {
+  for(start=0;start<m->line_pieces;start++) {
+    for(end=0;end<start+1;end++) {
+      m->starts[start][end].penalty=999999999;
+      m->starts[start][end].height=999.99;      
+    }
+    line[0]=0; fgets(line,1024,f);
+    if (!line[0]) { fclose(f); return -1; }
+    if (sscanf(line,"%lld",&vi)!=1) { fclose(f); return -1; }
+    if (vi!=start) return -1;
+    for(end=start;end<=m->line_pieces;end++) {
       line[0]=0; fgets(line,1024,f);
       if (!line[0]) { fclose(f); return -1; }
       if (sscanf(line,"%lld:%f",&vi,&vf)!=2) { fclose(f); return -1; }
       m->starts[start][end].penalty=vi;
       m->starts[start][end].height=vf;      
     }
+  }
   
   fclose(f); 
   return 0;
@@ -809,7 +819,7 @@ int line_metrics_initialise(struct line_metrics *m,int line_pieces)
   assert(m->starts);
   
   for(i=0;i<=line_pieces;i++) {
-    m->starts[i]=calloc(sizeof(struct line_metric),1+line_pieces);
+    m->starts[i]=calloc(sizeof(struct line_metric),1+line_pieces+500);
     assert(m->starts[i]);
   }
 
