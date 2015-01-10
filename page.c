@@ -511,6 +511,15 @@ int page_optimal_render_tokens()
 	    line_dump(out->paragraph_lines[i]);
 	  }
 	  float last_page_y=page_y;
+
+	  // Justify the last line on a page if it isn't the last line of a paragraph
+	  // i.e., if the paragraph is split over the page break.
+	  if (end
+	      <body_paragraphs[start_para]->paragraph_lines[start_line]->piece_count)
+	    out->justifylast=1;
+	  else
+	    out->justifylast=0;
+	  
 	  line_emit(out,i,1,1);
 	  if (0) fprintf(stderr,"  line #%d actual height = %.1fpts\n",
 			 out->paragraph_lines[i]->line_uid,page_y-last_page_y);
