@@ -301,10 +301,7 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
 	  backtrace[end_position].page_count
 	    =backtrace[start_position_count-1].page_count+1;
       }
-    } else {
-      fprintf(stderr,"start_position=%d, end_position=%d, penalty=%lld, height=%.1fpts\n",
-	      start_position_count,end_position,this_penalty,this_height);
-    }
+    } 
   
     // Advance to next ending point
     if (body_paragraphs[end_para]) {
@@ -479,7 +476,7 @@ int page_optimal_render_tokens()
 
     struct line_pieces *l=NULL;
 
-    while(start_para<end_para||start_line<end_line||start_piece<end_piece) {
+    while(start_para<end_para||start_line<end_line||start_piece<=end_piece) {
 
       if (body_paragraphs[start_para])
 	l=body_paragraphs[start_para]->paragraph_lines[start_line];
