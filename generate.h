@@ -359,7 +359,7 @@ struct piece *new_line_piece(char *text,struct type_face *current_font,
 			     struct paragraph *crossrefs,float baseline,
 			     int nobreak, int token_number);
 struct line_pieces *new_line();
-int line_analyse(struct paragraph *p,int line_number);
+int line_analyse(struct paragraph *p,int line_number,int debug);
 int line_metrics_initialise(struct line_metrics *m,int line_pieces);
 int line_segment_dump(struct paragraph *p,int line_number, int start, int end);
 

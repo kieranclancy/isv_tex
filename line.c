@@ -741,7 +741,7 @@ int line_metrics_read(char *filename,struct line_metrics *m)
   return 0;
 }
 
-int line_analyse(struct paragraph *p,int line_number)
+int line_analyse(struct paragraph *p,int line_number, int debug)
 {
   int start,end;
   
@@ -752,7 +752,7 @@ int line_analyse(struct paragraph *p,int line_number)
   struct line_metrics *m=calloc(sizeof(struct line_metrics),1);
   line_metrics_initialise(m,p->paragraph_lines[line_number]->piece_count);
 
-  if (line_metrics_read(cachefilename,m)) {
+  if (debug||line_metrics_read(cachefilename,m)) {
     // No valid cache -- so calculate line metrics
     
     layout_line_precalc(p->paragraph_lines[line_number]);
@@ -763,7 +763,7 @@ int line_analyse(struct paragraph *p,int line_number)
       for(end=start+1;end<=p->paragraph_lines[line_number]->piece_count;end++) {
 	int penalty=layout_line(p,line_number,start,end,out,0);
 	float height=paragraph_height(out);
-	if (0) {
+	if (debug&&(!start)&&(end==p->paragraph_lines[line_number]->piece_count)) {
 	  fprintf(stderr,"%d..%d : height=%.1f, penalty=%d\n",
 		  start,end,height,penalty);
 	  line_segment_dump(p,line_number,start,end);

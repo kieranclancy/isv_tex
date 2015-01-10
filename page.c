@@ -182,12 +182,14 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
 	checkpoint_line=end_line;
 	checkpoint_piece=end_piece;
 
-	if (0) {
+	if (!backtrace) {
 	  fprintf(stderr,"    checkpoint advanced to %d %d %d (start is %d %d %d)"
-		  " penalty=%lld, height=%.1fpts (added %.1fpts)\n",
+		  " penalty=%lld, height=%.1fpts (after adding %.1fpts). (%.1f -- %.1f pts on page)\n",
 		  checkpoint_para,checkpoint_line,checkpoint_piece,
 		  start_para,start_line,start_piece,
-		  cumulative_penalty,cumulative_height,height);
+		  cumulative_penalty,cumulative_height,height,
+		  cumulative_height-height+top_margin,
+		  cumulative_height+top_margin);
 	  fprintf(stderr,"      Line included in checkpoint is: ");
 	  if (body_paragraphs[old_checkpoint_para]
 	      ->paragraph_lines[old_checkpoint_line])
@@ -217,12 +219,16 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
       penalty=l->metrics->starts[checkpoint_piece][end_piece].penalty;
       height=l->metrics->starts[checkpoint_piece][end_piece].height;
 
-      struct piece *piece=
-	piece=&body_paragraphs[end_para]->paragraph_lines[end_line]->pieces[end_piece];
-      if (piece->footnote_number) {
-	if (first_footnote==-1)	first_footnote=piece->footnote_number;
-	last_footnote=piece->footnote_number;
-      }
+      if (end_piece<body_paragraphs[end_para]->paragraph_lines[end_line]->piece_count)
+	{
+	  struct piece *piece=
+	    piece=
+	    &body_paragraphs[end_para]->paragraph_lines[end_line]->pieces[end_piece];
+	  if (piece->footnote_number) {
+	    if (first_footnote==-1)	first_footnote=piece->footnote_number;
+	    last_footnote=piece->footnote_number;
+	  }
+	}
 
     }
 
@@ -241,7 +247,7 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
     
     // Look up height of cross-references so that we can stop if they are too
     // tall.  We don't care about the position.
-    if (l->piece_count)
+    if (l->piece_count&&l->piece_count>end_piece)      
       crossrefs_register_line(l,end_piece,end_piece+1, 0);
     if (crossrefs_height>(page_height-top_margin-bottom_margin-footnotes_height))
       break;
@@ -266,26 +272,28 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
     if (this_penalty<best_penalty) {
       best_penalty=this_penalty; best_height=this_height;
     }       	
-    
-    if (((this_penalty+backtrace[start_position_count-1].penalty)
-	 <backtrace[end_position].penalty)
-	||(backtrace[end_position].penalty==-1)) {
-      backtrace[end_position].start_index=start_position_count-1;
-      backtrace[end_position].start_para=start_para;
-      backtrace[end_position].start_line=start_line;
-      backtrace[end_position].start_piece=start_piece;
-      if (start_position_count>0) {
-	backtrace[end_position].penalty
-	  =backtrace[start_position_count-1].penalty
-	  +this_penalty;
-      } else {
-	backtrace[end_position].penalty=this_penalty;
+
+    if (backtrace) {
+      if (((this_penalty+backtrace[start_position_count-1].penalty)
+	   <backtrace[end_position].penalty)
+	  ||(backtrace[end_position].penalty==-1)) {
+	backtrace[end_position].start_index=start_position_count-1;
+	backtrace[end_position].start_para=start_para;
+	backtrace[end_position].start_line=start_line;
+	backtrace[end_position].start_piece=start_piece;
+	if (start_position_count>0) {
+	  backtrace[end_position].penalty
+	    =backtrace[start_position_count-1].penalty
+	    +this_penalty;
+	} else {
+	  backtrace[end_position].penalty=this_penalty;
+	}
+	backtrace[end_position].height=this_height;
+	
+	if (start_position_count)
+	  backtrace[end_position].page_count
+	    =backtrace[start_position_count-1].page_count+1;
       }
-      backtrace[end_position].height=this_height;
-      
-      if (start_position_count)
-	backtrace[end_position].page_count
-	  =backtrace[start_position_count-1].page_count+1;
     }
   
     // Advance to next ending point
@@ -295,7 +303,7 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
       } else {
 	end_piece++;
 	if (end_piece
-	    >=body_paragraphs[end_para]->paragraph_lines[end_line]->piece_count) {
+	    >body_paragraphs[end_para]->paragraph_lines[end_line]->piece_count) {
 	  end_piece=0; end_line++;
 	}
 	if (end_line>=body_paragraphs[end_para]->line_count) {
@@ -495,7 +503,7 @@ int page_optimal_render_tokens()
       int start=0;
       int end=0;
       if (body_paragraphs[start_para]->line_count) {
-	paragraph_dump(body_paragraphs[start_para]);
+	// paragraph_dump(body_paragraphs[start_para]);
 	struct line_pieces *l=body_paragraphs[start_para]->paragraph_lines[start_line];
 	end=l->piece_count;
 	line_recalculate_width(l);
@@ -543,7 +551,7 @@ int page_optimal_render_tokens()
 	fprintf(stderr,"  vspace of %.1fpts\n",
 		body_paragraphs[start_para]->total_height);
       }
-      fprintf(stderr,"    actual paragraph height=%.1fpts (%.1f -- %.1fpts)\n",
+      fprintf(stderr,"    actual paragraph height=%.1fpts (%.1f -- %.1fpts on page)\n",
 	      page_y-prev_page_y,prev_page_y,page_y);
       
       paragraph_clear(out);
@@ -601,10 +609,56 @@ int page_optimal_render_tokens()
 	    "(%d crossrefs, %.1fpts of footnotes).\n",
 	    actual_page_height,num_crossrefs,
 	    footnotes_height);
-    if (actual_page_height!=predicted_page_height) {
+    if ((actual_page_height+footnotes_height)!=predicted_page_height) {
       fprintf(stderr,"Page length does not match prediction.\n"
 	      "This indicates a bug in the page cost calculation code.\n");
-      fprintf(stderr,"  predicted length = %.1fpts\n",predicted_page_height);
+      fprintf(stderr,"  predicted length = %.1fpts vs actual length = %.1fpts (%.1fpts+%.1fpts of footnotes)\n",
+	      predicted_page_height,
+	      actual_page_height+footnotes_height,
+	      actual_page_height,footnotes_height);
+
+      int start_position;
+      if (next_position>=0) {
+	start_para=backtrace[next_position].start_para;
+	start_line=backtrace[next_position].start_line;
+	start_piece=backtrace[next_position].start_piece;
+	start_position=backtrace[next_position].start_index;
+      } else {
+	start_para=0; start_line=0; start_piece=0;
+	start_position=0;
+      }
+      
+      page_score_at_this_starting_point(start_para,start_line,start_piece,
+					NULL /* indicates show debug output instead
+						of recording backtrace */,
+					start_position);
+      // Show analysis results for the lines in question.
+      while(start_para<end_para||start_line<end_line||start_piece<end_piece) {
+	
+	if (body_paragraphs[start_para])
+	  l=body_paragraphs[start_para]->paragraph_lines[start_line];
+	else l=NULL;
+	
+	int last_piece=end_piece;
+	if (end_line!=start_line||end_para!=start_para) {
+	  if (l) last_piece=l->piece_count;
+	  else last_piece=-1;
+	}
+
+	line_analyse(body_paragraphs[start_para],start_line,1);
+	
+	if (end_para==start_para&&end_line==start_line) {
+	  start_piece=end_piece;
+	} else {
+	  start_piece=0;
+	  start_line++;
+	  if (start_line>=body_paragraphs[start_para]->line_count) {
+	    start_line=0; start_para++;
+	  }
+	}
+      }
+      
+      exit(-1);
     }
 
 

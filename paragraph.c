@@ -687,6 +687,6 @@ struct paragraph *new_paragraph()
 int paragraph_analyse(struct paragraph *p)
 {
   int i;
-  for(i=0;i<p->line_count;i++) line_analyse(p,i);
+  for(i=0;i<p->line_count;i++) line_analyse(p,i,0);
   return 0;
 }
