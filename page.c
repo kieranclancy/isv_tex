@@ -391,7 +391,7 @@ int page_optimal_render_tokens()
   int page_positions[token_count+1];
   int page_count=0;
   
-  while(position>=0) {
+  while(position>0) {
     page_positions[page_count++]=position;
     
     long long penalty=backtrace[position].penalty;
@@ -441,6 +441,8 @@ int page_optimal_render_tokens()
     int end_piece=backtrace[position].start_piece;
 
     int num_footnotes=0;
+
+    float predicted_page_height=(next_position>=0)?backtrace[next_position].height:-1;
     
     fprintf(stderr,"%d (%d %d %d -- %d %d %d) : penalty=%lld, page_count=%d, page_height=%.1fpts\n",
 	    next_position+1,
@@ -448,8 +450,7 @@ int page_optimal_render_tokens()
 	    end_para,end_line,end_piece,
 	    penalty,
 	    backtrace[position].page_count,
-	    (next_position>=0)?backtrace[next_position].height:-1
-	    );
+	    predicted_page_height);
 
     struct line_pieces *l=NULL;
 
@@ -593,6 +594,11 @@ int page_optimal_render_tokens()
 	    "(%d crossrefs, %.1fpts of footnotes).\n",
 	    actual_page_height,num_crossrefs,
 	    footnotes_height);
+    if (actual_page_height!=predicted_page_height) {
+      fprintf(stderr,"Page length does not match prediction.\n"
+	      "This indicates a bug in the page cost calculation code.\n");
+      fprintf(stderr,"  predicted length = %.1fpts\n",predicted_page_height);
+    }
 
 
     finalise_page();
