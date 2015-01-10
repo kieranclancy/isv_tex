@@ -558,13 +558,16 @@ int page_optimal_render_tokens()
 	fprintf(stderr,"  vspace of %.1fpts\n",
 		body_paragraphs[start_para]->total_height);
       }
-      fprintf(stderr,"    actual paragraph height=%.1fpts (%.1f -- %.1fpts on page)\n",
+      fprintf(stderr,"    %d %d %d (to %d %d %d) actual paragraph height=%.1fpts (%.1f -- %.1fpts on page)\n",
+	      start_para,start_line,start_piece,
+	      end_para,end_line,end_piece,
 	      page_y-prev_page_y,prev_page_y,page_y);
       
       paragraph_clear(out);
 
       if (end_para==start_para&&end_line==start_line) {
-	start_piece=end_piece;
+	if (start_piece==end_piece) break;
+	start_piece=end_piece+1;
       } else {
 	start_piece=0;
 	start_line++;
