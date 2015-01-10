@@ -110,22 +110,23 @@ int layout_calculate_segment_cost(struct paragraph *p,
   // Related to the above, we must discount the width of a dropchar if it is
   // followed by left-hangable material.  This only applies to absolute 2nd
   // piece.
-  if ((l->pieces[0].font->line_count>1)
-      &&(start==1)
-      &&(line_count<=(l->pieces[0].font->line_count-1)))
-    {
-      float discount=0;
-      
-      // Discount any footnote
-      if (l->pieces[0].font==&type_faces[footnotemark_index]) {
-	discount+=l->pieces[1].natural_width;
+  if (!start)
+    if ((l->pieces[0].font->line_count>1)
+	&&(start==1)
+	&&(line_count<=(l->pieces[0].font->line_count-1)))
+      {
+	float discount=0;
+	
+	// Discount any footnote
+	if (l->pieces[0].font==&type_faces[footnotemark_index]) {
+	  discount+=l->pieces[1].natural_width;
+	}
+	discount+=calc_left_hang(l,1);
+	
+	line_width-=discount;
+	
       }
-      discount+=calc_left_hang(l,1);
-      
-      line_width-=discount;
-
-    }
-
+  
 
   // Work out column width
   float column_width=page_width-left_margin-right_margin;
@@ -138,16 +139,17 @@ int layout_calculate_segment_cost(struct paragraph *p,
   }
   
   // Deduct drop char margin from line width if required.
-  if (l->pieces[0].font->line_count>1) {
-    // Drop char at beginning of chapter
-    if (line_count&&line_count<=(l->pieces[0].font->line_count-1)) {
-      int max_hang_space
-	=right_margin
-	-crossref_margin_width-crossref_column_width
-	-2;  // plus a little space to ensure some white space
-      column_width-=l->pieces[0].natural_width+max_hang_space;
+  if (!start)
+    if (l->pieces[0].font->line_count>1) {
+      // Drop char at beginning of chapter
+      if (line_count&&line_count<=(l->pieces[0].font->line_count-1)) {
+	int max_hang_space
+	  =right_margin
+	  -crossref_margin_width-crossref_column_width
+	  -2;  // plus a little space to ensure some white space
+	column_width-=l->pieces[0].natural_width+max_hang_space;
+      }
     }
-  }
 
   // Similarly adjust margin for poetry
   if (l->poem_level) {
@@ -247,7 +249,7 @@ int layout_line(struct paragraph *p, int line_number,
   // Copy empty lines verbatim (mostly present only for vspace)
   if (l&&(!l->piece_count)) {
     l=line_clone(l);
-    if (!l||(out->line_count>=MAX_LINE_PIECES)) {
+    if (!l||(l->piece_count>=MAX_LINE_PIECES)) {
       fprintf(stderr,"line_clone() returned NULL or too many lines in paragraph\n");
       exit(-1);
     }
@@ -403,12 +405,13 @@ int layout_line(struct paragraph *p, int line_number,
 	}
 	// Add left margin for any dropchar
 	// (but not for the line with the dropchar)
-	if (l->pieces[0].font->line_count>1)
-	  if (line_count&&(line_count<l->pieces[0].font->line_count)) {
-	    lout->left_margin=l->pieces[0].natural_width;
-	    lout->max_line_width
-	      =page_width-left_margin-right_margin-l->pieces[0].natural_width;
-	  }
+	if (!start)
+	  if (l->pieces[0].font->line_count>1)
+	    if (line_count&&(line_count<l->pieces[0].font->line_count)) {
+	      lout->left_margin=l->pieces[0].natural_width;
+	      lout->max_line_width
+		=page_width-left_margin-right_margin-l->pieces[0].natural_width;
+	    }
 	// Similarly adjust margin for poetry
 	if (l->poem_level) {
 	  int poem_indent=0;
