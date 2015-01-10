@@ -737,10 +737,6 @@ int line_metrics_read(char *filename,struct line_metrics *m)
   // Now read each tuple
   int start,end;
   for(start=0;start<m->line_pieces;start++) {
-    for(end=0;end<start+1;end++) {
-      m->starts[start][end].penalty=999999999;
-      m->starts[start][end].height=999.99;      
-    }
     line[0]=0; fgets(line,1024,f);
     if (!line[0]) { fclose(f); return -1; }
     if (sscanf(line,"%lld",&vi)!=1) { fclose(f); return -1; }
@@ -820,7 +816,12 @@ int line_metrics_initialise(struct line_metrics *m,int line_pieces)
   
   for(i=0;i<=line_pieces;i++) {
     m->starts[i]=calloc(sizeof(struct line_metric),1+line_pieces+500);
-    assert(m->starts[i]);
+    assert(m->starts[i]);    
+    for(int end=0;end<=line_pieces+500;end++) {
+      m->starts[i][end].penalty=999999999;
+      m->starts[i][end].height=999.99;      
+    }
+
   }
 
   m->line_pieces=line_pieces;
