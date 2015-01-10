@@ -379,7 +379,7 @@ int page_optimal_render_tokens()
     } else {
       start_piece++;
       if (start_piece
-	  >=body_paragraphs[start_para]->paragraph_lines[start_line]->piece_count) {
+	  >body_paragraphs[start_para]->paragraph_lines[start_line]->piece_count) {
 	start_piece=0; start_line++;
       }
       if (start_line>=body_paragraphs[start_para]->line_count) {
