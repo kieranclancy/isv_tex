@@ -579,7 +579,7 @@ int line_dump_segment(struct line_pieces *l,int start,int end)
   if (l->metrics) {
     fprintf(stderr,"        metrics: ");
     for(i=start;i<end;i++) {
-      fprintf(stderr, " %d:%.1f",i,l->metrics->starts[start][end].height);
+      fprintf(stderr, " %d:%.1f",i,l->metrics->starts[start][i].height);
     }
     fprintf(stderr,"\n");
   }
