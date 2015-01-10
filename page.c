@@ -609,13 +609,13 @@ int page_optimal_render_tokens()
 	    "(%d crossrefs, %.1fpts of footnotes).\n",
 	    actual_page_height,num_crossrefs,
 	    footnotes_height);
-    if (actual_page_height!=predicted_page_height) {
+    if (fabs(actual_page_height-predicted_page_height)>0.1) {
       fprintf(stderr,"Page length does not match prediction.\n"
 	      "This indicates a bug in the page cost calculation code.\n");
-      fprintf(stderr,"  predicted length = %.1fpts vs actual length = %.1fpts (%.1fpts+%.1fpts of footnotes)\n",
+      fprintf(stderr,"  predicted length = %.1fpts vs actual length = %.1fpts (+%.1fpts of footnotes)\n",
 	      predicted_page_height,
-	      actual_page_height+footnotes_height,
-	      actual_page_height,footnotes_height);
+	      actual_page_height,
+	      footnotes_height);
 
       int start_position;
       if (next_position>=0) {
