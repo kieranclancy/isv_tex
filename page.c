@@ -391,8 +391,7 @@ int page_optimal_render_tokens()
   int page_positions[token_count+1];
   int page_count=0;
   
-  while(position>0) {
-    page_positions[page_count++]=position;
+  while((position>0)&&(backtrace[position].start_index<position)) {
     
     long long penalty=backtrace[position].penalty;
     int next_position=backtrace[position].start_index;
@@ -402,7 +401,15 @@ int page_optimal_render_tokens()
       fprintf(stderr,"Illegal step or loop in page optimisation dyanmic programming list.\n");
       exit(-1);
     }
+    page_positions[page_count++]=position;
     position=backtrace[position].start_index;
+
+    // Stop as soon as we have reached the start of the actual text
+    if ((!backtrace[next_position].start_para)
+	&&(!backtrace[next_position].start_line)
+	&&(!backtrace[next_position].start_piece))
+      break;
+
   }
 
   struct paragraph *out=new_paragraph();
