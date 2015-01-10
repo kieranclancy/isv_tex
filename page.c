@@ -574,7 +574,7 @@ int page_optimal_render_tokens()
       HPDF_Page_Stroke(page);
     }
     for(int i=0;i<laid_out_footnotes->line_count;i++) {
-      line_dump(laid_out_footnotes->paragraph_lines[i]);
+      // line_dump(laid_out_footnotes->paragraph_lines[i]);
       line_emit(laid_out_footnotes,i,1,1);
     }    
     paragraph_clear(laid_out_footnotes); free(laid_out_footnotes);

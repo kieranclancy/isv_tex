@@ -306,7 +306,7 @@ int footnotes_build_block(struct paragraph *footnotes,struct paragraph *out,
 	  int skip=0;
 	  if ((*num_footnotes)==0) {
 	    skip=4;
-	    fprintf(stderr,"Skipping leading spaces of first footnote on page.\n");
+	    // fprintf(stderr,"Skipping leading spaces of first footnote on page.\n");
 	  }
 
 	  // Update number of footnotes on the page.
@@ -353,13 +353,13 @@ float footnotes_paragraph_height(int first,int last)
     footnote_paragraphs[i-1]->paragraph_lines[0]->pieces[4].piece
       =strdup(footnote_mark_string);
     int skip=0;
-    if (i==first) { skip=4; fprintf(stderr,"skipping leading spaces in footnote.\n"); }
-    paragraph_append(p,footnote_paragraphs[i-1],skip);
+    if (i==first) skip=4;
+      paragraph_append(p,footnote_paragraphs[i-1],skip);
   }
   if (p->current_line) paragraph_append_current_line(p);
   
   struct paragraph *laid_out=layout_paragraph(p,0);
-  paragraph_dump(laid_out);
+  // paragraph_dump(laid_out);
   footnote_paragraph_heights[first][last-first]=paragraph_height(laid_out);
 
   paragraph_clear(p); paragraph_free(p);
