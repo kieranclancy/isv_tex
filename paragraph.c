@@ -557,6 +557,8 @@ int paragraph_clone(struct paragraph *dst,struct paragraph *src)
 int paragraph_dump(struct paragraph *p)
 {
   int i;
+  fprintf(stderr,"Paragraph: %d lines, noindent=%d, justifylast=%d\n",
+	  p->line_count,p->noindent,p->justifylast);
   for(i=0;i<p->line_count;i++) {
     fprintf(stderr,"  %c ",
 	    p->paragraph_lines[i]->tied_to_next_line?'*':' ');

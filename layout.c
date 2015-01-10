@@ -41,7 +41,7 @@ float cumulative_widths[MAX_LINE_PIECES+1];
 
 int precalc_cumulative_widths(struct line_pieces *l)
 {
-  cumulative_widths[0]=l->pieces[0].piece_width;
+  cumulative_widths[0]=l->pieces[0].piece_width; // +l->left_margin;
   for(int i=1;i<l->piece_count;i++)
     cumulative_widths[i]=cumulative_widths[i-1]+l->pieces[i].piece_width;
   return 0;
@@ -130,6 +130,8 @@ int layout_calculate_segment_cost(struct paragraph *p,
   // Work out column width
   float column_width=page_width-left_margin-right_margin;
 
+  if (!start) column_width-=l->left_margin;
+  
   if (start==0&&l==p->paragraph_lines[0]) {
     // First line of a paragraph is indented, unless the noindent flag is set
     if (!p->noindent) column_width-=paragraph_indent;
@@ -277,22 +279,11 @@ int layout_line(struct paragraph *p, int line_number,
     int costa=costs[a];
     // Penalise segments that begin on a space, or follow a non-breaking piece
     if (l->pieces[a].piece_is_elastic) {
-      if (0)
-	fprintf(stderr,
-		"  adding 1,000,000 to penalty for starting on a space at #%d.\n",
-		a);
       costa+=1000000;
     }
     if (a&&(l->pieces[a-1].nobreak)) {
-      if (0)
-	fprintf(stderr,
-		"  adding 1,000,000 to penalty for starting on a non-breaking piece at #%d.\n",
-		a);
       costa+=1000000;
     }
-    if (0)
-      fprintf(stderr,"Examining starting point at piece #%d: nobreak=%d, elastic=%d\n",
-	      a,(a>0)?l->pieces[a-1].nobreak:0,l->pieces[a].piece_is_elastic);
     
     for(b=a+1;b<=end;b++) {
       int segment_cost=layout_calculate_segment_cost(p,l,a,b,line_count,
@@ -388,6 +379,15 @@ int layout_line(struct paragraph *p, int line_number,
       lout->tied_to_next_line=l->tied_to_next_line;
       lout->line_uid=line_uid_counter++;
       lout->max_line_width=page_width-left_margin-right_margin;
+      // Inherit left margin from long line for first laid out line.
+      // XXX - This is used to indicate that a line is paragraph-indented
+      // in the middle of a paragraph containing multiple physical paragraphs.
+      // It is not a really good way to solve this problem, which should probably
+      // use an explicit flag to indicate that the line should be paragraph-indented.
+      if (next_steps[position]<1) {
+	lout->left_margin=l->left_margin;
+	lout->max_line_width-=l->left_margin;
+      }
       for(int i=next_steps[position];i<position;i++) {
 	line_append_piece(lout,&l->pieces[i]);
 	

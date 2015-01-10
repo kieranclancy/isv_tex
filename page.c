@@ -487,6 +487,7 @@ int page_optimal_render_tokens()
       int start=0;
       int end=0;
       if (body_paragraphs[start_para]->line_count) {
+	paragraph_dump(body_paragraphs[start_para]);
 	struct line_pieces *l=body_paragraphs[start_para]->paragraph_lines[start_line];
 	end=l->piece_count;
 	line_recalculate_width(l);
@@ -503,7 +504,7 @@ int page_optimal_render_tokens()
 	penalty=layout_line(body_paragraphs[start_para],start_line,start,end,out,0);
 	footnotes_build_block(footnotes,out,&num_footnotes);
 	for(int i=0;i<out->line_count;i++) {
-	  if (0) {
+	  if (1) {
 	    fprintf(stderr,"  line #%d %d..%d: left_margin=%d, max_width=%d\n",
 		    i,start,end,
 		    out->paragraph_lines[i]->left_margin,
