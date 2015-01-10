@@ -120,6 +120,10 @@ struct page_option_record {
   int start_line;
   int start_piece;
 
+  int end_para;
+  int end_line;
+  int end_piece;
+
   int page_count;
 
   long long penalty;
@@ -281,6 +285,9 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
 	backtrace[end_position].start_para=start_para;
 	backtrace[end_position].start_line=start_line;
 	backtrace[end_position].start_piece=start_piece;
+	backtrace[end_position].end_para=end_para;
+	backtrace[end_position].end_line=end_line;
+	backtrace[end_position].end_piece=end_piece;
 	if (start_position_count>0) {
 	  backtrace[end_position].penalty
 	    =backtrace[start_position_count-1].penalty
@@ -294,6 +301,9 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
 	  backtrace[end_position].page_count
 	    =backtrace[start_position_count-1].page_count+1;
       }
+    } else {
+      fprintf(stderr,"start_position=%d, end_position=%d, penalty=%lld, height=%.1fpts\n",
+	      start_position_count,end_position,this_penalty,this_height);
     }
   
     // Advance to next ending point
@@ -451,9 +461,9 @@ int page_optimal_render_tokens()
       start_para=0; start_line=0; start_piece=0;
     }
     
-    int end_para=backtrace[position].start_para;
-    int end_line=backtrace[position].start_line;
-    int end_piece=backtrace[position].start_piece;
+    int end_para=backtrace[next_position].end_para;
+    int end_line=backtrace[next_position].end_line;
+    int end_piece=backtrace[next_position].end_piece;
 
     int num_footnotes=0;
 
@@ -617,6 +627,35 @@ int page_optimal_render_tokens()
 	      actual_page_height,
 	      footnotes_height);
 
+      fprintf(stderr,"Backtrace in the viscinity:\n");
+      for(int i=next_position-5;i<next_position+5;i++) {
+	fprintf(stderr,"  %d : si=%d, penalty=%lld, height=%.1fpts : %d %d %d -- %d %d %d\n",
+		i,backtrace[i].start_index,
+		backtrace[i].penalty,
+		backtrace[i].height,
+		backtrace[i].start_para,
+		backtrace[i].start_line,
+		backtrace[i].start_piece,
+		backtrace[i].end_para,
+		backtrace[i].end_line,
+		backtrace[i].end_piece
+		);
+      }
+      fprintf(stderr,"...\n");
+      for(int i=position-5;i<position+5;i++) {
+	fprintf(stderr,"  %d : si=%d, penalty=%lld, height=%.1fpts : %d %d %d -- %d %d %d\n",
+		i,backtrace[i].start_index,
+		backtrace[i].penalty,
+		backtrace[i].height,
+		backtrace[i].start_para,
+		backtrace[i].start_line,
+		backtrace[i].start_piece,
+		backtrace[i].end_para,
+		backtrace[i].end_line,
+		backtrace[i].end_piece
+		);
+      }
+      
       int start_position;
       if (next_position>=0) {
 	start_para=backtrace[next_position].start_para;
