@@ -173,10 +173,14 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
   
   int end_position=start_position_count;
   
-  while(1) {
-    // Work out cost to here.
+  determinism_test_integer(end_para);
+  determinism_test_integer(end_line);
+  determinism_test_integer(end_piece);
 
+  while(1) {
+    fflush(stderr); fprintf(stderr,"%s:%d:checkpoint\n",__FILE__,__LINE__); fflush(stderr);
     determinism_test_integer(end_para);
+    fflush(stderr); fprintf(stderr,"%s:%d:checkpoint\n",__FILE__,__LINE__); fflush(stderr);
     determinism_test_integer(end_line);
     determinism_test_integer(end_piece);
     
@@ -218,16 +222,31 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
     }
     
     // Stop accumulating page once it is too tall to fit.
-    if (cumulative_height>(page_height-top_margin-bottom_margin)) break;
+    if (cumulative_height>(page_height-top_margin-bottom_margin)) {
+      determinism_test_float(cumulative_height);
+      break;
+    }
     
     // Get height and penalty of the current piece of the current line.
     struct line_pieces *l=NULL;
-    if (body_paragraphs[checkpoint_para])
-      l=body_paragraphs[checkpoint_para]->paragraph_lines[checkpoint_line];
+    determinism_test_integer(checkpoint_para);
+    determinism_test_integer(checkpoint_line);
+    fprintf(stderr,"body_paragraphs[%d]=%p\n",
+	    checkpoint_para,body_paragraphs[checkpoint_para]);
+
+    determinism_test_integer(body_paragraphs[checkpoint_para]?1:0);
+    if (body_paragraphs[checkpoint_para]) {
+      l=body_paragraphs[checkpoint_para]->paragraph_lines[checkpoint_line];    
+      determinism_test_integer(checkpoint_para);
+    }
+    determinism_test_integer(l?1:0);
+    determinism_test_integer(l?l->piece_count:-1);
     
     if (l&&!l->piece_count) {
       penalty=0;
-      height=l->line_height;      
+      height=l->line_height;
+      determinism_test_integer(penalty);
+      determinism_test_float(height);
     } else if (l&&l->piece_count) {
       assert(l->metrics->line_pieces==l->piece_count);
       assert(l->metrics->line_pieces>=end_piece);	  
@@ -249,7 +268,6 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
 	    last_footnote=piece->footnote_number;
 	  }
 	}
-
     }
 
     float this_height=height+cumulative_height;
@@ -270,8 +288,10 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
     // tall.  We don't care about the position.
     if (l->piece_count&&l->piece_count>end_piece)      
       crossrefs_register_line(l,end_piece,end_piece+1, 0);
-    if (crossrefs_height>(page_height-top_margin-bottom_margin-footnotes_height))
+    if (crossrefs_height>(page_height-top_margin-bottom_margin-footnotes_height)) {
+      determinism_test_float(crossrefs_height);
       break;
+    }
         
     // Work out penalty for emptiness of page
     int emptiness=(100*this_height)/(page_height-top_margin-bottom_margin);
@@ -301,6 +321,7 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
       if (((this_penalty+backtrace[start_position_count-1].penalty)
 	   <backtrace[end_position].penalty)
 	  ||(backtrace[end_position].penalty==-1)) {
+	assert(end_position>=0);
 	backtrace[end_position].start_index=start_position_count-1;
 	backtrace[end_position].start_para=start_para;
 	backtrace[end_position].start_line=start_line;
@@ -322,25 +343,45 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
 	    =backtrace[start_position_count-1].page_count+1;
       }
     } 
-  
+
+    determinism_test_integer(end_para);
+    determinism_test_integer(end_line);
+    determinism_test_integer(end_piece);
+    fprintf(stderr,"%s:%d:checkpoint\n",__FILE__,__LINE__);
+    
     // Advance to next ending point
     if (body_paragraphs[end_para]) {
       if (!body_paragraphs[end_para]->line_count) {
 	end_para++;
+	determinism_test_integer(end_para);
       } else {
 	end_piece++;
+	determinism_test_integer(end_piece);
 	if (end_piece
 	    >body_paragraphs[end_para]->paragraph_lines[end_line]->piece_count) {
+	  determinism_test_integer(end_line);
+	  determinism_test_integer(end_piece);
 	  end_piece=0; end_line++;
 	}
+	determinism_test_integer(end_line);
+	determinism_test_integer(end_para);
+	determinism_test_integer(body_paragraphs[end_para]->line_count);
 	if (end_line>=body_paragraphs[end_para]->line_count) {
 	  end_line=0;
+	  determinism_test_integer(end_para);
 	  end_para++;
 	}
-	if (end_para>=paragraph_count) break;
+	if (end_para>=paragraph_count) {
+	  determinism_test_integer(end_para);
+	  break;
+	}
       }
-    } else break;
+    } else {
+      determinism_test_integer(end_para);
+      break;
+    }
     
+    determinism_test_integer(end_position);
     end_position++;
   }
 

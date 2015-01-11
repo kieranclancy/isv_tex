@@ -746,13 +746,18 @@ int render_tokens(int token_low,int token_high,int drawingPage)
 	{
 	  // fprintf(stderr,"TT_PARAGRAPH\n");
 	  int break_paragraph=1;
+	  determinism_test_integer(1);
 	  if (target_paragraph->current_line) {
-	    if (target_paragraph->current_line->tied_to_next_line)
+	    if (target_paragraph->current_line->tied_to_next_line) {
 	      break_paragraph=0;
+	      determinism_test_integer(0);
+	    }
 	  } else if (target_paragraph->line_count) {
 	    if (target_paragraph->paragraph_lines[target_paragraph->line_count-1]
-		->tied_to_next_line)
+		->tied_to_next_line) {
 	      break_paragraph=0;
+	      determinism_test_integer(0);
+	    }
 	  }
 	  if (break_paragraph) {
 	    // Flush the previous paragraph.

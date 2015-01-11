@@ -101,7 +101,9 @@ int paragraph_flush(struct paragraph *p_in,int drawingPage)
     fflush(stderr);
   }
 
-    body_paragraphs[paragraph_count++]=p;
+  determinism_test_integer(paragraph_count);
+  determinism_test_integer(p->line_count);
+  body_paragraphs[paragraph_count++]=p;
 
   return 0;
 }
@@ -147,6 +149,7 @@ int paragraph_setup_next_line(struct paragraph *p)
   
   // Append any line in progress before creating fresh line
   if (p->current_line) {
+    determinism_test_integer(1);
     if (p->current_line->piece_count||p->current_line->line_height)
       paragraph_append_current_line(p);
     else
@@ -154,10 +157,12 @@ int paragraph_setup_next_line(struct paragraph *p)
       return 0;
     p->current_line=NULL;
   }
+  determinism_test_integer(0);
   
   // Allocate structure
   p->current_line=new_line();
 
+  determinism_test_integer(line_uid_counter);
   p->current_line->line_uid=line_uid_counter++;
 
   if (p->line_count)
