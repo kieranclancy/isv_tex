@@ -148,6 +148,10 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
   int end_para=0;
   int end_line=0;
   int end_piece=0;
+
+  determinism_test_integer(start_para);
+  determinism_test_integer(start_line);
+  determinism_test_integer(start_piece);
   
   // Now advance through all possible ending points.
   // Note that the end point here is inclusive, to simplify the logic.
@@ -172,16 +176,26 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
   while(1) {
     // Work out cost to here.
 
+    determinism_test_integer(end_para);
+    determinism_test_integer(end_line);
+    determinism_test_integer(end_piece);
+    
     if (!end_piece) {
       if ((end_para!=checkpoint_para)||(end_line!=checkpoint_line)) {
 	// We have advanced to a new line, so add last penalty to the
 	// cumulative penalty, and also adjust the cumulative height
+	determinism_test_integer(penalty);
+	determinism_test_float(height);
+
 	cumulative_penalty+=penalty;
 	cumulative_height+=height;
 
 	int old_checkpoint_para=checkpoint_para;
 	int old_checkpoint_line=checkpoint_line;
-	
+
+	determinism_test_integer(checkpoint_para);
+	determinism_test_integer(checkpoint_line);
+
 	checkpoint_para=end_para;
 	checkpoint_line=end_line;
 	checkpoint_piece=end_piece;
@@ -222,6 +236,8 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
       assert(end_line==checkpoint_line);
       penalty=l->metrics->starts[checkpoint_piece][end_piece].penalty;
       height=l->metrics->starts[checkpoint_piece][end_piece].height;
+      determinism_test_integer(penalty);
+      determinism_test_float(height);
 
       if (end_piece<body_paragraphs[end_para]->paragraph_lines[end_line]->piece_count)
 	{
@@ -248,7 +264,8 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
     // XXX - Look up height and penalty of footnote paragraph so that it can be
     // taken into account.
     float footnotes_height=footnotes_paragraph_height(first_footnote,last_footnote);
-    
+    determinism_test_float(footnotes_height);
+
     // Look up height of cross-references so that we can stop if they are too
     // tall.  We don't care about the position.
     if (l->piece_count&&l->piece_count>end_piece)      
@@ -264,7 +281,10 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
     int emptiness_penalty=16*emptiness*emptiness;
     if (this_height>(page_height-top_margin-bottom_margin))
       emptiness_penalty=100000000;
-      
+
+    determinism_test_integer(emptiness);
+    determinism_test_integer(emptiness_penalty);
+    
     // XXX Work out penalty based on balance of columns.
     
     assert(penalty>=0);
@@ -573,6 +593,7 @@ int page_optimal_render_tokens()
 	start_line++;
 	if (start_line>=body_paragraphs[start_para]->line_count) {
 	  start_line=0; start_para++;
+	  
 	}
       }
     }    

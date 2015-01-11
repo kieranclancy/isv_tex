@@ -431,3 +431,13 @@ int finalise_page();
 int hash_configend();
 int hash_configline(char *line);
 char *hash_line(struct line_pieces *l);
+
+int _determinism_event_integer(int e);
+int _determinism_event_float(float e);
+#if 1
+#define determinism_test_integer(E) _determinism_event_integer(E)
+#define determinism_test_float(E) _determinism_event_float(E)
+#else
+#define determinism_test_integer(E) 
+#define determinism_test_float(E) 
+#endif
