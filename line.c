@@ -668,7 +668,7 @@ struct piece *new_line_piece(char *text,struct type_face *current_font,
 
 struct line_pieces *new_line()
 {
-  struct line_pieces *l=malloc(sizeof(struct line_pieces));
+  struct line_pieces *l=calloc(sizeof(struct line_pieces),1);
   l->line_uid=-1;
   l->max_line_width=0;
   l->left_margin=0;
