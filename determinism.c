@@ -53,6 +53,7 @@ char *determinism_read_line()
 
 int _determinism_event_integer(int event,const char *file,int line,const char *func)
 {  
+  if (!log_file) determinism_initialise();
   if (determinism_compare) {
     int v;
     int li;
@@ -71,7 +72,6 @@ int _determinism_event_integer(int event,const char *file,int line,const char *f
     fprintf(stderr,"determinism event ok: %s",l);
     return 0;
   }
-  if (!log_file) determinism_initialise();
   fprintf(log_file,"int:%d:%s:%d\n",event,file,line);
   if (determinism_line_number<100)
     fprintf(stderr,"determinism log event: int:%d:%s:%d\n",
@@ -83,6 +83,7 @@ int _determinism_event_integer(int event,const char *file,int line,const char *f
 
 int _determinism_event_float(float event,const char *file,int line,const char *func)
 {  
+  if (!log_file) determinism_initialise();
   if (determinism_compare) {
     float v;
     char *l=determinism_read_line();
@@ -97,7 +98,6 @@ int _determinism_event_float(float event,const char *file,int line,const char *f
     fprintf(stderr,"determinism event ok: %s",l);
     return 0;
   }
-  if (!log_file) determinism_initialise();
   fprintf(log_file,"float:%f:%s:%d\n",event,file,line);
   if (determinism_line_number<100)
     fprintf(stderr,"determinism log event: float:%f:%s:%d\n",
