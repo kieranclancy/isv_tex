@@ -64,16 +64,16 @@ int _determinism_event_integer(int event,const char *file,int line,const char *f
     if (v!=event) dud|=2;
 
     if (dud) {
-      fprintf(stderr,"Event #%lld: Expected event int:%d:%s:%d, but this time we saw %s\n",
+      fprintf(stderr,"Event #%lld: Saw int:%d:%s:%d instead of %s\n",
 	      determinism_line_number,event,file,line,l);
       exit(-1);
     }
-    fprintf(stderr,"determinism event ok: %s\n",l);
+    fprintf(stderr,"determinism event ok: %s",l);
     return 0;
   }
   if (!log_file) determinism_initialise();
   fprintf(log_file,"int:%d:%s:%d\n",event,file,line);
-  if (determinism_line_number<10)
+  if (determinism_line_number<100)
     fprintf(stderr,"determinism log event: int:%d:%s:%d\n",
 	    event,file,line);
   determinism_line_number++;
@@ -90,16 +90,16 @@ int _determinism_event_float(float event,const char *file,int line,const char *f
     char fi[1024];
     int r=sscanf(l,"float:%f:%[^:]:%d",&v,fi,&li);
     if ((r!=3)||(v!=event)) {
-      fprintf(stderr,"Event #%lld: Expected event float:%f:%s:%d, but this time we saw %s\n",
+      fprintf(stderr,"Event #%lld: Saw float:%f:%s:%d instead of %s\n",
 	      determinism_line_number,event,file,line,l);
       exit(-1);
     }
-    fprintf(stderr,"determinism event ok: %s\n",l);
+    fprintf(stderr,"determinism event ok: %s",l);
     return 0;
   }
   if (!log_file) determinism_initialise();
   fprintf(log_file,"float:%f:%s:%d\n",event,file,line);
-  if (determinism_line_number<10)
+  if (determinism_line_number<100)
     fprintf(stderr,"determinism log event: float:%f:%s:%d\n",
 	    event,file,line);
   determinism_line_number++;
