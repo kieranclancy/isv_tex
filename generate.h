@@ -113,6 +113,7 @@ struct line_metric {
 
 struct line_metrics {
   int line_pieces;
+  char *hash;
   struct line_metric **starts;
 };
 
@@ -360,7 +361,7 @@ struct piece *new_line_piece(char *text,struct type_face *current_font,
 			     int nobreak, int token_number);
 struct line_pieces *new_line();
 int line_analyse(struct paragraph *p,int line_number,int debug);
-int line_metrics_initialise(struct line_metrics *m,int line_pieces);
+int line_metrics_initialise(struct line_metrics *m,int line_pieces, char *hash);
 int line_segment_dump(struct paragraph *p,int line_number, int start, int end);
 
 int generate_footnote_mark(int footnote_count);
@@ -432,11 +433,11 @@ int hash_configend();
 int hash_configline(char *line);
 char *hash_line(struct line_pieces *l);
 
-int _determinism_event_integer(int e);
-int _determinism_event_float(float e);
+int _determinism_event_integer(int e,const char *file,int line,const char *func);
+int _determinism_event_float(float e,const char *file,int line,const char *func);
 #if 1
-#define determinism_test_integer(E) _determinism_event_integer(E)
-#define determinism_test_float(E) _determinism_event_float(E)
+#define determinism_test_integer(E) _determinism_event_integer(E,__FILE__,__LINE__,__FUNCTION__)
+#define determinism_test_float(E) _determinism_event_float(E,__FILE__,__LINE__,__FUNCTION__)
 #else
 #define determinism_test_integer(E) 
 #define determinism_test_float(E) 

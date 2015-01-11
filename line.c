@@ -763,7 +763,8 @@ int line_analyse(struct paragraph *p,int line_number, int debug)
   // fprintf(stderr,"Looking for cache file in %s\n",cachefilename);
 
   struct line_metrics *m=calloc(sizeof(struct line_metrics),1);
-  line_metrics_initialise(m,p->paragraph_lines[line_number]->piece_count);
+  line_metrics_initialise(m,p->paragraph_lines[line_number]->piece_count,
+			  cachefilename);
 
   if (debug||line_metrics_read(cachefilename,m)) {
     // No valid cache -- so calculate line metrics
@@ -808,11 +809,12 @@ int line_analyse(struct paragraph *p,int line_number, int debug)
   return 0;
 }
 
-int line_metrics_initialise(struct line_metrics *m,int line_pieces)
+int line_metrics_initialise(struct line_metrics *m,int line_pieces, char *hash)
 {
   int i;
   m->starts=calloc(sizeof(int *),1+line_pieces+1);
   assert(m->starts);
+  m->hash=strdup(hash);
   
   for(i=0;i<=line_pieces;i++) {
     m->starts[i]=calloc(sizeof(struct line_metric),1+line_pieces+500);
