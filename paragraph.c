@@ -130,6 +130,8 @@ int paragraph_append_current_line(struct paragraph *p)
     fprintf(stderr,"Attempted to append NULL line to paragraph.\n");
     exit(-1);
   }
+
+  line_remove_trailing_space(p->current_line);
   
   if (p->line_count>=MAX_LINES_IN_PARAGRAPH) {
     fprintf(stderr,"Too many lines in paragraph.\n");
