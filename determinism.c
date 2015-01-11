@@ -69,7 +69,7 @@ int _determinism_event_integer(int event,const char *file,int line,const char *f
 	      determinism_line_number,event,file,line,l);
       exit(-1);
     }
-    fprintf(stderr,"determinism event ok: %s",l);
+    fprintf(stderr,"determinism event %lld ok: %s",determinism_line_number,l);
     return 0;
   }
   fprintf(log_file,"int:%d:%s:%d\n",event,file,line);
@@ -95,7 +95,7 @@ int _determinism_event_float(float event,const char *file,int line,const char *f
 	      determinism_line_number,event,file,line,l);
       exit(-1);
     }
-    fprintf(stderr,"determinism event ok: %s",l);
+    fprintf(stderr,"determinism event %lld ok: %s",determinism_line_number,l);
     return 0;
   }
   fprintf(log_file,"float:%f:%s:%d\n",event,file,line);
