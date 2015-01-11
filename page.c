@@ -178,9 +178,7 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
   determinism_test_integer(end_piece);
 
   while(1) {
-    fflush(stderr); fprintf(stderr,"%s:%d:checkpoint\n",__FILE__,__LINE__); fflush(stderr);
     determinism_test_integer(end_para);
-    fflush(stderr); fprintf(stderr,"%s:%d:checkpoint\n",__FILE__,__LINE__); fflush(stderr);
     determinism_test_integer(end_line);
     determinism_test_integer(end_piece);
     
@@ -231,8 +229,6 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
     struct line_pieces *l=NULL;
     determinism_test_integer(checkpoint_para);
     determinism_test_integer(checkpoint_line);
-    fprintf(stderr,"body_paragraphs[%d]=%p\n",
-	    checkpoint_para,body_paragraphs[checkpoint_para]);
 
     determinism_test_integer(body_paragraphs[checkpoint_para]?1:0);
     if (body_paragraphs[checkpoint_para]) {
@@ -347,7 +343,6 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
     determinism_test_integer(end_para);
     determinism_test_integer(end_line);
     determinism_test_integer(end_piece);
-    fprintf(stderr,"%s:%d:checkpoint\n",__FILE__,__LINE__);
     
     // Advance to next ending point
     if (body_paragraphs[end_para]) {

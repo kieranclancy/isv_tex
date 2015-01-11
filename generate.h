@@ -435,7 +435,7 @@ char *hash_line(struct line_pieces *l);
 
 int _determinism_event_integer(int e,const char *file,int line,const char *func);
 int _determinism_event_float(float e,const char *file,int line,const char *func);
-#if 1
+#if 0
 #define determinism_test_integer(E) _determinism_event_integer(E,__FILE__,__LINE__,__FUNCTION__)
 #define determinism_test_float(E) _determinism_event_float(E,__FILE__,__LINE__,__FUNCTION__)
 #else
