@@ -753,8 +753,6 @@ int page_optimal_render_tokens()
 	  }
 	}
       }
-      
-      exit(-1);
     }
 
 
