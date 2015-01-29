@@ -170,6 +170,10 @@ int layout_calculate_segment_cost(struct paragraph *p,
     penalty=emptiness_penalty[emptiness];
   }
 
+  // Add penalty for starting and ending lines with certain type faces.
+  penalty+=l->pieces[start].font->penalty_at_start_of_line;
+  if (end>0) penalty+=l->pieces[end-1].font->penalty_at_end_of_line;
+  
   // layout_line() makes sure we don't get given anything that is illegal,
   // e.g., begins following a nonbreaking piece.
   

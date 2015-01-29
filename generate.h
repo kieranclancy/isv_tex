@@ -64,6 +64,10 @@ struct type_face {
 
   // points between lines (read from libfreetype)
   int linegap;
+
+  // Penalty score for ending a line with this type-face
+  int penalty_at_end_of_line;
+  int penalty_at_start_of_line;
 };
 
 #define TT_TEXT 0
