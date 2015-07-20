@@ -279,7 +279,7 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
     // taken into account.
     float footnotes_height=footnotes_paragraph_height(first_footnote,last_footnote);
     determinism_test_float(footnotes_height);
-
+    
     // Look up height of cross-references so that we can stop if they are too
     // tall.  We don't care about the position.
     if (l->piece_count&&l->piece_count>end_piece)      
@@ -295,8 +295,13 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
     else if (emptiness>100) emptiness=0;
     else emptiness=100-emptiness;
     int emptiness_penalty=16*emptiness*emptiness;
+	// Over-filling the page is BAD
     if (this_height>(page_height-top_margin-bottom_margin))
       emptiness_penalty=100000000;
+    else if (page_height<=(top_margin+bottom_margin+this_height+footnotes_height)) {
+      fprintf(stderr,"Giving over-full page penalty due to footnotes.\n");
+      emptiness_penalty=100000000;
+    }
 
     determinism_test_integer(emptiness);
     determinism_test_integer(emptiness_penalty);
@@ -755,10 +760,11 @@ int page_optimal_render_tokens()
       }
     }
 
-
     finalise_page();
     
-    leftRight=-leftRight;    
+    leftRight=-leftRight;
+
+    //    return 0;
   }
 
   paragraph_free(out);
