@@ -338,7 +338,8 @@ float footnotes_paragraph_height(int first,int last)
 
   // Return cached value if present.
   if (footnote_paragraph_heights[first][last-first]>=0) {
-    // fprintf(stderr," %.1fpts\n",footnote_paragraph_heights[first][last-first]);
+    // fprintf(stderr," Footnote paragraph heights [%d,%d] = %.1fpts\n",
+    // first,last,footnote_paragraph_heights[first][last-first]);
     return footnote_paragraph_heights[first][last-first];
   }
 
@@ -365,6 +366,7 @@ float footnotes_paragraph_height(int first,int last)
   paragraph_clear(p); paragraph_free(p);
   paragraph_clear(laid_out); paragraph_free(laid_out);
     
-  //  fprintf(stderr," %.1fpts **\n",footnote_paragraph_heights[first][last-first]);
+  // fprintf(stderr," Footnote paragraph heights [%d,%d] %.1fpts **\n",
+  // first,last,footnote_paragraph_heights[first][last-first]);
   return footnote_paragraph_heights[first][last-first];
 }
