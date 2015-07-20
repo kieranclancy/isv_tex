@@ -1152,6 +1152,14 @@ int setup_job()
   }
   HPDF_SetCompressionMode (pdf, HPDF_COMP_ALL);
   HPDF_SetPageLayout(pdf,HPDF_PAGE_LAYOUT_TWO_COLUMN_LEFT);
+  HPDF_AddPageLabel(pdf, 0, HPDF_PAGE_NUM_STYLE_DECIMAL, 1, "");
+
+  // Add blank first page so that double faces start from first page.
+  // XXX - This doesn't seem like it should be needed, but it is (atleast for
+  // preview on a mac, which otherwise tries to put the first page on its own).
+  page = HPDF_AddPage(pdf); 
+  HPDF_Page_SetWidth(page,page_width);
+  HPDF_Page_SetHeight(page,page_height);
   
   HPDF_UseUTFEncodings(pdf); 
   HPDF_SetCurrentEncoder(pdf, "UTF-8"); 
