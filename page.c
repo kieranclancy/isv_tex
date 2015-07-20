@@ -333,7 +333,7 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
 
     long long balance_penalty=0;
     if (start_position_count>0) {
-      if ((backtrace[start_position_count-1].page_count % 2) == 1) {
+      if ((backtrace[start_position_count-1].page_count % 2) == 0) {
 	// Right page, so work out balance penalty:
 	// = square of difference in height of text blocks
 	balance_penalty=1000*
@@ -341,6 +341,13 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
 	  *(backtrace[start_position_count-1].height-this_height);	  
 	  }
     }
+
+    // Now, we actually do need to do (1) as well, to balance columns on a page, as
+    // compared to on facing pages. For this, we need to have used a different
+    // page_width and page_height for the text, than that of the physical page, and
+    // which is used for the footnotes. We also need to split the cross-references.
+
+    // XXX - Implement column balancing on a page.
     
     assert(penalty>=0);
     assert(cumulative_penalty>=0);
