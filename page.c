@@ -127,6 +127,8 @@ struct page_option_record {
   int page_count;
 
   long long penalty;
+  // Height of text block only, so that we can also use it for balancing pages,
+  // which don't care about the height of the foot-notes.
   float height;
 };
 
@@ -275,7 +277,7 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
 			       checkpoint_piece, end_piece);
     }
 
-    // XXX - Look up height and penalty of footnote paragraph so that it can be
+    // Look up height and penalty of footnote paragraph so that it can be
     // taken into account.
     float footnotes_height=footnotes_paragraph_height(first_footnote,last_footnote);
     determinism_test_float(footnotes_height);
@@ -299,20 +301,53 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
     if (this_height>(page_height-top_margin-bottom_margin))
       emptiness_penalty=100000000;
     else if (page_height<=(top_margin+bottom_margin+this_height+footnotes_height)) {
-      fprintf(stderr,"Giving over-full page penalty due to footnotes.\n");
       emptiness_penalty=100000000;
     }
 
     determinism_test_integer(emptiness);
     determinism_test_integer(emptiness_penalty);
     
-    // XXX Work out penalty based on balance of columns.
+    /* Work out penalty based on balance of columns.
+
+       First note: we balance the text block heights, not the footnotes.
+
+       There are two algorigthms we could apply to balancing the columns:
+       1. We could take the current page, and see how feasible it is to split the
+       text into the columns, and see what the penalty would be of balancing them.
+       or
+       2. We could take a look at the length of the previous page, and try to match
+       it.
+
+       Both have problems.  
+       For (1), we need to re-calculate a pile of stuff.
+       For (2), we need to consider all possible page-pairs.
+
+       (1) is the worst though, as (2) will be somewhat mitigated by the final
+       back-trace that will pick the best page series, taking into account the 
+       balance cost, so we will stick with (2).
+
+       This means we need to keep track of the page of the text on each page as it
+       enters the dynamic programming grid, and then check it for right-side pages
+       only as we go along.
+    */
+
+    long long balance_penalty=0;
+    if (start_position_count>0) {
+      if ((backtrace[start_position_count-1].page_count % 2) == 1) {
+	// Right page, so work out balance penalty:
+	// = square of difference in height of text blocks
+	balance_penalty=1000*
+	  (backtrace[start_position_count-1].height-this_height)
+	  *(backtrace[start_position_count-1].height-this_height);	  
+	  }
+    }
     
     assert(penalty>=0);
     assert(cumulative_penalty>=0);
     assert(emptiness_penalty>=0);
     
-    long long this_penalty=penalty+cumulative_penalty+emptiness_penalty;
+    long long this_penalty=penalty+cumulative_penalty
+      +emptiness_penalty+balance_penalty;
     
     if (this_penalty<best_penalty) {
       best_penalty=this_penalty; best_height=this_height;
