@@ -94,6 +94,9 @@ int layout_calculate_segment_cost(struct paragraph *p,
 				  float *cumulative_widths)
 {
   float line_width=0;
+
+  int span_columns=crossreference_mode||footnote_mode;
+  span_columns|=p->span_columns;
   
   if (footnotemark_index==-1)
     footnotemark_index=set_font_by_name("footnotemark");
@@ -129,6 +132,8 @@ int layout_calculate_segment_cost(struct paragraph *p,
 
   // Work out column width
   float column_width=text_column_width;
+  if (span_columns)
+    column_width=page_width-left_margin-right_margin;
 
   if (!start) column_width-=l->left_margin;
   
@@ -241,6 +246,9 @@ int layout_line(struct paragraph *p, int line_number,
 		struct paragraph *out, int drawingPage)
 {
   struct line_pieces *l=p->paragraph_lines[line_number];
+
+  int span_columns=crossreference_mode||footnote_mode;
+  span_columns|=p->span_columns;
   
   int a,b;
 
@@ -383,6 +391,11 @@ int layout_line(struct paragraph *p, int line_number,
       lout->tied_to_next_line=l->tied_to_next_line;
       lout->line_uid=line_uid_counter++;
       lout->max_line_width=text_column_width;
+      if (span_columns) {
+	lout->max_line_width-=text_column_width;
+	lout->max_line_width+=page_width-left_margin-right_margin;
+      }
+
       // Inherit left margin from long line for first laid out line.
       // XXX - This is used to indicate that a line is paragraph-indented
       // in the middle of a paragraph containing multiple physical paragraphs.
@@ -402,6 +415,10 @@ int layout_line(struct paragraph *p, int line_number,
 	  if (!p->noindent) {
 	    lout->left_margin=paragraph_indent;
 	    lout->max_line_width=text_column_width-paragraph_indent;
+	    if (span_columns) {
+	      lout->max_line_width-=text_column_width;
+	      lout->max_line_width+=page_width-left_margin-right_margin;
+	    }
 	  }
 	}
 	// Add left margin for any dropchar
@@ -411,6 +428,10 @@ int layout_line(struct paragraph *p, int line_number,
 	    if (line_count&&(line_count<l->pieces[0].font->line_count)) {
 	      lout->left_margin=l->pieces[0].natural_width;
 	      lout->max_line_width=text_column_width-l->pieces[0].natural_width;
+	      if (span_columns) {
+		lout->max_line_width-=text_column_width;
+		lout->max_line_width+=page_width-left_margin-right_margin;
+	      }
 	    }
 	// Similarly adjust margin for poetry
 	if (l->poem_level) {
@@ -421,6 +442,10 @@ int layout_line(struct paragraph *p, int line_number,
 	  if (line_count) poem_indent+=poetry_wrap_indent;
 	  lout->left_margin=poem_indent;
 	  lout->max_line_width=text_column_width-poem_indent;
+	  if (span_columns) {
+	    lout->max_line_width-=text_column_width;
+	    lout->max_line_width+=page_width-left_margin-right_margin;
+	  }
 	}
       }
       

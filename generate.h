@@ -68,6 +68,9 @@ struct type_face {
   // Penalty score for ending a line with this type-face
   int penalty_at_end_of_line;
   int penalty_at_start_of_line;
+
+  // Does this text style span columns (currently for book title and pre-title only)
+  int span_columns;
 };
 
 #define TT_TEXT 0
@@ -198,6 +201,7 @@ struct paragraph {
 
   int noindent;
   int justifylast;
+  int span_columns;
   
   int poem_level;
   int poem_subsequent_line;

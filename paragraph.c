@@ -177,6 +177,11 @@ int paragraph_setup_next_line(struct paragraph *p)
   
   // Set maximum line width
   p->current_line->max_line_width=text_column_width;
+  if (current_font->span_columns||crossreference_mode||footnote_mode) {
+    p->current_line->max_line_width-=text_column_width;
+    p->current_line->max_line_width+=page_width-left_margin-right_margin;
+    p->span_columns=1;
+  }
   
   line_apply_poetry_margin(p,p->current_line);
   if (0) fprintf(stderr,"New line left margin=%dpts, max_width=%dpts\n",
@@ -426,7 +431,8 @@ int paragraph_fetch_style_stack(int n)
   return 0;
 }
 
-int paragraph_push_style(struct paragraph *p, int font_alignment,int font_index)
+int paragraph_push_style(struct paragraph *p,
+			 int font_alignment,int font_index)
 {
   if (0) fprintf(stderr,"%s(): alignment=%d, style=%s\n",__FUNCTION__,
 		 font_alignment,type_faces[font_index].font_nickname);
