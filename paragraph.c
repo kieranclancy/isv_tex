@@ -177,20 +177,6 @@ int paragraph_setup_next_line(struct paragraph *p)
   
   // Set maximum line width
   p->current_line->max_line_width=text_column_width;
-
-#ifdef NOTDEFINED
-  // If there is a dropchar margin in effect, then apply it.
-  if (p->drop_char_margin_line_count>0) {
-    if (0) fprintf(stderr,
-		   "Applying dropchar margin of %dpt (%d more lines, including this one)\n",
-		   p->drop_char_left_margin,p->drop_char_margin_line_count);
-    p->current_line->max_line_width
-      =page_width-left_margin-right_margin-p->drop_char_left_margin;
-    p->current_line->left_margin=p->drop_char_left_margin;
-    p->drop_char_margin_line_count--;
-    if (p->drop_char_margin_line_count) p->current_line->tied_to_next_line=1;
-  }
-#endif
   
   line_apply_poetry_margin(p,p->current_line);
   if (0) fprintf(stderr,"New line left margin=%dpts, max_width=%dpts\n",
