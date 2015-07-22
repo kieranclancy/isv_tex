@@ -205,6 +205,9 @@ int footnotes_build_block(struct paragraph *footnotes,struct paragraph *out,
 			  int *num_footnotes)
 {
   // fprintf(stderr,"%s(): %d lines\n",__FUNCTION__,out->line_count);
+
+  int saved_footnote_mode=footnote_mode;
+  footnote_mode=1;
   
   int line,piece;
   for(line=0;line<out->line_count;line++) {
@@ -259,6 +262,9 @@ int footnotes_build_block(struct paragraph *footnotes,struct paragraph *out,
       }
     }
   }
+
+  footnote_mode=saved_footnote_mode;
+  
   return 0;
 }
 
@@ -285,6 +291,9 @@ float footnotes_paragraph_height(int first,int last)
   struct paragraph *p=new_paragraph();
   p->noindent=1;
 
+  int saved_footnote_mode=footnote_mode;
+  footnote_mode=1;
+  
   for(int i=first;i<=last;i++) {
     generate_footnote_mark(i-first);
     // Replace footnote mark in footnote
@@ -303,7 +312,9 @@ float footnotes_paragraph_height(int first,int last)
 
   paragraph_clear(p); paragraph_free(p);
   paragraph_clear(laid_out); paragraph_free(laid_out);
-    
+
+  footnote_mode=saved_footnote_mode;
+  
   // fprintf(stderr," Footnote paragraph heights [%d,%d] %.1fpts **\n",
   // first,last,footnote_paragraph_heights[first][last-first]);
   return footnote_paragraph_heights[first][last-first];
