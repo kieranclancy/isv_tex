@@ -393,6 +393,17 @@ int read_profile(char *file)
       line[0]=0; fgets(line,1024,f);
     }
   fclose(f);
+
+  if (column_count>2||column_count<1) {
+    fprintf(stderr,"Document must have either 1 or 2 columns.\n");
+    errors++;
+  }
+  // In single column mode, we ignore column_width
+  if (column_count==1) {
+    text_column_width=page_width-right_margin-left_margin;
+  }
+  
+  
   if (errors) exit(-1); else return 0;
 }
 
