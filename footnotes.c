@@ -201,68 +201,6 @@ int output_accumulated_footnotes(int drawingPage)
   return 0;
 }
 
-#ifdef NOTDEFINED
-int output_accumulated_footnotes_old(int drawingPage)
-{
-  // fprintf(stderr,"%s()\n",__FUNCTION__);
-
-  if (!drawingPage) return 0;
-  
-  // Commit any partial last-line in the footnote paragraph.
-  if (footnote_paragraph.current_line) {
-    current_line_flush(&footnote_paragraph);
-  }
-
-  int saved_page_y=page_y;
-  int saved_bottom_margin=bottom_margin;
-
-  struct paragraph *f=layout_paragraph(&footnote_paragraph,drawingPage);
-  
-  int footnotes_height=paragraph_height(f);
-
-  int footnotes_y=page_height-bottom_margin-footnotes_height;
-
-  page_y=footnotes_y;
-  bottom_margin=0;
-
-  // Mark all footnote block lines as justified, and strip leading space from
-  // lines
-  int i;
-  for(i=0;i<f->line_count;i++) {
-    f->paragraph_lines[i]->alignment=AL_JUSTIFIED;
-    line_remove_leading_space(f->paragraph_lines[i]);
-  }
-
-  paragraph_clear(f); free(f);
-  
-  paragraph_flush(&footnote_paragraph,drawingPage);
-  
-  if (footnotes_height&&drawingPage) {
-    // Draw horizontal rule
-    int rule_y=footnotes_y+footnote_rule_ydelta;
-    crossref_set_ylimit(rule_y);
-    int y=page_height-rule_y;
-    HPDF_Page_SetRGBStroke(page, 0.0, 0.0, 0.0);
-    HPDF_Page_SetLineWidth(page,footnote_rule_width);
-    
-    HPDF_Page_MoveTo(page,left_margin,y);
-    HPDF_Page_LineTo(page,left_margin+footnote_rule_length,y);
-    HPDF_Page_Stroke(page);
-  } else {
-    crossref_set_ylimit(page_height-saved_bottom_margin);
-  }
-  
-  // Restore page settings
-  page_y=saved_page_y;
-  bottom_margin=saved_bottom_margin;
-
-  // Clear footnote block after printing it
-  paragraph_clear(&footnote_paragraph);
-  
-  return 0;
-}
-#endif
-
 int footnotes_build_block(struct paragraph *footnotes,struct paragraph *out,
 			  int *num_footnotes)
 {
