@@ -92,6 +92,8 @@ int leftRightAlternates=1;
 
 // Page size in points
 int page_width=72*5;
+int text_column_width=72*2.2;
+int column_count=2;
 int page_height=72*7;
 // Colour of "red" text
 char *red_colour="#000000";
@@ -206,6 +208,10 @@ int read_profile(char *file)
 	    else if (!strcasecmp(key,"page_width")) page_width=atoi(value);
 	    else if (!strcasecmp(key,"page_height")) page_height=atoi(value);
 
+	    // Columns
+	    else if (!strcasecmp(key,"column_width")) text_column_width=atoi(value);
+	    else if (!strcasecmp(key,"columns")) column_count=atoi(value);
+	    
 	    // Margins of a left page (left_margin and right_margin get switched
 	    // automatically if output is for a book
 	    else if (!strcasecmp(key,"left_margin")) left_margin=atoi(value);
@@ -1152,7 +1158,7 @@ int setup_job()
   }
   HPDF_SetCompressionMode (pdf, HPDF_COMP_ALL);
   HPDF_SetPageLayout(pdf,HPDF_PAGE_LAYOUT_TWO_COLUMN_LEFT);
-  HPDF_AddPageLabel(pdf, 0, HPDF_PAGE_NUM_STYLE_DECIMAL, 1, "");
+  HPDF_AddPageLabel(pdf, 1, HPDF_PAGE_NUM_STYLE_DECIMAL, 1, "");
 
   // Add blank first page so that double faces start from first page.
   // XXX - This doesn't seem like it should be needed, but it is (atleast for

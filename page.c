@@ -530,6 +530,7 @@ int page_optimal_render_tokens()
 
   }
 
+
   struct paragraph *out=new_paragraph();
   struct paragraph *footnotes=new_paragraph();
   footnotes->noindent=1;
@@ -592,11 +593,13 @@ int page_optimal_render_tokens()
       }
 
       if (0) {
-	fprintf(stderr,"  rendering para #%d line #%d : page_width=%d-%d-%d,"
+	fprintf(stderr,"  rendering para #%d line #%d : text_column_width=%d, page_width=%d-%d-%d,"
 		" pre-computed page height=%.1fpts, pre-computed para height=%.1fpts"
 		" (ptr=%p)"
 		" (pieces %d..%d)\n    ",
-		start_para,start_line,page_width,left_margin,right_margin,
+		start_para,start_line,
+		text_column_width,
+		page_width,left_margin,right_margin,
 		backtrace[position].height,
 		(l&&l->metrics)?l->metrics->starts[start_piece][last_piece].height:-1.0,
 		(l&&l->metrics)?l->metrics:NULL,

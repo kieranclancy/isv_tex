@@ -128,7 +128,7 @@ int layout_calculate_segment_cost(struct paragraph *p,
   
 
   // Work out column width
-  float column_width=page_width-left_margin-right_margin;
+  float column_width=text_column_width;
 
   if (!start) column_width-=l->left_margin;
   
@@ -382,7 +382,7 @@ int layout_line(struct paragraph *p, int line_number,
       lout->alignment=l->alignment;
       lout->tied_to_next_line=l->tied_to_next_line;
       lout->line_uid=line_uid_counter++;
-      lout->max_line_width=page_width-left_margin-right_margin;
+      lout->max_line_width=text_column_width;
       // Inherit left margin from long line for first laid out line.
       // XXX - This is used to indicate that a line is paragraph-indented
       // in the middle of a paragraph containing multiple physical paragraphs.
@@ -401,8 +401,7 @@ int layout_line(struct paragraph *p, int line_number,
 	if ((line_number==0)&&(next_steps[position]<1)) {
 	  if (!p->noindent) {
 	    lout->left_margin=paragraph_indent;
-	    lout->max_line_width
-	      =page_width-left_margin-right_margin-paragraph_indent;
+	    lout->max_line_width=text_column_width-paragraph_indent;
 	  }
 	}
 	// Add left margin for any dropchar
@@ -411,8 +410,7 @@ int layout_line(struct paragraph *p, int line_number,
 	  if (l->pieces[0].font->line_count>1)
 	    if (line_count&&(line_count<l->pieces[0].font->line_count)) {
 	      lout->left_margin=l->pieces[0].natural_width;
-	      lout->max_line_width
-		=page_width-left_margin-right_margin-l->pieces[0].natural_width;
+	      lout->max_line_width=text_column_width-l->pieces[0].natural_width;
 	    }
 	// Similarly adjust margin for poetry
 	if (l->poem_level) {
@@ -422,7 +420,7 @@ int layout_line(struct paragraph *p, int line_number,
 	  // Apply poetry wrap for 2nd and subsequent lines
 	  if (line_count) poem_indent+=poetry_wrap_indent;
 	  lout->left_margin=poem_indent;
-	  lout->max_line_width=page_width-left_margin-poem_indent;
+	  lout->max_line_width=text_column_width-poem_indent;
 	}
       }
       
@@ -446,8 +444,8 @@ struct paragraph *layout_paragraph(struct paragraph *p, int drawingPage)
 {
   // fprintf(stderr,"%s()\n",__FUNCTION__);
 
-  if (0) fprintf(stderr,"  page_width=%d, left_margin=%d, right_margin=%d\n",
-		 page_width,left_margin,right_margin);
+  if (0) fprintf(stderr,"  text_column_width=%d, left_margin=%d, right_margin=%d\n",
+		 text_column_width,left_margin,right_margin);
   
   int i;
 

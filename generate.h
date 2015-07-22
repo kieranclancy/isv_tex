@@ -227,6 +227,8 @@ extern int type_face_stack_pointer;
 extern int leftRightAlternates;
 extern int page_width;
 extern int page_height;
+extern int text_column_width;
+extern int column_count;
 extern int heading_y;
 extern int pagenumber_y;
 extern int left_margin;

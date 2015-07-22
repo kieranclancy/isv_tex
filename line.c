@@ -132,7 +132,7 @@ int line_apply_poetry_margin(struct paragraph *p,struct line_pieces *current_lin
       +(p->poem_level-1)*poetry_level_indent
       +p->poem_subsequent_line*poetry_wrap_indent;
     current_line->max_line_width
-      =page_width-left_margin-right_margin-current_line->left_margin;
+      =text_column_width-current_line->left_margin;
     if (0)
       fprintf(stderr,"Applying indent of %dpts in poetry mode (level=%d, subs=%d).\n",
 	      current_line->left_margin,p->poem_level,p->poem_subsequent_line);

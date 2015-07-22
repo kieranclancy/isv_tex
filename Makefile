@@ -4,7 +4,7 @@ SRCS=generate.c parse_tex.c paragraph.c line.c \
 
 HEADERS=generate.h Makefile
 
-COPT=-g -Wall -fsanitize=bounds -fsanitize-undefined-trap-on-error -fstack-protector-all
+COPT=-g -O3 -Wall -fsanitize=bounds -fsanitize-undefined-trap-on-error -fstack-protector-all
 
 TTFFILES=	urw-palladio-l-roman.ttf \
 

@@ -176,7 +176,7 @@ int paragraph_setup_next_line(struct paragraph *p)
   }
   
   // Set maximum line width
-  p->current_line->max_line_width=page_width-left_margin-right_margin;
+  p->current_line->max_line_width=text_column_width;
 
 #ifdef NOTDEFINED
   // If there is a dropchar margin in effect, then apply it.
