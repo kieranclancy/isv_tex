@@ -134,6 +134,24 @@ struct page_option_record {
 
 extern float crossrefs_height;
 
+/*
+  Page scoring is now somewhat complicated by the need to support two column mode.
+
+  First, there are some text types allowed at the top of a page which span the
+  columns. For now, the only ones are the book title type faces. So we need to deduct
+  their height from the available height for columns.
+
+  Second, we want to balance column heights, so we need to be able to split columns
+  at any arbitrary point after that.  We will do this by remembering the height at
+  any given point on the page, and cache a page end penalty for that point that can
+  be fed into the column balancer later.  Since cutting a column in the middle of a
+  line can never result in it being taller than would occur if a single line was
+  added, we can work this out as we go along, and calculate the lowest imbalance
+  penalty by considering breaking the page at each possible point.  This does add some
+  extra computation to each page, but let's hope that it is manageable.  The end
+  result of optimally balanced columns on every page should be worth the inconvenience.
+
+ */
 int page_score_at_this_starting_point(int start_para,int start_line,int start_piece,
 				      struct page_option_record *backtrace,
 				      int start_position_count)
@@ -167,11 +185,16 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
   
   int penalty=0;
   float height=0;
-  long long cumulative_penalty=0;
   float cumulative_height=0;
+  float column_span_height=0;
+  float two_column_height=0;
+  int two_columns=0;
+  long long cumulative_penalty=0;
+  long long column_penalty=0;
   
   long long best_penalty=0x7ffffff;
   float best_height=-1;
+
   
   int end_position=start_position_count;
   
@@ -191,11 +214,30 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
 	determinism_test_integer(penalty);
 	determinism_test_float(height);
 
+	// Get paragraph and line to work out if the paragraph spans columns, or is
+	// confined to a single column.
+	if (body_paragraphs[end_para]) {
+	  if (body_paragraphs[end_para]->span_columns) {
+	    // Paragraph spans columns, thus reducing the amount of space available
+	    // for any following two-column text
+	    column_span_height+=height;
+	    if (two_columns) {
+	      // A page cannot switch back to single column mode after having
+	      // two columns above (it would be nice to relax this later).
+	      // This means that we need to lie and claim that our height is way too
+	      // big to fit, so that this option doesn't get considered.
+	      column_span_height=page_height+1;
+	    }
+	  } else {
+	    // Paragraph is in two-column mode.
+	    // A page should not be able to revert to single column mode,
+	    two_columns=1;
+	    two_column_height+=height;
+	  }
+	}
+	
 	cumulative_penalty+=penalty;
 	cumulative_height+=height;
-
-	int old_checkpoint_para=checkpoint_para;
-	int old_checkpoint_line=checkpoint_line;
 
 	determinism_test_integer(checkpoint_para);
 	determinism_test_integer(checkpoint_line);
@@ -204,26 +246,12 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
 	checkpoint_line=end_line;
 	checkpoint_piece=end_piece;
 
-	if (!backtrace) {
-	  fprintf(stderr,"    checkpoint advanced to %d %d %d (start is %d %d %d)"
-		  " penalty=%lld, height=%.1fpts (after adding %.1fpts). (%.1f -- %.1f pts on page)\n",
-		  checkpoint_para,checkpoint_line,checkpoint_piece,
-		  start_para,start_line,start_piece,
-		  cumulative_penalty,cumulative_height,height,
-		  cumulative_height-height+top_margin,
-		  cumulative_height+top_margin);
-	  fprintf(stderr,"      Line included in checkpoint is: ");
-	  if (body_paragraphs[old_checkpoint_para]
-	      ->paragraph_lines[old_checkpoint_line])
-	    line_dump(body_paragraphs[old_checkpoint_para]
-		      ->paragraph_lines[old_checkpoint_line]);
-	}
       }
     }
     
     // Stop accumulating page once it is too tall to fit.
-    if (cumulative_height>(page_height-top_margin-bottom_margin)) {
-      determinism_test_float(cumulative_height);
+    // XXX - Doesn't check two-column height.
+    if (column_span_height>(page_height-top_margin-bottom_margin)) {
       break;
     }
     
@@ -290,7 +318,76 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
       determinism_test_float(crossrefs_height);
       break;
     }
-        
+
+    // XXX Work out optimal split of any two-column content as well
+    int best_split_para=-1,best_split_line=-1,best_split_piece=-1;
+    if (two_columns) {
+
+      long long best_penalty=-1;
+      float best_height=0;
+      
+      int split_para=start_para;
+      int split_line=start_line;
+      int split_piece=start_piece;
+
+      // Empty old items from height and penalty cache
+      column_height_and_penalty_cache_advance_to(start_para,start_line,start_piece);
+      
+      while (split_para<end_para||split_line<end_line||split_piece<end_piece)
+	{
+	  // Calculate height and penalty of each column piece.
+	  long long left_penalty,right_penalty;
+	  float left_height,right_height;
+	  column_get_height_and_penalty(start_para,start_line,start_piece,
+					split_para,split_line,split_piece,
+					&left_penalty,&left_height);
+	  column_get_height_and_penalty(split_para,split_line,split_piece,
+					end_para,end_line,end_piece,
+					&right_penalty,&right_height);
+	  
+	  long long imbalance_penalty
+	    =1000*(left_height-right_height)*(left_height-right_height);
+	  
+	  if (best_penalty==-1
+	      ||(left_penalty+right_penalty+imbalance_penalty<best_penalty))
+	    {
+	      // This position is better than what we have seen before.
+	      best_penalty=left_penalty+right_penalty+imbalance_penalty;
+	      if (left_height<right_height)
+		best_height=right_height;
+	      else best_height=left_height;
+	      best_split_para=split_para;
+	      best_split_line=split_line;
+	      best_split_piece=split_piece;
+	    }
+	  
+	  // Advance split position
+	  if (body_paragraphs[split_para]) {
+	    if (!body_paragraphs[split_para]->line_count) {
+	      split_para++;
+	    } else {
+	      split_piece++;
+	      if (split_piece
+		  >body_paragraphs[split_para]->paragraph_lines[split_line]
+		  ->piece_count) {
+		split_piece=0; split_line++;
+	      }
+	      if (split_line>=body_paragraphs[split_para]->line_count) {
+		split_line=0;
+		split_para++;
+	      }	      
+	    }
+	  }
+	}
+      // Remember best split
+      column_penalty=best_penalty;
+      this_height=column_span_height+best_height;
+    } else {
+      // Single column only mode, so no splitting or imbalance penalties required,
+      // and this_height is calculated the normal way from height+cumulative_height
+      column_penalty=0;
+    }
+    
     // Work out penalty for emptiness of page
     int emptiness=(100*this_height)/(page_height-top_margin-bottom_margin);
     if (emptiness<0) emptiness=100;
@@ -352,9 +449,10 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
     assert(penalty>=0);
     assert(cumulative_penalty>=0);
     assert(emptiness_penalty>=0);
+    assert(column_penalty>=0);
     
     long long this_penalty=penalty+cumulative_penalty
-      +emptiness_penalty+balance_penalty;
+      +emptiness_penalty+balance_penalty+column_penalty;
     
     if (this_penalty<best_penalty) {
       best_penalty=this_penalty; best_height=this_height;

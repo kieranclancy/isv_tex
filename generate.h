@@ -429,7 +429,11 @@ int layout_line_precalc(struct line_pieces *l);
 int layout_line(struct paragraph *p, int line_number,
 		int start, int end,
 		struct paragraph *out, int drawingPage);
-
+int column_get_height_and_penalty(int start_para,int start_line,int start_piece,
+				  int split_para,int split_line,int split_piece,
+				  long long *penalty,float *height);
+int column_height_and_penalty_cache_advance_to(int start_para,int start_line,
+					       int start_piece);
 int render_tokens(int token_low,int token_high,int drawingPage);
 
 int page_penalty_add(long long penalty);
