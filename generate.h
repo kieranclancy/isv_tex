@@ -85,6 +85,8 @@ extern int token_count;
 extern int token_types[MAX_TOKENS];
 extern char *token_strings[MAX_TOKENS];
 
+extern long long page_penalty;
+
 struct piece {
   char *piece;
   struct type_face *font;
