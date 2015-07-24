@@ -43,7 +43,9 @@ int column_get_height_and_penalty(int start_para,int start_line,int start_piece,
 				  long long *penalty,float *height)
 {
   // Layout the slab of text and see how high it is, and what the penalty it incurs is.
+  *penalty=0; *height=0;
 
+  
   int first_line,first_piece;
   int last_line,last_piece;
   
@@ -53,6 +55,9 @@ int column_get_height_and_penalty(int start_para,int start_line,int start_piece,
 	// Make partial paragraph from the start point.
 	first_line=start_line;
 	first_piece=start_piece;
+	last_line=body_paragraphs[para]->line_count-1;
+	struct line_pieces *l=body_paragraphs[para]->paragraph_lines[last_line];
+	last_piece=l->piece_count;
       } else if (para==split_para) {
 	// Make partial paragraph to the end point.
 	last_line=split_line;
@@ -76,7 +81,9 @@ int column_get_height_and_penalty(int start_para,int start_line,int start_piece,
 	  int start=0;
 	  int end=l->piece_count-1;
 	  if (line==first_line) start=first_piece;
-	  if (line==last_line) end=last_piece;
+	  if (line==last_line) {
+	    end=last_piece;
+	  }
 	  if (end>=l->piece_count) end=l->piece_count-1;
 
 	  // layout_line calls page_penalty_add() to update the page penalty.
@@ -88,7 +95,8 @@ int column_get_height_and_penalty(int start_para,int start_line,int start_piece,
 	  page_penalty=0;
 	  
 	  layout_line(p,line,start,end,out,0);
-
+	   fprintf(stderr,"  laying out %d:%d.%d-%d\n",para,line,start,end);
+	  
 	  (*penalty)+=page_penalty;
 
 	  page_penalty=saved_page_penalty;
@@ -97,11 +105,12 @@ int column_get_height_and_penalty(int start_para,int start_line,int start_piece,
       paragraph_free(out);
 
     }
-
-
   
-  *penalty=0;
-  *height=0;
+  fprintf(stderr,"column %d:%d.%d - %d:%d.%d : cost=%lld, height=%.1fpts\n",
+	  start_para,start_line,start_piece,
+	  split_para,split_line,split_piece,
+	  *penalty,*height);
+
   return -1;
 }
 

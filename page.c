@@ -341,6 +341,7 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
 	  column_get_height_and_penalty(start_para,start_line,start_piece,
 					split_para,split_line,split_piece,
 					&left_penalty,&left_height);
+	  // XXX - We count the token at the split in both columns!
 	  column_get_height_and_penalty(split_para,split_line,split_piece,
 					end_para,end_line,end_piece,
 					&right_penalty,&right_height);
@@ -429,14 +430,16 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
     */
 
     long long balance_penalty=0;
-    if (start_position_count>0) {
-      if ((backtrace[start_position_count-1].page_count % 2) == 0) {
-	// Right page, so work out balance penalty:
-	// = square of difference in height of text blocks
-	balance_penalty=1000*
-	  (backtrace[start_position_count-1].height-this_height)
-	  *(backtrace[start_position_count-1].height-this_height);	  
-	  }
+    if (backtrace) {
+      if (start_position_count>0) {
+	if ((backtrace[start_position_count-1].page_count % 2) == 0) {
+	  // Right page, so work out balance penalty:
+	  // = square of difference in height of text blocks
+	  balance_penalty=1000*
+	    (backtrace[start_position_count-1].height-this_height)
+	    *(backtrace[start_position_count-1].height-this_height);	  
+	}
+      }
     }
 
     // Now, we actually do need to do (1) as well, to balance columns on a page, as
