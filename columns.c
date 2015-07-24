@@ -95,7 +95,7 @@ int column_get_height_and_penalty(int start_para,int start_line,int start_piece,
 	  page_penalty=0;
 	  
 	  layout_line(p,line,start,end,out,0);
-	   fprintf(stderr,"  laying out %d:%d.%d-%d\n",para,line,start,end);
+	  // fprintf(stderr,"  laying out %d:%d.%d-%d\n",para,line,start,end);
 	  
 	  (*penalty)+=page_penalty;
 
@@ -106,12 +106,13 @@ int column_get_height_and_penalty(int start_para,int start_line,int start_piece,
 
     }
   
-  fprintf(stderr,"column %d:%d.%d - %d:%d.%d : cost=%lld, height=%.1fpts\n",
-	  start_para,start_line,start_piece,
-	  split_para,split_line,split_piece,
-	  *penalty,*height);
+  if (0)
+    fprintf(stderr,"column %d:%d.%d - %d:%d.%d : cost=%lld, height=%.1fpts\n",
+	    start_para,start_line,start_piece,
+	    split_para,split_line,split_piece,
+	    *penalty,*height);
 
-  return -1;
+  return 0;
 }
 
 
