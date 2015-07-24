@@ -36,7 +36,22 @@
 #include "hpdf.h"
 #include "generate.h"
 
+struct column_cache_entry {
+  int start_para;
+  int start_line;
+  int start_piece;
+  int split_para;
+  int split_line;
+  int split_piece;
+  long long penalty;
+  float height;
+};
 
+struct column_cache_entry column_cache[0x100000];
+
+int count=0;
+int hits=0;
+int misses=0;
 
 int column_get_height_and_penalty(int start_para,int start_line,int start_piece,
 				  int split_para,int split_line,int split_piece,
@@ -45,6 +60,41 @@ int column_get_height_and_penalty(int start_para,int start_line,int start_piece,
   // Layout the slab of text and see how high it is, and what the penalty it incurs is.
   *penalty=0; *height=0;
 
+  int cache_index =
+    (((start_para+9)<<14)
+     ^
+     ((start_line+23)<<16)
+     ^
+     ((start_piece+91)<<0)
+     ^
+     ((split_para+1)<<17)
+     ^
+     ((split_line+89)<<15)
+     ^
+     ((split_piece+73)<<6))
+    &0xfffff;
+    ;
+
+    count++;
+    if (count==65536) {
+      printf("Column balancing %d:%d.%d : %d hits, %d misses.\n",
+	     start_para,start_line,start_piece,hits,misses); fflush(stdout);
+      hits=0; misses=0; count=0;
+    }
+    
+    if ((column_cache[cache_index].start_piece==start_piece)
+	&&(column_cache[cache_index].split_piece==split_piece)
+	&&(column_cache[cache_index].start_line==start_line)
+	&&(column_cache[cache_index].split_line==split_line)
+	&&(column_cache[cache_index].start_para==start_para)
+	&&(column_cache[cache_index].split_para==split_para))
+      {
+	*penalty=column_cache[cache_index].penalty;
+	*height=column_cache[cache_index].height;
+	hits++;
+	return 0;
+      } else misses++;
+    
   
   int first_line,first_piece;
   int last_line,last_piece;
@@ -112,9 +162,26 @@ int column_get_height_and_penalty(int start_para,int start_line,int start_piece,
 	    split_para,split_line,split_piece,
 	    *penalty,*height);
 
+  /* XXX - Record column rendering information so that we can recall it later.
+     The challenge here is that the para, line and piece positions cannot be
+     trivially converted to a single scalar that can be used as an index in a
+     cache.  That said, on the basis that a page should not contain more than 64K
+     pieces, and we only need to cache a page at a time, and the occassional cache
+     collision is not a big deal, we can calculate a quick and dirty cache index
+     based on the six values and use that.
+   */
+
+  column_cache[cache_index].start_para=start_para;
+  column_cache[cache_index].start_line=start_line;
+  column_cache[cache_index].start_piece=start_piece;
+  column_cache[cache_index].split_para=split_para;
+  column_cache[cache_index].split_line=split_line;
+  column_cache[cache_index].split_piece=split_piece;
+  column_cache[cache_index].penalty=*penalty;
+  column_cache[cache_index].height=*height;
+  
   return 0;
 }
-
 
 int column_height_and_penalty_cache_advance_to(int start_para,int start_line,
 					       int start_piece)
