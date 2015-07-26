@@ -302,12 +302,14 @@ int layout_line(struct paragraph *p, int line_number,
 						     cumulative_widths);
       if (segment_cost==-1) break;  
       if (0) fprintf(stderr,"  segment cost of %d..%d is %d (combined cost = %d)\n",
-		     a,b,segment_cost,segment_cost+costs[a]);
-
+		     a,b,segment_cost,segment_cost+costs[a]);      
       // Penalise layouts that take a single line.
       // This cascades up the layout engine to penalise single-line widows and orphans
       long long single_line_penalty=0;
-      if (a==start&&b==end) single_line_penalty=1000000;
+      if (a==start&&b==end)
+	// But don't apply to intrinsically single-line lines.
+	if (a>0&&b<l->piece_count)
+	  single_line_penalty=1000000;
       segment_cost+=single_line_penalty;
 
       // Stop looking when line segment is too long
