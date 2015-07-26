@@ -294,8 +294,13 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
 	    last_footnote=piece->footnote_number;
 	  }
 	}
+
+      // Check end piece to see if it incurs a penalty, for example, from having
+      // a page end on a heading line.
+      penalty+=l->pieces[end_piece].font->penalty_at_end_of_page;
     }
 
+    
     float this_height=height+cumulative_height;
     if (0) {
       fprintf(stderr,"   %d..%d : segment height=%.1fpts, cumulative_height=%.1fpts\n",

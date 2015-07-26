@@ -49,26 +49,26 @@ struct type_face *current_font = NULL;
 
 // List of typefaces we have available
 struct type_face type_faces[] = {
-  {"blackletter","blackletter.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,0},
-  {"redletter","redletter.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,0},
-  {"divine","blackletter.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,0},
-  {"bookpretitle","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,1},
-  {"booktitle","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,1},
-  {"header","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,0},
-  {"pagenumber","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,0},
-  {"passageheader","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,0},
-  {"passageinfo","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,0},
-  {"booktab","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,0},
-  {"versenum","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,1000000,0},
-  {"chapternum","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,0},
-  {"footnotemark","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,1000000,0,0},
-  {"footnotemarkinfootnote","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,1000000,0},
-  {"footnote","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,0},
-  {"footnotebib","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,1000000,1000000,0},
-  {"footnoteversenum","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,1000000,1000000,0},
-  {"crossref","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,0},
-  {"crossrefmarker","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,0},
-  {NULL,NULL,0,0,0,0,0.00,0.00,0.00,NULL,0,0}
+  {"blackletter","blackletter.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,0,0},
+  {"redletter","redletter.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,0,0},
+  {"divine","blackletter.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,0,0},
+  {"bookpretitle","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,1000000000,1},
+  {"booktitle","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,1000000000,1},
+  {"header","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,1000000000,0},
+  {"pagenumber","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,0,0},
+  {"passageheader","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,0,0},
+  {"passageinfo","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,1000000000,0},
+  {"booktab","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,0,0},
+  {"versenum","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,1000000,1000000000,0},
+  {"chapternum","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,1000000000,0},
+  {"footnotemark","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,1000000,0,0,0},
+  {"footnotemarkinfootnote","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,1000000,0,0},
+  {"footnote","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,0,0},
+  {"footnotebib","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,1000000,1000000,0,0},
+  {"footnoteversenum","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,1000000,1000000,0,0},
+  {"crossref","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,0,0},
+  {"crossrefmarker","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,0,0},
+  {NULL,NULL,0,0,0,0,0.00,0.00,0.00,NULL,0,0,0}
 };
 
 struct paragraph body_paragraph;

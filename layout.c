@@ -336,7 +336,6 @@ int layout_line(struct paragraph *p, int line_number,
   // Add cost of paragraph to page penalty.
   page_penalty_add(costs[end]);
   
-  
   // Build list of lines by working backwards through the paragraph.
   // Build the list of lines first, then go through them forwards, so that
   // line numbers are allocated forwards, and avoid confusing the footnote
@@ -364,6 +363,13 @@ int layout_line(struct paragraph *p, int line_number,
     position=next_steps[position];
   }
 
+  long long extra=0;
+  
+  // Add penalty if dropchar is taller than the number of lines of output.
+  if (l->pieces[0].font->line_count>pcount) {
+    extra=1000000000*(l->pieces[0].font->line_count-pcount);
+  }
+  
   if (0) {
     fprintf(stderr,"Backtrace figures:\n");
     for(int i=start;i<=end;i++) {
@@ -462,7 +468,7 @@ int layout_line(struct paragraph *p, int line_number,
   
   // fprintf(stderr,"<<\n");
   
-  return costs[end];
+  return costs[end]+extra;
 }
 
 struct paragraph *layout_paragraph(struct paragraph *p, int drawingPage)
