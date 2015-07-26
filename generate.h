@@ -69,7 +69,7 @@ struct type_face {
   int penalty_at_end_of_line;
   int penalty_at_start_of_line;
   // ... or a page
-  int penalty_at_end_of_page;
+  long long penalty_at_end_of_page;
 
   // Does this text style span columns (currently for book title and pre-title only)
   int span_columns;

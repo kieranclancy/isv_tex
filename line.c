@@ -576,7 +576,10 @@ int line_dump_segment(struct line_pieces *l,int start,int end)
   if (l->left_margin) fprintf(stderr,"%+d ",l->left_margin);
   for(i=start;i<end;i++) {
     if (i&&(l->pieces[i-1].piece_width!=l->pieces[i-1].natural_width))
-      fprintf(stderr,"%.1f",l->pieces[i-1].piece_width-l->pieces[i-1].natural_width);
+      fprintf(stderr,"%.1f:%s:%lld",
+	      l->pieces[i-1].piece_width-l->pieces[i-1].natural_width,
+	      l->pieces[i].font?l->pieces[i].font->font_nickname:"unknown",
+	      l->pieces[i].font?l->pieces[i].font->penalty_at_end_of_page:-1);
     fprintf(stderr,"[%s]",l->pieces[i].piece);
   }
   fprintf(stderr,"\n");
@@ -584,7 +587,7 @@ int line_dump_segment(struct line_pieces *l,int start,int end)
     fprintf(stderr,"        metrics: ");
     for(i=start;i<=end;i++) {
       fprintf(stderr, " %d:%.1f",i,l->metrics->starts[start][i].height);
-    }
+    }    
     fprintf(stderr,"\n");
   }
   return 0;

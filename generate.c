@@ -56,7 +56,7 @@ struct type_face type_faces[] = {
   {"booktitle","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,1000000000,1},
   {"header","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,1000000000,0},
   {"pagenumber","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,0,0},
-  {"passageheader","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,0,0},
+  {"passageheader","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,100000000,0},
   {"passageinfo","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,1000000000,0},
   {"booktab","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,0,0,0},
   {"versenum","font.ttf",12,0,0,1,0.00,0.00,0.00,NULL,0,0,1000000,1000000000,0},
