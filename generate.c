@@ -93,7 +93,7 @@ int leftRightAlternates=1;
 // Page size in points
 int page_width=72*5;
 int text_column_width=72*2.2;
-int column_count=2;
+int column_count=1;
 int page_height=72*7;
 // Colour of "red" text
 char *red_colour="#000000";
@@ -402,7 +402,7 @@ int read_profile(char *file)
   if (column_count==1) {
     text_column_width=page_width-right_margin-left_margin;
   }
-  
+  fprintf(stderr,"Producing %d column output.\n",column_count);
   
   if (errors) exit(-1); else return 0;
 }

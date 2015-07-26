@@ -319,9 +319,19 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
       break;
     }
 
-    // XXX Work out optimal split of any two-column content as well
+    /* Work out optimal split of any two-column content as well.
+       This method is HORRIBLY slow, because it works out every possible split on
+       every possible page. It would be more efficient to render the column once,
+       work out where the cheapest split in the middle is by simple examination of
+       the height, and a "what is the cost of breaking text here" function to catch
+       hanging things (which we need for applying to ends of pages, anyway), and then
+       we would have a pretty good solution that would be much, much faster than this,
+       and any suboptimality would be limited to a single line of height difference
+       between the columns. 
+    */
     int best_split_para=-1,best_split_line=-1,best_split_piece=-1;
-    if (two_columns) {
+    
+    if ((two_columns)&&(column_count==2)) {
 
       long long best_penalty=-1;
       float best_height=0;
