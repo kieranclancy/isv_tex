@@ -303,10 +303,17 @@ int layout_line(struct paragraph *p, int line_number,
       if (segment_cost==-1) break;  
       if (0) fprintf(stderr,"  segment cost of %d..%d is %d (combined cost = %d)\n",
 		     a,b,segment_cost,segment_cost+costs[a]);
+
+      // Penalise layouts that take a single line.
+      // This cascades up the layout engine to penalise single-line widows and orphans
+      long long single_line_penalty=0;
+      if (a==start&&b==end) single_line_penalty=1000000;
+      segment_cost+=single_line_penalty;
+
       // Stop looking when line segment is too long
       if ((segment_cost+costa)<costs[b]) {
 	// fprintf(stderr,"    this beats the old cost of %d\n",costs[b]);
-	costs[b]=segment_cost+costa;
+	costs[b]=segment_cost+costa;	
 	next_steps[b]=a;
 	line_counts[b]=line_count+1;
       } else if (0) fprintf(stderr,"    (%d+%d) >= old cost %d\n",
