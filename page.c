@@ -299,6 +299,11 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
       // a page end on a heading line.
       if (l->pieces&&(end_piece>=0)&&l->pieces[end_piece].font) 
 	penalty+=l->pieces[end_piece].font->penalty_at_end_of_page;
+      if (!l->pieces) {
+	// vspace should not appear at the bottom of a page -- it probably indicates
+	// an orphaned/widowed heading.
+	penalty+=1000000000;
+      }
     }
 
     
