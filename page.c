@@ -297,7 +297,8 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
 
       // Check end piece to see if it incurs a penalty, for example, from having
       // a page end on a heading line.
-      penalty+=l->pieces[end_piece].font->penalty_at_end_of_page;
+      if (l->pieces&&(end_piece>=0)&&l->pieces[end_piece].font) 
+	penalty+=l->pieces[end_piece].font->penalty_at_end_of_page;
     }
 
     
