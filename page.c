@@ -191,8 +191,10 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
   int two_columns=0;
   long long cumulative_penalty=0;
   long long column_penalty=0;
+
+  long long widow_penalty=0;
   
-  long long best_penalty=0x7ffffff;
+  long long best_penalty=0x7ffffffffffffffLL;
   float best_height=-1;
 
   
@@ -269,11 +271,16 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
     determinism_test_integer(l?l->piece_count:-1);
     
     if (l&&!l->piece_count) {
+      // don't penalise vspace
+      // XXX - Should we ignore vspace at the top of a page?
+      // This is probably being done somewhere already, since we don't see
+      // vspace at the top of pages in the output.
       penalty=0;
       height=l->line_height;
       determinism_test_integer(penalty);
       determinism_test_float(height);
     } else if (l&&l->piece_count) {
+      // Line contains text, so retrieve penalty etc for it.
       assert(l->metrics->line_pieces==l->piece_count);
       assert(l->metrics->line_pieces>=end_piece);	  
       assert(l->metrics->line_pieces>=checkpoint_piece);
@@ -281,6 +288,21 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
       assert(end_line==checkpoint_line);
       penalty=l->metrics->starts[checkpoint_piece][end_piece].penalty;
       height=l->metrics->starts[checkpoint_piece][end_piece].height;
+
+      // Add widow/orphan penalties for partial lines included in the page
+      widow_penalty=0;
+      if ((start_para==end_para)&&(start_line==end_line))
+	{
+	  // We are in the first line of the page.
+	  // If we are including a partial section of that paragraph, so see if it
+	  // is < 2 lines. If so, then add a big penalty.
+	  int lines = l->metrics->starts[start_piece][end_piece].lines;
+	  int total_lines = l->metrics->starts[0][l->piece_count].lines;
+	  if (total_lines>1)
+	    if (lines<2)
+	      widow_penalty=WIDOW_PENALTY;
+	}
+
       determinism_test_integer(penalty);
       determinism_test_float(height);
 
@@ -302,7 +324,7 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
       if (!l->pieces) {
 	// vspace should not appear at the bottom of a page -- it probably indicates
 	// an orphaned/widowed heading.
-	penalty+=1000000000;
+	penalty+=VSPACE_AT_END_PENALTY;
       }
     }
 
@@ -368,7 +390,7 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
 					&right_penalty,&right_height);
 	  
 	  long long imbalance_penalty
-	    =1000*(left_height-right_height)*(left_height-right_height);
+	    =COLUMN_IMBALANCE_PENALTY_PER_SQPOINT*(left_height-right_height)*(left_height-right_height);
 	  
 	  if (best_penalty==-1
 	      ||(left_penalty+right_penalty+imbalance_penalty<best_penalty))
@@ -415,14 +437,18 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
     if (emptiness<0) emptiness=100;
     else if (emptiness>100) emptiness=0;
     else emptiness=100-emptiness;
-    int emptiness_penalty=16*emptiness*emptiness;
+    long long emptiness_penalty=16*emptiness*emptiness;
 	// Over-filling the page is BAD
     if (this_height>(page_height-top_margin-bottom_margin))
-      emptiness_penalty=100000000;
+      emptiness_penalty=
+	OVERFULL_PAGE_PENALTY_PER_PT*
+	(this_height-(page_height-top_margin-bottom_margin));
     else if (page_height<=(top_margin+bottom_margin+this_height+footnotes_height)) {
-      emptiness_penalty=100000000;
+      emptiness_penalty=
+	OVERFULL_PAGE_PENALTY_PER_PT*
+	((top_margin+bottom_margin+this_height+footnotes_height)-page_height);
     }
-
+    
     determinism_test_integer(emptiness);
     determinism_test_integer(emptiness_penalty);
     
@@ -456,7 +482,7 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
 	if ((backtrace[start_position_count-1].page_count % 2) == 0) {
 	  // Right page, so work out balance penalty:
 	  // = square of difference in height of text blocks
-	  balance_penalty=1000*
+	  balance_penalty=PAGE_IMBALANCE_PENALTY_PER_SQPOINT*
 	    (backtrace[start_position_count-1].height-this_height)
 	    *(backtrace[start_position_count-1].height-this_height);	  
 	}
@@ -474,9 +500,10 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
     assert(cumulative_penalty>=0);
     assert(emptiness_penalty>=0);
     assert(column_penalty>=0);
+    assert(widow_penalty>=0);
     
     long long this_penalty=penalty+cumulative_penalty
-      +emptiness_penalty+balance_penalty+column_penalty;
+      +emptiness_penalty+balance_penalty+column_penalty+widow_penalty;
     
     if (this_penalty<best_penalty) {
       best_penalty=this_penalty; best_height=this_height;
@@ -517,7 +544,7 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
     if (body_paragraphs[end_para]) {
       if (!body_paragraphs[end_para]->line_count) {
 	end_para++;
-	determinism_test_integer(end_para);
+	determinism_test_integer(end_para);	
       } else {
 	end_piece++;
 	determinism_test_integer(end_piece);
@@ -526,6 +553,8 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
 	  determinism_test_integer(end_line);
 	  determinism_test_integer(end_piece);
 	  end_piece=0; end_line++;
+	  // Keep widow penalty of first line on page when we advance to the next line
+	  cumulative_penalty+=widow_penalty;
 	}
 	determinism_test_integer(end_line);
 	determinism_test_integer(end_para);

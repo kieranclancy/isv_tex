@@ -166,7 +166,7 @@ int layout_calculate_segment_cost(struct paragraph *p,
   
   // Fail if line is too wide for column
   int penalty=0;
-  if (line_width>column_width) penalty+=1000000;
+  if (line_width>column_width) penalty+=OVERWIDE_COLUMN_PENALTY;
   else {
     // Else work out penalty based on fullness of line
     int emptiness=calc_emptiness(line_width,column_width);
@@ -291,10 +291,10 @@ int layout_line(struct paragraph *p, int line_number,
     int costa=costs[a];
     // Penalise segments that begin on a space, or follow a non-breaking piece
     if (l->pieces[a].piece_is_elastic) {
-      costa+=1000000;
+      costa+=BREAK_NONBREAKABLE_PENALTY;
     }
     if (a&&(l->pieces[a-1].nobreak)) {
-      costa+=1000000;
+      costa+=BREAK_NONBREAKABLE_PENALTY;
     }
     
     for(b=a+1;b<=end;b++) {
@@ -306,11 +306,12 @@ int layout_line(struct paragraph *p, int line_number,
       // Penalise layouts that take a single line.
       // This cascades up the layout engine to penalise single-line widows and orphans
       long long single_line_penalty=0;
-      if (a==start&&b==end)
-	// But don't apply to intrinsically single-line lines.
-	if (a>0&&b<l->piece_count)
-	  single_line_penalty=1000000;
+      /*      if (a==start&&b==end)
+      // But don't apply to intrinsically single-line lines.
+      if (a>0&&b<l->piece_count)
+      single_line_penalty=1000000;
       segment_cost+=single_line_penalty;
+      */
 
       // Stop looking when line segment is too long
       if ((segment_cost+costa)<costs[b]) {
@@ -376,7 +377,7 @@ int layout_line(struct paragraph *p, int line_number,
   
   // Add penalty if dropchar is taller than the number of lines of output.
   if (l->pieces[0].font->line_count>pcount) {
-    extra=1000000000*(l->pieces[0].font->line_count-pcount);
+    extra=DROPCHAR_PERLINEBLANK_PENALTY*(l->pieces[0].font->line_count-pcount);
   }
   
   if (0) {

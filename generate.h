@@ -7,6 +7,15 @@
 #define UNDERFULL_PAGE_PENALTY_MULTIPLIER (1000.0)
 // Breaking a page on a tied line is really bad
 #define WIDOW_PENALTY (10000000)
+// We shouldn't have vspace at the end of a page, either.
+// It's presence likely indicates a widow in reality.
+#define VSPACE_AT_END_PENALTY (10000000)
+
+#define COLUMN_IMBALANCE_PENALTY_PER_SQPOINT 1000
+#define PAGE_IMBALANCE_PENALTY_PER_SQPOINT 1000
+#define OVERWIDE_COLUMN_PENALTY 1000000
+#define BREAK_NONBREAKABLE_PENALTY 1000000
+#define DROPCHAR_PERLINEBLANK_PENALTY 1000000000
 
 #define AL_NONE 0
 #define AL_CENTRED 1
