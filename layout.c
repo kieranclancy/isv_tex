@@ -366,7 +366,7 @@ int layout_line(struct paragraph *p, int line_number,
 		next_steps[i],i,costs[i],next_steps[i]);
       }
       line_dump(l);
-      exit(-1);   
+      exit(-1);
     }
     positions[pcount++]=position;
     position=next_steps[position];
@@ -388,13 +388,13 @@ int layout_line(struct paragraph *p, int line_number,
   }
   
   {
-    // fprintf(stderr,">> Optimal long-line layout is:\n");
+    fprintf(stderr,">> Optimal long-line layout is:\n");
     int line_count=0;
     int k;
     for(k=pcount-1;k>=0;k--) {
       position=positions[k];
       
-      if (0) {
+      if (1) {
 	fprintf(stderr,"Segment at position %d..%d (cost %d): ",
 		next_steps[position],position,costs[position]);
 	line_dump_segment(l,next_steps[position],position);

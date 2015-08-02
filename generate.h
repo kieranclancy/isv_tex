@@ -120,6 +120,7 @@ struct piece {
 struct line_metric {
   long long penalty;
   float height;
+  int lines;
 };
 
 struct line_metrics {

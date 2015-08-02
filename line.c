@@ -716,9 +716,10 @@ int line_metrics_write(char *filename,struct line_metrics *m)
   for(start=0;start<m->line_pieces;start++) {
     fprintf(f,"%d\n",start);
     for(end=start;end<=m->line_pieces;end++)
-      fprintf(f,"%lld:%.2f\n",
+      fprintf(f,"%lld:%.2f:%d\n",
 	      m->starts[start][end].penalty,
-	      m->starts[start][end].height);
+	      m->starts[start][end].height,
+	      m->starts[start][end].lines);
   }
   fclose(f);
   
@@ -734,7 +735,8 @@ int line_metrics_read(char *filename,struct line_metrics *m)
 
   long long vi;
   float vf;
-
+  int lc;
+  
   // Read line_pieces
   line[0]=0; fgets(line,1024,f);
   if (!line[0]) { fclose(f); return -1; }
@@ -751,9 +753,10 @@ int line_metrics_read(char *filename,struct line_metrics *m)
     for(end=start;end<=m->line_pieces;end++) {
       line[0]=0; fgets(line,1024,f);
       if (!line[0]) { fclose(f); return -1; }
-      if (sscanf(line,"%lld:%f",&vi,&vf)!=2) { fclose(f); return -1; }
+      if (sscanf(line,"%lld:%f:%d",&vi,&vf,&lc)!=3) { fclose(f); return -1; }
       m->starts[start][end].penalty=vi;
       m->starts[start][end].height=vf;      
+      m->starts[start][end].lines=lc;      
     }
   }
   
@@ -780,10 +783,11 @@ int line_analyse(struct paragraph *p,int line_number, int debug)
 
     struct paragraph *out=new_paragraph();
 
-    for(start=0;start<p->paragraph_lines[line_number]->piece_count;start++)
+    for(start=0;start<p->paragraph_lines[line_number]->piece_count;start++) {
       for(end=start+1;end<=p->paragraph_lines[line_number]->piece_count;end++) {
 	int penalty=layout_line(p,line_number,start,end,out,0);
 	float height=paragraph_height(out);
+	int lines = out->line_count;
 	if (debug&&(!start)&&(end==p->paragraph_lines[line_number]->piece_count)) {
 	  fprintf(stderr,"%d..%d : height=%.1f, penalty=%d\n",
 		  start,end,height,penalty);
@@ -802,9 +806,11 @@ int line_analyse(struct paragraph *p,int line_number, int debug)
 	// Record metrics for this line segment
 	m->starts[start][end].penalty=penalty;
 	m->starts[start][end].height=height;
+	m->starts[start][end].lines=lines;
 	
 	paragraph_clear(out);
       }
+    }
     paragraph_free(out);    
   
     // Record metrics for next time so that we don't have to recalculate each time
