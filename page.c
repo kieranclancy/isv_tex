@@ -196,7 +196,7 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
   
   long long best_penalty=0x7ffffffffffffffLL;
   float best_height=-1;
-
+  int best_position=-1;
   
   int end_position=start_position_count;
   
@@ -319,8 +319,26 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
 
       // Check end piece to see if it incurs a penalty, for example, from having
       // a page end on a heading line.
-      if (l->pieces&&(end_piece>=0)&&l->pieces[end_piece].font) 
+      if (l->pieces&&(end_piece>=0)&&l->pieces[end_piece].font)  {
 	penalty+=l->pieces[end_piece].font->penalty_at_end_of_page;
+	if (l->tied_to_next_line) penalty+=BREAK_TIEDLINES_PENALTY;
+	if (0) {
+	  if ((end_piece>=0)
+	      &&(l!=NULL)) {
+	    fprintf(stderr,"End of page penalty that applies to token #%d (piece %d of %d) [%s]",
+		    end_position,
+		    end_piece,l->piece_count,
+		    l->pieces[end_piece].piece);
+	    fprintf(stderr,":%s is %lld\n",
+		    l->pieces[end_piece].font?l->pieces[end_piece].font->font_nickname:"unknown",
+		    l->pieces[end_piece].font?l->pieces[end_piece].font->penalty_at_end_of_page:-1);
+	  } else {
+	    fprintf(stderr,"End of page penalty that applies to token #%d (piece %d of %d) <unrenderable token>",
+		    end_position,
+		    end_piece,l->piece_count);
+	  }
+	}
+      }
       if (!l->pieces) {
 	// vspace should not appear at the bottom of a page -- it probably indicates
 	// an orphaned/widowed heading.
@@ -437,7 +455,7 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
     if (emptiness<0) emptiness=100;
     else if (emptiness>100) emptiness=0;
     else emptiness=100-emptiness;
-    long long emptiness_penalty=16*emptiness*emptiness;
+    long long emptiness_penalty=PAGE_EMPTINESS_PENALTY_PER_PERCENT*emptiness*emptiness;
 	// Over-filling the page is BAD
     if (this_height>(page_height-top_margin-bottom_margin))
       emptiness_penalty=
@@ -507,6 +525,7 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
     
     if (this_penalty<best_penalty) {
       best_penalty=this_penalty; best_height=this_height;
+      best_position=end_position;
     }       	
 
     if (backtrace) {
@@ -580,11 +599,11 @@ int page_score_at_this_starting_point(int start_para,int start_line,int start_pi
 
   if (0)
     fprintf(stderr,"Analysing page start position %d ("
-	    "%d:%d:%d): Best result: "
+	    "%d:%d:%d): Best result (to end position %d): "
 	    " penalty=%lld, height=%.1fpts\n",
 	    start_position_count,
 	    start_para,start_line,start_piece,
-	    best_penalty,best_height);      
+	    best_position,best_penalty,best_height);      
 
   return 0;
 }
@@ -602,11 +621,19 @@ int page_optimal_render_tokens()
   int start_line=0;
   int start_piece=0;
 
+  // Dump full text
+  if (0) {
+    for(start_para=0;start_para<paragraph_count;start_para++) {
+      paragraph_dump(body_paragraphs[start_para]);
+    }
+    start_para=0;
+  }
+  
   int start_position_count=0;
 
   struct page_option_record backtrace[token_count+1];
 
-  for(int i=0;i<token_count;i++) {
+  for(int i=0;i<=token_count;i++) {
     backtrace[i].start_index=-1;
     backtrace[i].start_para=-1;
     backtrace[i].start_line=-1;
@@ -656,29 +683,37 @@ int page_optimal_render_tokens()
   fprintf(stderr,"Analysed all %d possible page starting positions.\n",
 	  start_position_count);
 
-  int position=start_position_count-1;
+  int position=token_count; // start_position_count-1;
   int page_positions[token_count+1];
   int page_count=0;
+
+  // Find end of last page
+  while((position>=0)&&(backtrace[position].height==-1)) {
+    position--;
+  }
   
-  while((position>0)&&(backtrace[position].start_index<position)) {
+  while((position>=0)) { // &&(backtrace[position].start_index<position)) {
     
     long long penalty=backtrace[position].penalty;
     int next_position=backtrace[position].start_index;
     if (next_position>=0) penalty-=backtrace[next_position].penalty;
 
+    fprintf(stderr,"postion=%d, next_position=%d\n",position,next_position);
+    
     if (next_position>=position||next_position<-1) {
       fprintf(stderr,"Illegal step or loop in page optimisation dyanmic programming list.\n");
       exit(-1);
     }
     page_positions[page_count++]=position;
-    position=backtrace[position].start_index;
-
+    
     // Stop as soon as we have reached the start of the actual text
-    if ((!backtrace[next_position].start_para)
-	&&(!backtrace[next_position].start_line)
-	&&(!backtrace[next_position].start_piece))
+    if (next_position<0) break;
+    if ((!backtrace[position].start_para)
+	&&(!backtrace[position].start_line)
+	&&(!backtrace[position].start_piece))
       break;
 
+    position=next_position;
   }
 
 
@@ -686,12 +721,12 @@ int page_optimal_render_tokens()
   struct paragraph *footnotes=new_paragraph();
   footnotes->noindent=1;
   
-  fprintf(stderr,"Optimal page path:\n");
+  fprintf(stderr,"Optimal page path (%d pages):\n",page_count);
   for(int page_number=page_count-1;page_number>=0;page_number--) {
     position=page_positions[page_number];
     long long penalty=backtrace[position].penalty;
     int next_position=backtrace[position].start_index;
-    if (next_position>=0) penalty-=backtrace[next_position].penalty;
+    if (position>=0) penalty-=backtrace[position].penalty;
 
     // Setup new page and render lines onto page.
     if (page_number==(page_count-1))
@@ -702,26 +737,33 @@ int page_optimal_render_tokens()
 
     crossrefs_reset();
     
-    if (next_position>=0) {
-      start_para=backtrace[next_position].start_para;
-      start_line=backtrace[next_position].start_line;
-      start_piece=backtrace[next_position].start_piece;
+    if (position>=0) {
+      start_para=backtrace[position].start_para;
+      start_line=backtrace[position].start_line;
+      start_piece=backtrace[position].start_piece;
     } else {
       start_para=0; start_line=0; start_piece=0;
     }
     if (start_para<0) {
       start_para=0; start_line=0; start_piece=0;
     }
-    
-    int end_para=backtrace[next_position].end_para;
-    int end_line=backtrace[next_position].end_line;
-    int end_piece=backtrace[next_position].end_piece;
 
+    int end_para=0;
+    int end_line=0;
+    int end_piece=0;
+
+    if (position>-1) {
+      end_para=backtrace[position].end_para;
+      end_line=backtrace[position].end_line;
+      end_piece=backtrace[position].end_piece;
+    }
+    
     int num_footnotes=0;
 
-    float predicted_page_height=(next_position>=0)?backtrace[next_position].height:-1;
+    float predicted_page_height=(position>=0)?backtrace[position].height:-1;
     
-    fprintf(stderr,"%d (%d %d %d -- %d %d %d) : penalty=%lld, page_count=%d, page_height=%.1fpts\n",
+    fprintf(stderr,"%d-%d (%d %d %d -- %d %d %d) : penalty=%lld, page_count=%d, page_height=%.1fpts\n",
+	    position,
 	    next_position+1,
 	    start_para,start_line,start_piece,
 	    end_para,end_line,end_piece,
@@ -731,6 +773,8 @@ int page_optimal_render_tokens()
 
     struct line_pieces *l=NULL;
 
+    long long actual_penalty=0;
+    
     while(start_para<end_para||start_line<end_line||start_piece<=end_piece) {
 
       if (body_paragraphs[start_para])
@@ -760,7 +804,7 @@ int page_optimal_render_tokens()
       }
 
       // Layout line onto page
-      penalty=0;
+
       int firstLine=1;
       float prev_page_y=page_y;
       
@@ -781,14 +825,16 @@ int page_optimal_render_tokens()
 		  start_line,start,end,0,l->piece_count);
 	  line_dump(l);
 	}
-	penalty=layout_line(body_paragraphs[start_para],start_line,start,end,out,0);
+	long long line_penalty=layout_line(body_paragraphs[start_para],start_line,start,end,out,0);
+	actual_penalty+=line_penalty;
 	footnotes_build_block(footnotes,out,&num_footnotes);
 	for(int i=0;i<out->line_count;i++) {
 	  if (1) {
-	    fprintf(stderr,"  line #%d %d..%d: left_margin=%d, max_width=%d\n",
+	    fprintf(stderr,"  line #%d %d..%d: left_margin=%d, max_width=%d, penalty=%lld\n",
 		    i,start,end,
 		    out->paragraph_lines[i]->left_margin,
-		    out->paragraph_lines[i]->max_line_width);
+		    out->paragraph_lines[i]->max_line_width,
+		    line_penalty);
 	    line_dump(out->paragraph_lines[i]);
 	  }
 	  float last_page_y=page_y;
@@ -815,10 +861,11 @@ int page_optimal_render_tokens()
 	fprintf(stderr,"  vspace of %.1fpts\n",
 		body_paragraphs[start_para]->total_height);
       }
-      fprintf(stderr,"    %d %d %d (to %d %d %d) actual paragraph height=%.1fpts (%.1f -- %.1fpts on page)\n",
+      fprintf(stderr,"    %d %d %d (to %d %d %d) actual paragraph height=%.1fpts (%.1f -- %.1fpts on page), actual_penalty=%lld\n",
 	      start_para,start_line,start_piece,
 	      end_para,end_line,end_piece,
-	      page_y-prev_page_y,prev_page_y,page_y);
+	      page_y-prev_page_y,prev_page_y,page_y,
+	      actual_penalty);
       
       paragraph_clear(out);
 
@@ -872,11 +919,11 @@ int page_optimal_render_tokens()
     int num_crossrefs=crossref_count;
     
     output_accumulated_cross_references();
-
+    
     fprintf(stderr,"  actual page was %.1fpts long "
-	    "(%d crossrefs, %.1fpts of footnotes).\n",
+	    "(%d crossrefs, %.1fpts of footnotes, penalty = %lld).\n",
 	    actual_page_height,num_crossrefs,
-	    footnotes_height);
+	    footnotes_height,penalty);
     if (fabs(actual_page_height-predicted_page_height)>0.1) {
       fprintf(stderr,"Page length does not match prediction.\n"
 	      "This indicates a bug in the page cost calculation code.\n");
@@ -886,7 +933,7 @@ int page_optimal_render_tokens()
 	      footnotes_height);
 
       fprintf(stderr,"Backtrace in the viscinity:\n");
-      for(int i=next_position-5;i<next_position+5;i++) {
+      for(int i=position-5;i<position+5;i++) {
 	fprintf(stderr,"  %d : si=%d, penalty=%lld, height=%.1fpts : %d %d %d -- %d %d %d\n",
 		i,backtrace[i].start_index,
 		backtrace[i].penalty,
@@ -915,11 +962,11 @@ int page_optimal_render_tokens()
       }
       
       int start_position;
-      if (next_position>=0) {
-	start_para=backtrace[next_position].start_para;
-	start_line=backtrace[next_position].start_line;
-	start_piece=backtrace[next_position].start_piece;
-	start_position=backtrace[next_position].start_index;
+      if (position>=0) {
+	start_para=backtrace[position].start_para;
+	start_line=backtrace[position].start_line;
+	start_piece=backtrace[position].start_piece;
+	start_position=backtrace[position].start_index;
       } else {
 	start_para=0; start_line=0; start_piece=0;
 	start_position=0;
