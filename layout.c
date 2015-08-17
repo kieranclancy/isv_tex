@@ -305,7 +305,7 @@ int layout_line(struct paragraph *p, int line_number,
 		     a,b,segment_cost,segment_cost+costs[a]);      
       // Penalise layouts that take a single line.
       // This cascades up the layout engine to penalise single-line widows and orphans
-      long long single_line_penalty=0;
+      // long long single_line_penalty=0;
       /*      if (a==start&&b==end)
       // But don't apply to intrinsically single-line lines.
       if (a>0&&b<l->piece_count)
