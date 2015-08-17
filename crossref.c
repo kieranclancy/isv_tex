@@ -228,7 +228,7 @@ struct paragraph *crossreference_find(char *book,int chapter, int verse)
 {
   struct paragraph *p=crossref_hash_bins[crossref_calc_hash(book,chapter,verse)];
   while(p) {
-    if ((!strcasecmp(p->src_book,book))
+    if (book && p->src_book && (!strcasecmp(p->src_book,book))
 	&&(chapter==p->src_chapter)
 	&&(verse==p->src_verse)) {
       if (0)
